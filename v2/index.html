@@ -1,0 +1,341 @@
+<!DOCTYPE html><html lang="uk"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<title>Ферма</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fff7ec;--card:#fff;--ink:#3b2a1a;--mute:#9a8570;--gold:#ffb020;--fire:#ff6a2b;--green:#3cc46a;--gem:#7b5cff;--ring:#f3e9dc}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0}
+body{background:radial-gradient(120% 60% at 50% 0,#ffe7c4,var(--bg) 60%);color:var(--ink);font-family:Nunito,system-ui,sans-serif;min-height:100vh;padding:14px 14px 30px;overflow-x:hidden}
+.wrap{max-width:440px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
+.card{background:var(--card);border-radius:22px;box-shadow:0 2px 0 #f0dcc0,0 10px 24px rgba(160,110,50,.10);padding:14px}
+/* streak */
+.streak{display:flex;align-items:center;gap:12px}
+.flame{font-size:40px;line-height:1;filter:drop-shadow(0 4px 8px rgba(255,106,43,.45));transition:transform .4s}
+.flame.dim{filter:grayscale(.65) opacity(.6)}
+.flame.pop{animation:pop .7s cubic-bezier(.3,1.6,.5,1)}
+.sk{flex:1}
+.sk b{font-size:22px;font-weight:900}.sk small{display:block;color:var(--mute);font-weight:700;font-size:12.5px;margin-top:1px}
+.sk small.warn{color:#e2552b}
+.days{display:flex;gap:5px;margin-top:8px}
+.d{flex:1;text-align:center;font-size:10px;font-weight:800;color:var(--mute)}
+.d i{display:block;height:9px;border-radius:5px;background:#f2e6d6;margin-bottom:3px}
+.d.on i{background:linear-gradient(90deg,#ffb020,#ff6a2b)}
+.d.today i{background:#fff;border:2px dashed #ff9a4a;animation:blink 1.4s infinite}
+.d.today.on i{border:0;background:linear-gradient(90deg,#ffb020,#ff6a2b);animation:none}
+@keyframes blink{50%{opacity:.35}}
+/* balances */
+.bal{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.bal .card{display:flex;align-items:center;gap:10px;padding:12px 14px}
+.bi{width:40px;height:40px;border-radius:14px;display:grid;place-items:center;font-size:21px}
+.bi.uah{background:linear-gradient(135deg,#ffe08a,#ffb020);color:#7a4a00;font-weight:900}
+.bi.gem{background:linear-gradient(135deg,#c9b8ff,#7b5cff)}
+.bv{font-size:21px;font-weight:900;font-variant-numeric:tabular-nums}
+.bl{font-size:11.5px;color:var(--mute);font-weight:800}
+.bump{animation:bump .5s}
+@keyframes bump{40%{transform:scale(1.18)}}
+/* hero ring */
+.hero{display:flex;flex-direction:column;align-items:center;padding:18px 14px 16px;position:relative}
+.hero h3{font-size:13px;font-weight:900;color:var(--mute);letter-spacing:.06em;text-transform:uppercase}
+.ringbox{position:relative;width:230px;height:230px;margin:10px 0 6px}
+.ringbox svg{width:100%;height:100%;transform:rotate(-90deg);overflow:visible}
+.track{fill:none;stroke:var(--ring);stroke-width:20}
+.prog{fill:none;stroke:url(#g);stroke-width:20;stroke-linecap:round;transition:stroke-dashoffset 1.1s cubic-bezier(.2,.9,.25,1.15);filter:drop-shadow(0 0 6px rgba(255,150,40,.45))}
+.tick{stroke:#fff;stroke-width:3}
+.ghost{fill:none;stroke:rgba(255,176,32,.35);stroke-width:20;stroke-linecap:round;transition:stroke-dashoffset .3s}
+.center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.pct{font-size:50px;font-weight:900;line-height:1;font-variant-numeric:tabular-nums}
+.pct span{font-size:24px}
+.of{font-weight:800;color:var(--mute);font-size:14px;margin-top:4px;font-variant-numeric:tabular-nums}
+.left{margin-top:8px;font-weight:900;font-size:13px;background:#fff1dc;color:#b35a00;padding:5px 11px;border-radius:999px}
+.left.done{background:#dff7e6;color:#1d8a45}
+.ms{display:flex;gap:8px;margin-top:4px}
+.chip{font-size:12px;font-weight:800;padding:6px 10px;border-radius:12px;background:#f7efe3;color:var(--mute);display:flex;gap:5px;align-items:center;transition:.3s}
+.chip.got{background:#e9ffef;color:#1d8a45}
+/* harvest */
+.hv{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.crop{display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 10px 12px;position:relative;overflow:hidden}
+.crop .t{font-weight:900;font-size:15px}
+.mini{position:relative;width:86px;height:86px}
+.mini svg{width:100%;height:100%;transform:rotate(-90deg)}
+.mini .tr{fill:none;stroke:#eef7e8;stroke-width:9}
+.mini .pr{fill:none;stroke:var(--green);stroke-width:9;stroke-linecap:round;transition:stroke-dashoffset 1s linear}
+.mini .ic{position:absolute;inset:0;display:grid;place-items:center;font-size:34px;transition:transform .3s}
+.crop.ready .mini .ic{animation:wig 1.6s infinite}
+@keyframes wig{0%,60%,100%{transform:rotate(0)}70%{transform:rotate(-10deg) scale(1.1)}80%{transform:rotate(10deg) scale(1.1)}90%{transform:rotate(-5deg)}}
+.rw{font-size:12px;font-weight:800;color:var(--mute)}
+.btn{width:100%;border:0;border-radius:16px;padding:13px 8px;font:900 15px Nunito,sans-serif;color:#fff;cursor:pointer;
+ background:linear-gradient(#53d97f,#2fb45c);box-shadow:0 4px 0 #23914a,0 8px 16px rgba(47,180,92,.35);transition:transform .08s,box-shadow .08s}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 #23914a}
+.crop.ready .btn{animation:breathe 1.6s infinite}
+@keyframes breathe{50%{box-shadow:0 4px 0 #23914a,0 0 0 8px rgba(83,217,127,.25)}}
+.crop:not(.ready) .btn{background:#f1e9de;color:var(--mute);box-shadow:0 4px 0 #e0d2bf;font-variant-numeric:tabular-nums}
+.float{position:fixed;pointer-events:none;font-weight:900;z-index:50;will-change:transform,opacity}
+.plus{position:fixed;pointer-events:none;font:900 22px Nunito;color:#2fb45c;z-index:60;text-shadow:0 2px 0 #fff;animation:rise 1.1s forwards}
+@keyframes rise{to{transform:translateY(-70px);opacity:0}}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.6) rotate(-8deg)}100%{transform:scale(1)}}
+canvas#cf{position:fixed;inset:0;pointer-events:none;z-index:70}
+.toast{position:fixed;left:50%;top:18px;transform:translate(-50%,-140%);background:#fff;padding:12px 18px;border-radius:18px;font-weight:900;
+ box-shadow:0 12px 30px rgba(0,0,0,.18);z-index:80;transition:transform .45s cubic-bezier(.3,1.5,.5,1);white-space:nowrap}
+.toast.show{transform:translate(-50%,0)}
+.demo{text-align:center;font-size:11px;color:var(--mute);font-weight:700}
+
+/* one-off */
+.sect{display:flex;align-items:baseline;justify-content:space-between;margin:10px 4px -2px}
+.sect b{font-size:15px;font-weight:900}.sect small{font-size:12px;color:var(--mute);font-weight:700}
+.once{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.ob{border:0;background:#fff;border-radius:18px;padding:12px 6px 10px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;
+ box-shadow:0 3px 0 #eddcc4,0 8px 18px rgba(160,110,50,.08);font-family:inherit;color:var(--ink);transition:transform .08s,box-shadow .08s}
+.ob:active{transform:translateY(3px);box-shadow:0 0 0 #eddcc4}
+.ob .e{font-size:28px;line-height:1.1}.ob .n{font-weight:900;font-size:13.5px}.ob .r{font-weight:800;font-size:11.5px;color:#2fb45c}
+.ob .x{font-weight:800;font-size:10.5px;color:var(--mute)}
+/* nav */
+body{padding-bottom:96px}
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:40;padding:8px 12px calc(10px + env(safe-area-inset-bottom));background:rgba(255,247,236,.92);backdrop-filter:blur(10px);border-top:1px solid #f0dcc0}
+.nav .in{max-width:440px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.tab{border:0;background:none;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:2px;font-weight:900;font-size:12px;color:var(--mute);cursor:pointer;position:relative;padding:4px 0}
+.tab .ti{font-size:25px;transition:transform .25s;filter:grayscale(.7) opacity(.7)}
+.tab.on{color:var(--ink)}.tab.on .ti{transform:translateY(-3px) scale(1.12);filter:none}
+.tab .dot{position:absolute;top:0;left:calc(50% + 8px);background:linear-gradient(#ff6b5b,#e23b2e);color:#fff;font-size:11px;font-weight:900;min-width:19px;height:19px;border-radius:10px;display:grid;place-items:center;padding:0 5px;border:2px solid #fff7ec}
+.view{display:none}.view.on{display:flex;animation:fadeup .35s}
+@keyframes fadeup{from{opacity:0;transform:translateY(8px)}}
+/* tasks */
+.th{display:flex;align-items:center;gap:14px}
+.th .mini{width:78px;height:78px}
+.th .mini .pr{stroke:var(--gem)}.th .mini .tr{stroke:#efe9ff}
+.th b{font-size:19px;font-weight:900;display:block}.th small{color:var(--mute);font-weight:800;font-size:12.5px}
+.pend{display:inline-flex;margin-top:6px;font-size:12px;font-weight:900;background:#f1ecff;color:#5b3fd6;padding:4px 10px;border-radius:999px}
+.seg{display:flex;background:#f3e8d8;border-radius:14px;padding:4px;gap:4px}
+.seg button{flex:1;border:0;border-radius:11px;padding:9px;font:900 14px Nunito,sans-serif;color:var(--mute);background:none;cursor:pointer}
+.seg button.on{background:#fff;color:var(--ink);box-shadow:0 2px 6px rgba(0,0,0,.08)}
+.task{display:flex;align-items:center;gap:12px;padding:12px 12px 12px 14px;transition:opacity .4s,transform .4s}
+.task .e{font-size:30px;width:40px;text-align:center}
+.task .tx{flex:1;min-width:0}.task .tx b{font-weight:900;font-size:15px;display:block}.task .tx small{color:var(--mute);font-weight:700;font-size:12px}
+.gemchip{font-weight:900;font-size:14px;color:#5b3fd6;background:#f1ecff;border-radius:12px;padding:6px 9px;white-space:nowrap}
+.gemchip.big{background:linear-gradient(135deg,#c9b8ff,#7b5cff);color:#fff}
+.do{border:0;border-radius:14px;padding:10px 12px;font:900 13.5px Nunito,sans-serif;color:#fff;background:linear-gradient(#9d85ff,#6a48f0);box-shadow:0 3px 0 #5034c7;cursor:pointer;white-space:nowrap}
+.do:active{transform:translateY(2px);box-shadow:0 1px 0 #5034c7}
+.task.wait .do{background:#f1ecff;color:#5b3fd6;box-shadow:none}
+.task.done{opacity:.55}.task.done .do{background:#e3f7e9;color:#1d8a45;box-shadow:none}
+.gl{font-size:12px;font-weight:900;color:var(--mute);margin:6px 4px -4px;text-transform:uppercase;letter-spacing:.05em}
+/* shop */
+.sh{display:flex;align-items:center;justify-content:space-between}
+.sh b{font-size:19px;font-weight:900}.sh small{display:block;color:var(--mute);font-weight:800;font-size:12.5px}
+.timer{display:flex;align-items:center;gap:8px;font-weight:900;font-size:13px;color:#b35a00;background:#fff1dc;padding:7px 11px;border-radius:14px;font-variant-numeric:tabular-nums}
+.items{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.item{display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 12px 12px;position:relative;text-align:center}
+.item .e{font-size:46px;line-height:1.1;transition:transform .3s}
+.item b{font-weight:900;font-size:14.5px;line-height:1.15}
+.item .afford{width:100%;height:8px;background:#f1ecff;border-radius:5px;overflow:hidden}
+.item .afford i{display:block;height:100%;background:linear-gradient(90deg,#9d85ff,#6a48f0);border-radius:5px;transition:width .8s}
+.item .need{font-size:11.5px;font-weight:900;color:#5b3fd6;min-height:15px}
+.buy{width:100%;border:0;border-radius:14px;padding:11px 6px;font:900 15px Nunito,sans-serif;color:#fff;background:linear-gradient(#9d85ff,#6a48f0);box-shadow:0 4px 0 #5034c7;cursor:pointer}
+.buy:active{transform:translateY(3px);box-shadow:0 1px 0 #5034c7}
+.buy:disabled{background:#efe9ff;color:#a596e0;box-shadow:0 4px 0 #e0d8fb}
+.rise{position:absolute;top:10px;right:10px;font-size:10.5px;font-weight:900;color:#e2552b;background:#ffece4;padding:3px 7px;border-radius:9px}
+.hot{position:absolute;top:10px;left:10px;font-size:10.5px;font-weight:900;color:#fff;background:linear-gradient(#ff8a4a,#ff5d2b);padding:3px 7px;border-radius:9px}
+.item.lock{background:repeating-linear-gradient(135deg,#fff,#fff 10px,#fbf4ea 10px,#fbf4ea 20px)}
+.item.lock .e{filter:brightness(0) opacity(.18)}
+.item.lock .buy{background:#f3e8d8;color:var(--mute);box-shadow:none}
+.food{display:flex;align-items:center;gap:12px}
+.food .e{font-size:34px}.food .tx{flex:1}.food .tx b{font-weight:900;display:block}.food .tx small{font-weight:700;color:var(--mute);font-size:12px}
+.food .buy{width:auto;padding:10px 14px;font-size:14px}
+</style></head><body>
+<div class="wrap view on" id="v_farm">
+  <div class="card streak">
+    <div class="flame dim" id="flame">🔥</div>
+    <div class="sk"><b><span id="sd">9</span> днів поспіль</b><small id="sw" class="warn">Виконай норму сьогодні — інакше вогник згасне</small>
+      <div class="days" id="days"></div></div>
+  </div>
+  <div class="bal">
+    <div class="card"><div class="bi uah">₴</div><div><div class="bv" id="uah">0</div><div class="bl">гривні</div></div></div>
+    <div class="card"><div class="bi gem">💎</div><div><div class="bv" id="gem">0</div><div class="bl">кристали</div></div></div>
+  </div>
+  <div class="card hero">
+    <h3>Норма на сьогодні</h3>
+    <div class="ringbox" id="rb">
+      <svg viewBox="0 0 230 230"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffcf3a"/><stop offset="1" stop-color="#ff6a2b"/></linearGradient></defs>
+        <circle class="track" cx="115" cy="115" r="95"/>
+        <circle class="ghost" id="ghost" cx="115" cy="115" r="95"/>
+        <circle class="prog" id="prog" cx="115" cy="115" r="95"/>
+        <g id="ticks"></g></svg>
+      <div class="center"><div class="pct"><span id="pv">0</span><span>%</span></div>
+        <div class="of"><span id="earn">0</span> / <span id="norm">0</span> ₴</div>
+        <div class="left" id="left">…</div></div>
+    </div>
+    <div class="ms" id="ms"></div>
+  </div>
+  <div class="hv" id="hv"></div>
+  <div class="sect"><b>Посадила щось інше?</b><small>разовий збір</small></div>
+  <div class="once" id="once"></div>
+  <div class="demo">демо-дані</div>
+</div>
+<div class="wrap view" id="v_tasks">
+  <div class="card th"><div class="mini"><svg viewBox="0 0 86 86"><circle class="tr" cx="43" cy="43" r="37"/><circle class="pr" id="tpr" cx="43" cy="43" r="37"/></svg><div class="ic">💎</div></div>
+    <div><b id="tt1">Сьогодні +0 💎</b><small id="tt2"></small><div class="pend" id="tpend" style="display:none"></div></div></div>
+  <div class="seg" id="gseg"><button data-g="ar" class="on">⚔️ ArcheRage</button><button data-g="wow">🐉 WoW</button></div>
+  <div id="tlist" style="display:flex;flex-direction:column;gap:10px"></div>
+</div>
+<div class="wrap view" id="v_shop">
+  <div class="card sh"><div><b>Крамниця дня</b><small>у тебе <span id="sg">0</span> 💎</small></div><div class="timer">🔄 <span id="stm">--:--:--</span></div></div>
+  <div class="items" id="items"></div>
+  <div class="sect"><b>Завтра в крамниці</b><small>тссс… 🤫</small></div>
+  <div class="items" id="tomorrow"></div>
+  <div class="sect"><b>Корм для улюбленця</b><small id="foodn"></small></div>
+  <div id="foods" style="display:flex;flex-direction:column;gap:10px"></div>
+  <div class="demo">демо-дані</div>
+</div>
+<nav class="nav"><div class="in">
+  <button class="tab on" data-v="farm"><span class="ti">🌾</span>Ферма</button>
+  <button class="tab" data-v="tasks"><span class="ti">📜</span>Завдання<span class="dot" id="tdot">0</span></button>
+  <button class="tab" data-v="shop"><span class="ti">🛍️</span>Крамниця<span class="dot" id="sdot">3</span></button>
+</div></nav>
+<canvas id="cf"></canvas><div class="toast" id="toast"></div>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script>
+const TG=window.Telegram&&Telegram.WebApp; try{TG.ready();TG.expand()}catch(e){}
+const hap=(t)=>{try{t==='ok'?TG.HapticFeedback.notificationOccurred('success'):TG.HapticFeedback.impactOccurred(t||'medium')}catch(e){}};
+// ---------- demo state (later: from appState) ----------
+const S={streak:9,uah:342.5,gem:128,norm:50,earned:31.4,week:[1,1,1,1,1,0,0],today:5,
+ crops:[{id:'beds',name:'Грядки',ic:'🌱',uah:4.2,gem:.5,cycle:20,left:0},
+        {id:'plots',name:'Ділянки',ic:'🌾',uah:9.8,gem:1,cycle:35,left:12}]};
+const R=95,C=2*Math.PI*R,$=id=>document.getElementById(id);
+const fmt=v=>v.toLocaleString('uk-UA',{minimumFractionDigits:v%1?2:0,maximumFractionDigits:2});
+function countTo(el,to,dec,ms=900){const from=+el.dataset.v||0;el.dataset.v=to;const t0=performance.now();
+ (function f(t){const k=Math.min(1,(t-t0)/ms),e=1-Math.pow(1-k,3),v=from+(to-from)*e;el.textContent=dec?fmt(+v.toFixed(2)):Math.round(v);if(k<1)requestAnimationFrame(f)})(t0)}
+// ticks per harvest-size so the ring reads as "steps"
+function ticks(){const g=$('ticks');g.innerHTML='';const step=S.crops[0].uah/S.norm;for(let a=step;a<1;a+=step){const ang=a*2*Math.PI;
+ const x1=115+(R-10)*Math.cos(ang),y1=115+(R-10)*Math.sin(ang),x2=115+(R+10)*Math.cos(ang),y2=115+(R+10)*Math.sin(ang);
+ g.insertAdjacentHTML('beforeend',`<line class="tick" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`)}}
+function days(){const n=['Пн','Вт','Ср','Чт','Пт','Сб','Нд'];$('days').innerHTML=n.map((d,i)=>`<div class="d ${S.week[i]?'on':''} ${i===S.today?'today':''}"><i></i>${d}</div>`).join('')}
+function milestones(){const p=S.earned/S.norm;const M=[[.5,'½','+0 ₴'],[1,'✓','🔥 +1 день']];
+ $('ms').innerHTML=`<div class="chip ${p>=.5?'got':''}">${p>=.5?'✅':'🎯'} Половина</div><div class="chip ${p>=1?'got':''}">${p>=1?'✅':'🏁'} Норма → 🔥 ${S.streak+(S.week[S.today]?0:1)}</div>`}
+function ring(first){const p=Math.min(1,S.earned/S.norm);
+ $('prog').style.strokeDasharray=C;$('ghost').style.strokeDasharray=C;$('prog').style.strokeDashoffset=C*(1-p);$('ghost').style.strokeDashoffset=C*(1-p);
+ countTo($('pv'),Math.floor(p*100));countTo($('earn'),S.earned,1);$('norm').textContent=fmt(S.norm);
+ const rest=S.norm-S.earned,L=$('left');
+ if(rest<=0){L.textContent='Норму виконано! 🎉';L.className='left done'}
+ else{const n=Math.ceil(rest/S.crops[0].uah);L.textContent=n<=1?'Ще 1 збір — і норма!':`Ще ~${n} збори — ${fmt(+rest.toFixed(2))} ₴`;L.className='left'}
+ milestones()}
+function preview(c){ // show where the ring will be after this harvest (goal-gradient)
+ const p=Math.min(1,(S.earned+(c?c.uah:0))/S.norm);$('ghost').style.strokeDasharray=C;$('ghost').style.strokeDashoffset=C*(1-p)}
+function crops(){$('hv').innerHTML=S.crops.map(c=>`<div class="card crop" id="c_${c.id}"><div class="t">${c.ic} ${c.name}</div>
+ <div class="mini"><svg viewBox="0 0 86 86"><circle class="tr" cx="43" cy="43" r="37"/><circle class="pr" cx="43" cy="43" r="37"/></svg><div class="ic">${c.ic}</div></div>
+ <div class="rw">+${fmt(c.uah)} ₴ · +${c.gem} 💎</div><button class="btn"></button></div>`).join('');
+ for(const c of S.crops){const el=$('c_'+c.id),b=el.querySelector('button');
+  b.onclick=()=>harvest(c,el);b.onpointerenter=()=>preview(c);b.onpointerleave=()=>preview();b.ontouchstart=()=>preview(c)}
+ tickCrops()}
+function tickCrops(){for(const c of S.crops){const el=$('c_'+c.id);if(!el)continue;const pr=el.querySelector('.pr'),b=el.querySelector('button'),cc=2*Math.PI*37;
+ pr.style.strokeDasharray=cc;pr.style.strokeDashoffset=cc*(c.left/c.cycle);
+ const ready=c.left<=0;el.classList.toggle('ready',ready);
+ b.textContent=ready?'Зібрав ✓':'⏳ '+Math.floor(c.left/60)+':'+String(Math.ceil(c.left%60)).padStart(2,'0')}}
+setInterval(()=>{for(const c of S.crops)if(c.left>0)c.left=Math.max(0,c.left-1);tickCrops()},1000);
+// flying particles along a curve
+function fly(from,to,char,n,done){const a=from.getBoundingClientRect(),b=to.getBoundingClientRect();let k=0;
+ for(let i=0;i<n;i++){const s=document.createElement('div');s.className='float';s.textContent=char;s.style.fontSize=(18+Math.random()*10)+'px';document.body.appendChild(s);
+  const x0=a.left+a.width/2+(Math.random()-.5)*60,y0=a.top+a.height/2,x1=b.left+b.width/2,y1=b.top+b.height/2,cx=(x0+x1)/2+(Math.random()-.5)*160,cy=Math.min(y0,y1)-80-Math.random()*80;
+  const d=550+Math.random()*350,t0=performance.now()+i*45;
+  (function f(t){let u=(t-t0)/d;if(u<0){requestAnimationFrame(f);return}if(u>1){s.remove();if(++k===n&&done)done();return}
+   const e=u<.5?2*u*u:1-Math.pow(-2*u+2,2)/2,x=(1-e)*(1-e)*x0+2*(1-e)*e*cx+e*e*x1,y=(1-e)*(1-e)*y0+2*(1-e)*e*cy+e*e*y1;
+   s.style.transform=`translate(${x-12}px,${y-12}px) scale(${1-.4*e})`;s.style.opacity=1-.3*e;requestAnimationFrame(f)})(performance.now())}}
+function plus(el,txt,col){const r=el.getBoundingClientRect(),p=document.createElement('div');p.className='plus';p.textContent=txt;if(col)p.style.color=col;
+ p.style.left=(r.left+r.width/2-30)+'px';p.style.top=(r.top-10)+'px';document.body.appendChild(p);setTimeout(()=>p.remove(),1200)}
+function harvest(c,el){
+ if(c.left>0){hap('light');toast('Ще росте — зачекай ⏳');return}
+ c.left=c.cycle;tickCrops();reward(el.querySelector('.mini'),c.uah,c.gem);
+ // TODO: POST {action:'harvest',kind:c.id} to appApi
+}
+function bump(e){const p=e.closest('.card');p.classList.remove('bump');void p.offsetWidth;p.classList.add('bump')}
+function celebrate(){hap('ok');S.streak++;S.week[S.today]=1;days();$('sd').textContent=S.streak;
+ const f=$('flame');f.classList.remove('dim');f.classList.add('pop');
+ $('sw').textContent='Вогник горить! Завтра буде '+(S.streak+1);$('sw').className='';
+ milestones();toast('🔥 Норму виконано! '+S.streak+' днів поспіль');confetti()}
+let tt;function toast(t){const e=$('toast');e.textContent=t;e.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>e.classList.remove('show'),2200)}
+function confetti(){const cv=$('cf'),x=cv.getContext('2d');cv.width=innerWidth*devicePixelRatio;cv.height=innerHeight*devicePixelRatio;x.scale(devicePixelRatio,devicePixelRatio);
+ const cols=['#ffb020','#ff6a2b','#3cc46a','#7b5cff','#ff5d8f','#2bb5ff'],P=[...Array(140)].map(()=>({x:innerWidth/2,y:innerHeight*.38,vx:(Math.random()-.5)*14,vy:-Math.random()*14-4,r:Math.random()*6+4,c:cols[Math.random()*6|0],a:Math.random()*6,va:(Math.random()-.5)*.4}));
+ const t0=performance.now();(function f(t){x.clearRect(0,0,innerWidth,innerHeight);for(const p of P){p.vy+=.35;p.vx*=.99;p.x+=p.vx;p.y+=p.vy;p.a+=p.va;
+  x.save();x.translate(p.x,p.y);x.rotate(p.a);x.fillStyle=p.c;x.fillRect(-p.r/2,-p.r/4,p.r,p.r/2);x.restore()}
+  if(t-t0<2600)requestAnimationFrame(f);else x.clearRect(0,0,innerWidth,innerHeight)})(t0)}
+// streak warning: hours left today
+function streakWarn(){if(S.earned>=S.norm)return;const n=new Date(),h=23-n.getHours(),m=59-n.getMinutes();
+ $('sw').textContent=`Ще ${h} год ${m} хв, щоб зберегти вогник`}
+
+// ---------- one-off harvests: add balance, restart the main timer of that kind
+S.once=[{id:'narc',name:'Нарциси',ic:'🌼',uah:3.1,kind:'beds'},{id:'clover',name:'Конюшина',ic:'🍀',uah:7.5,kind:'plots'},{id:'mint',name:'М’ята',ic:'🌿',uah:6.9,kind:'beds'}];
+function onceUI(){$('once').innerHTML=S.once.map(o=>{const k=S.crops.find(c=>c.id===o.kind);return `<button class="ob" id="o_${o.id}"><span class="e">${o.ic}</span><span class="n">${o.name}</span><span class="r">+${fmt(o.uah)} ₴ · +${k.gem} 💎</span><span class="x">↺ таймер «${k.name}»</span></button>`}).join('');
+ for(const o of S.once){const el=$('o_'+o.id);el.onclick=()=>{const k=S.crops.find(c=>c.id===o.kind);reward(el,o.uah,k.gem);k.left=k.cycle;tickCrops();toast(o.ic+' '+o.name+' зібрано · таймер «'+k.name+'» з нуля')};
+  el.onpointerenter=()=>preview(o);el.onpointerleave=()=>preview();el.ontouchstart=()=>preview(o)}}
+// shared reward animation (used by main harvest too)
+function reward(el,uah,gem){hap('heavy');const before=S.earned;plus(el,'+'+fmt(uah)+' ₴');
+ fly(el,$('rb'),'🪙',6,()=>{S.earned=+(S.earned+uah).toFixed(2);ring();hap('medium');if(before<S.norm&&S.earned>=S.norm)celebrate()});
+ fly(el,$('uah').closest('.card'),'₴',4,()=>{S.uah+=uah;countTo($('uah'),S.uah,1);bump($('uah'))});
+ fly(el,$('gem').closest('.card'),'💎',3,()=>{S.gem+=gem;gemUI()})}
+function gemUI(){countTo($('gem'),S.gem,1);bump($('gem'));shopUI()}
+// ---------- tabs
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{hap('light');document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===b));
+ document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id==='v_'+b.dataset.v));scrollTo(0,0);
+ if(b.dataset.v==='shop'){S.shopSeen=1;$('sdot').style.display='none'}});
+// ---------- tasks
+S.game='ar';S.pending=0;S.todayGem=0;
+S.tasks={ar:[
+ {g:'Щодня',id:'daily',ic:'📜',name:'Щоденні квести',d:'усі щоденки',gem:5},
+ {g:'Щодня',id:'gift',ic:'🎁',name:'Забрати подарунок',d:'щоденний вхід',gem:1},
+ {g:'Щодня',id:'nui',ic:'🕯️',name:'Квести Нуі',d:'+1 за кожного персонажа',gem:1,n:3},
+ {g:'Щодня',id:'dog',ic:'🐕',name:'Погуляти з собакою',d:'',gem:1},
+ {g:'Коли є',id:'restock',ic:'📦',name:'Поповнити запаси ферми',d:'насіння, добрива',gem:10},
+ {g:'Коли є',id:'flower',ic:'🐃',name:'Буйволи за «квітку»',d:'на всіх персонажах',gem:3},
+ {g:'Коли є',id:'quest',ic:'🗺️',name:'Сюжетний квест',d:'',gem:5},
+ {g:'Коли є',id:'event',ic:'🎪',name:'Івент',d:'',gem:5},
+ {g:'Великі',id:'alt',ic:'🧙',name:'Прокачати альта',d:'і поставити пуголово',gem:50}],
+ wow:[
+ {g:'Підземелля (до 35 рівня)',id:'wd_rfc',ic:'🔥',name:'Ragefire Chasm',d:'перше проходження',gem:30},
+ {g:'Підземелля (до 35 рівня)',id:'wd_dm',ic:'⛏️',name:'The Deadmines',d:'перше проходження',gem:30},
+ {g:'Підземелля (до 35 рівня)',id:'wd_wc',ic:'🐍',name:'Wailing Caverns',d:'повторне',gem:20},
+ {g:'Підземелля (до 35 рівня)',id:'wd_sfk',ic:'🏰',name:'Shadowfang Keep',d:'перше проходження',gem:30}]};
+const st={};
+function tasksUI(){const L=S.tasks[S.game];let html='',grp='';
+ for(const t of L){if(t.g!==grp){grp=t.g;html+=`<div class="gl">${grp}</div>`}
+  const s=st[t.id]||'',n=t.n?` ×${t.n}`:'';
+  html+=`<div class="card task ${s}" id="t_${t.id}"><div class="e">${t.ic}</div><div class="tx"><b>${t.name}</b>${t.d?`<small>${t.d}</small>`:''}</div>
+   <span class="gemchip ${t.gem>=20?'big':''}">+${t.gem*(t.n||1)} 💎</span>
+   <button class="do">${s==='wait'?'⏳':s==='done'?'✓':'Зроблено'}</button></div>`}
+ $('tlist').innerHTML=html;
+ for(const t of L){const el=$('t_'+t.id);el.querySelector('.do').onclick=()=>doTask(t,el)}
+ const daily=S.tasks.ar.filter(t=>t.g==='Щодня'),left=daily.filter(t=>!st[t.id]).length,tot=daily.reduce((a,t)=>a+t.gem*(t.n||1),0),got=daily.filter(t=>st[t.id]).reduce((a,t)=>a+t.gem*(t.n||1),0);
+ const pr=$('tpr'),cc=2*Math.PI*37;pr.style.strokeDasharray=cc;pr.style.strokeDashoffset=cc*(1-got/tot);
+ $('tt1').textContent=`Щоденні: ${got} / ${tot} 💎`;
+ $('tt2').textContent=left?(left===1?'Лишилось 1 завдання — добий!':`Лишилось ${left} — ще +${tot-got} 💎 сьогодні`):'Усі щоденні закрито! 🎉';
+ const p=$('tpend');p.style.display=S.pending?'inline-flex':'none';p.textContent=`⏳ +${S.pending} 💎 чекають підтвердження`;
+ const all=Object.values(S.tasks).flat().filter(t=>!st[t.id]&&t.g==='Щодня').length;$('tdot').textContent=all;$('tdot').style.display=all?'grid':'none'}
+function doTask(t,el){if(st[t.id])return;st[t.id]='wait';const g=t.gem*(t.n||1);S.pending+=g;hap('heavy');
+ plus(el.querySelector('.gemchip'),'+'+g+' 💎','#6a48f0');fly(el.querySelector('.gemchip'),$('tpend').style.display==='none'?$('tt1'):$('tpend'),'💎',Math.min(8,2+g/5|0),()=>{});
+ setTimeout(()=>{tasksUI();toast('Надіслано на перевірку ✨ +'+g+' 💎 після ✓')},350);
+ // demo: owner approves after 4 s
+ setTimeout(()=>{st[t.id]='done';S.pending-=g;S.gem+=g;gemUI();tasksUI();toast('✅ «'+t.name+'» підтверджено · +'+g+' 💎');hap('ok')},4000)}
+document.querySelectorAll('#gseg button').forEach(b=>b.onclick=()=>{S.game=b.dataset.g;document.querySelectorAll('#gseg button').forEach(x=>x.classList.toggle('on',x===b));tasksUI()});
+// ---------- shop
+S.shop=[{id:'ice',ic:'🍦',name:'Морозиво',base:40,times:0,hot:1},{id:'cart',ic:'🎬',name:'Мультик +30 хв',base:25,times:1},{id:'toy',ic:'🧸',name:'Нова іграшка',base:150,times:0}];
+S.tom=[{ic:'🎮',name:'+30 хв гри'},{ic:'🍕',name:'Піца-вечір'},{ic:'🎨',name:'Набір для малювання'}];
+S.food={have:4,one:1,pack:10,packN:12,gemDay:false};
+const price=i=>Math.round(i.base*Math.pow(1.3,i.times));
+function shopUI(){$('sg').textContent=fmt(S.gem);$('items').innerHTML=S.shop.map(i=>{const p=price(i),k=Math.min(1,S.gem/p),need=Math.ceil(p-S.gem);
+ return `<div class="card item" id="i_${i.id}">${i.hot?'<span class="hot">хіт</span>':''}${i.times?`<span class="rise">${i.times+1}-га за тиждень</span>`:''}
+  <div class="e">${i.ic}</div><b>${i.name}</b><div class="afford"><i style="width:${k*100}%"></i></div>
+  <div class="need">${need>0?`ще ${need} 💎 — і твоє!`:`можна купити ✨`}</div>
+  <button class="buy" ${need>0?'disabled':''}>${p} 💎</button></div>`}).join('');
+ for(const i of S.shop){$('i_'+i.id).querySelector('.buy').onclick=()=>buy(i)}
+ $('tomorrow').innerHTML=S.tom.map(i=>`<div class="card item lock"><div class="e">${i.ic}</div><b>???</b><div class="need" style="color:var(--mute)">відкриється завтра</div><button class="buy" disabled>🔒</button></div>`).join('');
+ $('foodn').textContent=`у тебе ${S.food.have} 🦴`;
+ $('foods').innerHTML=`<div class="card food"><div class="e">🦴</div><div class="tx"><b>Корм ×1</b><small>погодувати один раз</small></div><button class="buy" id="f1" ${S.gem<S.food.one?'disabled':''}>${S.food.one} 💎</button></div>
+  <div class="card food"><div class="e">📦</div><div class="tx"><b>Пак ×${S.food.packN}</b><small>${S.food.gemDay?'вигідно: −20% 🔥':'лише в кристальний день'}</small></div><button class="buy" id="f2" ${!S.food.gemDay||S.gem<S.food.pack?'disabled':''}>${S.food.gemDay?S.food.pack+' 💎':'🔒'}</button></div>`;
+ $('f1').onclick=()=>{S.gem-=S.food.one;S.food.have++;hap('medium');plus($('f1'),'+1 🦴','#b35a00');countTo($('gem'),S.gem,1);shopUI()};
+ $('f2').onclick=()=>{S.gem-=S.food.pack;S.food.have+=S.food.packN;hap('heavy');plus($('f2'),'+'+S.food.packN+' 🦴','#b35a00');countTo($('gem'),S.gem,1);shopUI()}}
+function buy(i){const p=price(i);if(S.gem<p)return;const el=$('i_'+i.id);hap('ok');
+ fly($('gem').closest('.card').isConnected&&$('v_farm').classList.contains('on')?$('gem').closest('.card'):el.querySelector('.buy'),el.querySelector('.e'),'💎',Math.min(10,3+p/20|0),()=>{});
+ el.querySelector('.e').style.transform='scale(1.4) rotate(-8deg)';setTimeout(()=>{S.gem-=p;i.times++;countTo($('gem'),S.gem,1);shopUI();confetti();toast(i.ic+' '+i.name+' — твоє! Наступна: '+price(i)+' 💎')},700)}
+function shopTimer(){const n=new Date(),e=new Date(n);e.setHours(24,0,0,0);const d=Math.max(0,(e-n)/1000|0);
+ $('stm').textContent=[d/3600|0,(d%3600)/60|0,d%60].map(x=>String(x).padStart(2,'0')).join(':')}
+setInterval(shopTimer,1000);shopTimer();
+onceUI();tasksUI();shopUI();
+
+days();ticks();crops();ring(true);countTo($('uah'),S.uah,1);countTo($('gem'),S.gem,1);streakWarn();setInterval(streakWarn,30000);
+</script></body></html>
