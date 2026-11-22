@@ -3411,6 +3411,12 @@ function appApi(e) {
       else if (body.action === 'feed') { const pet = petOf(st, id); if (!petOk(pet)) q.out.push('Улюбленця ще немає'); else { const why = petFeed(st, id, now); q.out.push(why ? why.replace(/<[^>]+>/g, '') : '🍖 Ням! +' + st.cfg.pet.feed + '% ситості'); } }
       else if (body.action === 'harvest') appHarvest(st, user, String(a.kind), a.crop ? String(a.crop) : '', q, now);
       else if (body.action === 'task') { const t = taskDef(String(a.id)); if (!t) q.out.push('Такого завдання немає'); else doTask(st, user, String(a.id), id, q, noop); }
+      else if (body.action === 'item') { // 🎒 use something from the inventory
+        const w = String(a.what || '');
+        if (w === 'prize') { q.message = { text: '' }; openPrizes(st, user, q, '', noop); }
+        else if (/^(ice|vac|cash|cpn_[\w-]+)$/.test(w)) useItem(st, user, w, id, q, noop);
+        else q.out.push('Такого предмета немає');
+      }
       else if (body.action === 'wear') { const pet = petOf(st, id); const why = petOk(pet) ? petCloth(st, id, String(a.slot), String(a.item)) : 'Улюбленця ще немає'; q.out.push(why ? why.replace(/<[^>]+>/g, '') : '👕 Обновка!'); }
       else changed = false; // 'state': just look
       const pet = petOf(st, id); if (petOk(pet)) petTick(st, pet, now);
@@ -3491,6 +3497,30 @@ function appInvest(st, id) {
   const offers = (st.offers || []).map(function (o) { return { id: o.id, name: o.name, type: typeLabel(o.type), price: o.price, raised: money(offerSum(o)), my: money(o.pledges[id] || 0), dayAll: money(offerDaily(st, o)) }; });
   return { daily: plots.reduce(function (a, p) { return a + p.day; }, 0), wallet: money((st.invWallet || {})[id] || 0), plots: plots, offers: offers };
 }
+function appMe(st, id, now) { // 👤 stats, records, the family this week, the next achievements, the inventory
+  const day = dayKey(now, st.cfg), wk = 'w:' + weekKey(day), mo = 'm:' + monthKey(now);
+  const pick = function (key, u) { const r = (st.stats[key] || {})[u || id]; return { n: r ? r.n : 0, uah: r ? money(r.g !== undefined ? r.g : r.uah) : 0 }; };
+  const days = []; for (let i = 6; i >= 0; i--) { const d = dayKey(now - i * 86400000, st.cfg); days.push(Object.assign({ day: d }, pick('d:' + d))); }
+  const mine = st.ach[id] || {}, x = inv(st, id);
+  return {
+    today: pick('d:' + day), week: pick(wk), month: pick(mo), days: days,
+    rec: { bestStreak: bestStreak(st, id), bestDay: bestDay(st, id), harvests: harvestsRaw(st, id), earned: money(earnedRaw(st, id)) },
+    family: Object.keys(st.people).map(function (u) { const w = pick(wk, u); return { name: nameOf(st, u), color: colorOf(st, u), uah: w.uah, n: w.n, me: u === String(id) }; })
+      .sort(function (a, b) { return b.uah - a.uah; }),
+    ach: { got: Object.keys(mine).length, total: ACH_GROUPS.reduce(function (a, g) { return a + g.steps.length; }, 0) + 1,
+      next: ACH_GROUPS.map(function (g) { const v = g.of(st, id), i = g.steps.findIndex(function (s, k) { return !mine[achId(g, k)]; });
+        const last = g.steps.filter(function (s, k) { return mine[achId(g, k)]; }).pop();
+        return { title: g.title, v: money(v), need: i >= 0 ? g.steps[i][0] : null, icon: i >= 0 ? g.steps[i][1] : (last ? last[1] : '🏅'), name: i >= 0 ? achName(st, id, g.steps[i]) : 'Усе зібрано!', from: i > 0 ? g.steps[i - 1][0] : 0 }; }) },
+    items: [].concat(
+      x.gift.length ? [{ what: 'prize', icon: '🎁', label: 'Невідкритий приз', n: x.gift.length, act: 'Відкрити' }] : [],
+      x.ice ? [{ what: 'ice', icon: '🍦', label: 'Морозиво', n: x.ice, act: 'Хочу!' }] : [],
+      x.vac.length ? [{ what: 'vac', icon: '🏖', label: 'Відпустка (' + money(x.vac[0]) + ' грн)', n: x.vac.length, act: 'Сьогодні' }] : [],
+      x.cash ? [{ what: 'cash', icon: '💰', label: 'Грошовий приз', n: money(x.cash), unit: 'грн', act: 'Забрати' }] : [],
+      Object.keys(x.coupons).filter(function (k) { return x.coupons[k] > 0 && shopItem(k); }).map(function (k) { const it = shopItem(k); return { what: 'cpn_' + k, icon: it.icon, label: it.label, n: x.coupons[k], act: 'Використати' }; }),
+      x.freeze ? [{ what: '', icon: '❄️', label: 'Заморозка стріку', n: x.freeze, note: 'спрацює сама' }] : [],
+      x.food ? [{ what: '', icon: '🍖', label: 'Корм', n: x.food, note: 'для улюбленця' }] : []),
+  };
+}
 function appState(st, id) {
   const now = Date.now(), p = st.people[id], x = inv(st, id), n = streakOf(st, id, now), today = shopToday(st, id);
   const pet = petOf(st, id), ok = petOk(pet), P = st.cfg.pet;
@@ -3515,7 +3545,7 @@ function appState(st, id) {
     inv: { food: x.food, ice: x.ice, vac: x.vac.length, cash: money(x.cash), freeze: x.freeze, gifts: x.gift.length,
       coupons: Object.keys(x.coupons).filter(function (k) { return x.coupons[k] > 0 && shopItem(k); }).map(function (k) { const it = shopItem(k); return { id: k, icon: it.icon, label: it.label, n: x.coupons[k] }; }) },
     gemUah: st.cfg.gemUah,
-    farm: appFarm(st, id, now), tasks: appTasks(st, id), invest: appInvest(st, id),
+    farm: appFarm(st, id, now), tasks: appTasks(st, id), invest: appInvest(st, id), my: appMe(st, id, now),
   };
 }
 

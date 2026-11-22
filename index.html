@@ -91,7 +91,7 @@ canvas#cf{position:fixed;inset:0;pointer-events:none;z-index:70}
 /* nav */
 body{padding-bottom:96px}
 .nav{position:fixed;left:0;right:0;bottom:0;z-index:40;padding:8px 12px calc(10px + env(safe-area-inset-bottom));background:rgba(255,247,236,.92);backdrop-filter:blur(10px);border-top:1px solid #f0dcc0}
-.nav .in{max-width:440px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.nav .in{max-width:440px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
 .tab{border:0;background:none;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:2px;font-weight:900;font-size:12px;color:var(--mute);cursor:pointer;position:relative;padding:4px 0}
 .tab .ti{font-size:25px;transition:transform .25s;filter:grayscale(.7) opacity(.7)}
 .tab.on{color:var(--ink)}.tab.on .ti{transform:translateY(-3px) scale(1.12);filter:none}
@@ -187,6 +187,38 @@ body{padding-bottom:96px}
 .tile.raise .mo{color:#b35a00}
 .pbar{height:9px;border-radius:5px;background:#f3e9dc;overflow:hidden}.pbar i{display:block;height:100%;background:linear-gradient(90deg,#ffcf3a,#ff6a2b);border-radius:5px}
 .empty{grid-column:1/-1;text-align:center;font-weight:800;color:var(--mute);padding:18px}
+
+.tab{font-size:11px}
+.mehd{display:flex;flex-direction:column;gap:10px}
+.mehd b{font-size:20px;font-weight:900}.mehd small{display:block;color:var(--mute);font-weight:800;font-size:12.5px}
+.trio{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.trio div{background:#fff7ec;border-radius:14px;padding:9px 6px;text-align:center}
+.trio b{display:block;font-size:17px;font-variant-numeric:tabular-nums}.trio small{font-size:11px}
+.itm{padding:12px;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center}
+.itm .e{font-size:34px}.itm b{font-size:13.5px;font-weight:900;line-height:1.2;min-height:2.4em;display:flex;align-items:center}
+.itm .n{font-size:12px;font-weight:900;color:#5b3fd6}.itm .note{font-size:11.5px;color:var(--mute);font-weight:800}
+.itm .buy{margin-top:auto;padding:9px 6px;font-size:13.5px}
+.chart{display:flex;align-items:flex-end;gap:8px;height:170px;padding:14px 14px 10px;position:relative}
+.chart .col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:4px}
+.chart .v{font-size:10.5px;font-weight:900;color:var(--mute);font-variant-numeric:tabular-nums}
+.chart .b{width:100%;border-radius:8px 8px 4px 4px;background:#f3e9dc;transition:height .8s cubic-bezier(.2,.9,.25,1.1);min-height:4px}
+.chart .b.ok{background:linear-gradient(#ffcf3a,#ff8a2b)}.chart .col.today .b{box-shadow:0 0 0 2px #ff9a4a}
+.chart .l{font-size:11px;font-weight:900;color:var(--mute)}
+.chart .nl{position:absolute;left:14px;right:14px;border-top:2px dashed #ffb27a}
+.chart .nl span{position:absolute;right:0;top:-17px;font-size:10px;font-weight:900;color:#e2552b;background:#fff;padding:0 4px}
+.fr{display:flex;align-items:center;gap:10px;padding:7px 0}.fr+.fr{border-top:1px solid #f3e9dc}
+.fr .rk{width:22px;font-weight:900;color:var(--mute);text-align:center}.fr .nm{flex:1;font-weight:900;white-space:nowrap}
+.fr .fb{flex:2;height:10px;border-radius:5px;background:#f3e9dc;overflow:hidden}.fr .fb i{display:block;height:100%;background:linear-gradient(90deg,#53d97f,#2fb45c);border-radius:5px}
+.fr .fv{width:68px;text-align:right;font-weight:900;font-variant-numeric:tabular-nums;font-size:13.5px}
+.fr.me .nm{color:#1d8a45}
+.ach{display:flex;align-items:center;gap:12px;padding:12px 14px}
+.ach .e{font-size:30px;filter:grayscale(.3)}.ach .tx{flex:1}.ach b{font-weight:900;font-size:14.5px}.ach small{display:block;font-size:11.5px;color:var(--mute);font-weight:800}
+.ach .ab{height:9px;border-radius:5px;background:#f3e9dc;overflow:hidden;margin-top:6px}.ach .ab i{display:block;height:100%;background:linear-gradient(90deg,#ffcf3a,#ff6a2b)}
+.ach .av{font-size:12px;font-weight:900;color:#b35a00;white-space:nowrap;font-variant-numeric:tabular-nums}
+.more{border:0;background:none;font:900 13px Nunito,sans-serif;color:var(--mute);padding:6px;cursor:pointer}
+.recs{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.recs div{background:#fff;border-radius:18px;padding:12px;box-shadow:0 2px 0 #f0dcc0;text-align:center}
+.recs b{display:block;font-size:20px;font-weight:900;font-variant-numeric:tabular-nums}.recs small{font-size:11.5px;color:var(--mute);font-weight:800}
 </style></head><body>
 <div class="wrap view on" id="v_farm">
   <div class="card top">
@@ -230,11 +262,27 @@ body{padding-bottom:96px}
   <div id="offs"></div>
   <div class="demo dm"></div>
 </div>
+<div class="wrap view" id="v_me">
+  <div class="card mehd"><div><b id="mname">Я</b><small id="machs"></small></div><div class="trio" id="trio"></div></div>
+  <div class="sect"><b>🎒 Мої речі</b><small id="icount"></small></div>
+  <div class="tiles" id="mitems"></div>
+  <div class="sect"><b>📊 Останні 7 днів</b><small id="wtot"></small></div>
+  <div class="card chart" id="chart"></div>
+  <div class="sect"><b>👨‍👩‍👧 Родина цього тижня</b></div>
+  <div class="card" id="fam"></div>
+  <div class="sect"><b>🏅 Наступні досягнення</b><small id="achn"></small></div>
+  <div id="achs" style="display:flex;flex-direction:column;gap:10px"></div>
+  <button class="more" id="achmore">Показати всі</button>
+  <div class="sect"><b>🏆 Рекорди</b></div>
+  <div class="recs" id="recs"></div>
+  <div class="demo dm"></div>
+</div>
 <nav class="nav"><div class="in">
   <button class="tab on" data-v="farm"><span class="ti">🌾</span>Ферма</button>
   <button class="tab" data-v="tasks"><span class="ti">📜</span>Завдання<span class="dot" id="tdot" style="display:none">0</span></button>
-  <button class="tab" data-v="inv"><span class="ti">💼</span>Інвестиції</button>
+  <button class="tab" data-v="inv"><span class="ti">💼</span>Інвест.</button>
   <button class="tab" data-v="shop"><span class="ti">🛍️</span>Крамниця<span class="dot" id="sdot" style="display:none">0</span></button>
+  <button class="tab" data-v="me"><span class="ti">👤</span>Я<span class="dot" id="mdot" style="display:none">0</span></button>
 </div></nav>
 <canvas id="cf"></canvas><div class="toast" id="toast"></div>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -286,7 +334,7 @@ function confetti(){const cv=$('cf'),x=cv.getContext('2d');cv.width=innerWidth*d
 function confirmTG(text){return new Promise(res=>{try{TG.showConfirm(text,ok=>res(ok))}catch(e){res(confirm(text))}})}
 // ===================== render: farm
 const WD=['Нд','Пн','Вт','Ср','Чт','Пт','Сб'];
-function render(){if(!S)return;renderTop();renderRing();renderCrops();renderOnce();renderTasks();renderShop();if(S.invest)renderInvest()}
+function render(){if(!S)return;renderTop();renderRing();renderCrops();renderOnce();renderTasks();renderShop();if(S.invest)renderInvest();renderMe()}
 function renderTop(){const me=S.me,w=S.farm.week,done=w[w.length-1].ok;
  $('sd').textContent=me.streak;$('sdw').textContent=plural(me.streak,['день','дні','днів']);
  $('flame').classList.toggle('dim',!done);
@@ -396,6 +444,36 @@ function renderInvest(){const I=S.invest,mine=I.plots.filter(p=>p.share>0);
   <div class="dd">${fmt(o.raised)} / ${fmt(o.price)} ₴ · ${Math.round(k*100)}%</div><div class="mo">+${fmt(Math.round(o.dayAll*30))} <small>₴/міс усім</small></div>${o.my?`<div class="dd">твій внесок ${fmt(o.my)} ₴</div>`:''}</div>`}).join('')+'</div>':''}
 function tickInvest(){if(!S||!S.invest||!$('v_inv').classList.contains('on'))return;const n=new Date(),sec=(n-new Date(n.getFullYear(),n.getMonth(),n.getDate()))/1000;
  const v=S.invest.daily*sec/86400,s=v.toFixed(5).split('.');$('ti').textContent=(+s[0]).toLocaleString('uk-UA');$('td').textContent=','+s[1];requestAnimationFrame(tickInvest)}
+// ===================== me: stats + inventory
+let achAll=false;
+function renderMe(){const M=S.my;if(!M)return;
+ $('mname').textContent=S.me.name;$('machs').textContent=`🏅 ${M.ach.got} з ${M.ach.total} досягнень · 🔥 ${S.me.streak} ${plural(S.me.streak,['день','дні','днів'])}`;
+ $('trio').innerHTML=[['Сьогодні',M.today],['Тиждень',M.week],['Місяць',M.month]].map(([l,x])=>`<div><b>${fmt(Math.round(x.uah))} ₴</b><small>${l} · ${x.n} ${plural(x.n,['збір','збори','зборів'])}</small></div>`).join('');
+ // inventory
+ const I=M.items||[],act=I.filter(i=>i.act);$('icount').textContent=I.length?'':'';
+ $('mitems').innerHTML=I.length?I.map((i,k)=>`<div class="card itm"><div class="e">${i.icon}</div><b>${i.label}</b><div class="n">${i.unit?fmt(i.n)+' '+i.unit:'×'+i.n}</div>
+  ${i.act?`<button class="buy" data-k="${k}">${i.act}</button>`:`<div class="note">${i.note||''}</div>`}</div>`).join('')
+  :'<div class="card empty">Поки порожньо 🎒<br>Купуй у Крамниці або вигравай перегони</div>';
+ $('mitems').querySelectorAll('.buy').forEach(b=>b.onclick=()=>useIt(I[+b.dataset.k],b));
+ $('mdot').textContent=act.length;$('mdot').style.display=act.length?'grid':'none';
+ // chart
+ const D=M.days,max=Math.max(S.me.norm*1.25,...D.map(d=>d.uah),1),nl=S.me.norm/max;
+ $('wtot').textContent=fmt(Math.round(D.reduce((a,d)=>a+d.uah,0)))+' ₴ за 7 днів';
+ $('chart').innerHTML=(S.me.norm?`<div class="nl" style="bottom:calc(10px + 17px + (100% - 44px) * ${nl})"><span>норма ${fmt(S.me.norm)}</span></div>`:'')+D.map((d,i)=>`<div class="col ${i===6?'today':''}"><div class="v">${d.uah?fmt(Math.round(d.uah)):''}</div>
+  <div class="b ${S.me.norm&&d.uah>=S.me.norm?'ok':''}" style="height:calc((100% - 44px) * ${d.uah/max})"></div><div class="l">${i===6?'Сьог.':WD[new Date(d.day+'T12:00:00').getDay()]}</div></div>`).join('');
+ // family
+ const F=M.family,fm=Math.max(...F.map(f=>f.uah),1);
+ $('fam').innerHTML=F.map((f,i)=>`<div class="fr ${f.me?'me':''}"><span class="rk">${['🥇','🥈','🥉'][i]||i+1}</span><span class="nm">${f.color||''} ${f.name}</span><span class="fb"><i style="width:${f.uah/fm*100}%"></i></span><span class="fv">${fmt(Math.round(f.uah))} ₴</span></div>`).join('');
+ // achievements: the closest first
+ const A=M.ach.next.filter(a=>a.need).map(a=>Object.assign({k:Math.max(0,Math.min(1,(a.v-a.from)/(a.need-a.from)))},a)).sort((a,b)=>b.k-a.k);
+ $('achn').textContent=A.length+' в процесі';
+ $('achs').innerHTML=(achAll?A:A.slice(0,4)).map(a=>`<div class="card ach"><div class="e">${a.icon}</div><div class="tx"><b>${a.name}</b><small>${a.title}</small><div class="ab"><i style="width:${a.k*100}%"></i></div></div>
+  <span class="av">${fmt(Math.floor(a.v))} / ${fmt(a.need)}</span></div>`).join('');
+ $('achmore').style.display=A.length>4?'':'none';$('achmore').textContent=achAll?'Згорнути':'Показати всі ('+A.length+')';
+ const R=M.rec;$('recs').innerHTML=`<div><b>🔥 ${R.bestStreak}</b><small>найдовший стрік</small></div><div><b>⚡ ${R.bestDay}</b><small>зборів за день</small></div>
+  <div><b>🚜 ${fmt(R.harvests)}</b><small>зборів усього</small></div><div><b>💰 ${fmt(Math.round(R.earned))} ₴</b><small>зароблено</small></div>`}
+$('achmore').onclick=()=>{achAll=!achAll;renderMe()};
+async function useIt(i,btn){if(busy)return;hap('heavy');const r=await act('item',{what:i.what});if(r&&r.ok){plus(btn,i.icon);hap('ok');if(i.what==='prize')confetti()}}
 // ===================== tabs
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{hap('light');document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===b));
  document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id==='v_'+b.dataset.v));scrollTo(0,0);if(b.dataset.v==='inv')tickInvest()});
@@ -408,7 +486,7 @@ function demoState(){const now=Date.now();return{me:{name:'Марія',gems:67,b
  tasks:{ar:[{id:'alt',icon:'🧑‍🌾',label:'Прокачати альта й поставити пугало',per:'за альта',gems:50,today:0,wait:0},{id:'restock',icon:'📦',label:'Поповнити запаси ферми',per:'за раз',gems:10,today:0,wait:0},{id:'daily',icon:'☀️',label:'Щоденні справи',per:'за персонажа',gems:5,today:1,wait:1,list:['📅 Нагорода в календарі','🫘 Боб з ринку']},{id:'gift',icon:'🎁',label:'Забрати подарунок',per:'за персонажа',gems:1,today:0,wait:0}],
   wow:[{id:'wd_dm',icon:'🏰',label:'The Deadmines',lvl:'18-23',gems:30,done:0,wait:0},{id:'wd_wc',icon:'🏰',label:'Wailing Caverns',lvl:'17-25',gems:20,done:1,wait:0}],waitGems:5,waitN:1,maxLvl:35},
  shop:{season:null,rise:30,resting:4,items:[{id:'ice',icon:'🍦',label:'Морозиво',open:true,price:40,times:0},{id:'cart',icon:'🎬',label:'Мультик +30 хв',open:true,price:33,times:1},{id:'toy',icon:'🧸',label:'Нова іграшка',open:true,price:90,times:0},{id:null,open:false,need:12,price:60},{id:null,open:false,need:14,price:80}],food:{price:1,pack:10,packN:12}},
- inv:{food:4},invest:{daily:3.42,wallet:12.5,plots:[{id:'p1',name:'Сонячна',type:'16×16 з будинком',share:.31,day:1.14,dayAll:3.68},{id:'p2',name:'Лісова',type:'24×24 з будинком',share:.2,day:2.28,dayAll:11.4}],offers:[{id:'o1',name:'Річкова',type:'16×16 з будинком',price:3000,raised:1860,my:500,dayAll:3.68}]}}}
+ inv:{food:4},my:{today:{n:2,uah:21},week:{n:9,uah:112},month:{n:41,uah:533},days:[...Array(7)].map((_,i)=>({day:new Date(Date.now()-(6-i)*864e5).toISOString().slice(0,10),uah:[34,12,31,45,0,30,21][i],n:3})),rec:{bestStreak:12,bestDay:7,harvests:241,earned:3120},family:[{name:'Тато',color:'🟩',uah:140},{name:'Марія',color:'🟨',uah:112,me:true}],ach:{got:7,total:64,next:[{title:'🚜 Збори',v:41,need:50,icon:'🚜',name:'Справжня фермерка',from:10},{title:'🔥 Стрік',v:9,need:14,icon:'🔥',name:'Два тижні',from:7},{title:'💰 Заробіток',v:533,need:1000,icon:'💎',name:'Тисячниця',from:500},{title:'⚡ Рекорд за день',v:4,need:6,icon:'⚡',name:'Робочий день',from:0},{title:'🏁 Перегони',v:1,need:3,icon:'🏁',name:'Чемпіонка',from:1}]},items:[{what:'prize',icon:'🎁',label:'Невідкритий приз',n:1,act:'Відкрити'},{what:'ice',icon:'🍦',label:'Морозиво',n:2,act:'Хочу!'},{what:'cpn_x',icon:'🍽️',label:'Мий за мною посуд',n:1,act:'Використати'},{what:'',icon:'❄️',label:'Заморозка стріку',n:1,note:'спрацює сама'}]},invest:{daily:3.42,wallet:12.5,plots:[{id:'p1',name:'Сонячна',type:'16×16 з будинком',share:.31,day:1.14,dayAll:3.68},{id:'p2',name:'Лісова',type:'24×24 з будинком',share:.2,day:2.28,dayAll:11.4}],offers:[{id:'o1',name:'Річкова',type:'16×16 з будинком',price:3000,raised:1860,my:500,dayAll:3.68}]}}}
 function demoCall(a,x){D=D||demoState();let t='',res=null;const now=Date.now();
  if(a==='harvest'){const c=x.crop?D.farm.once.find(o=>o.id===x.crop):D.farm.crops.find(c=>c.id===x.kind);const k=D.farm.crops.find(c=>c.id===x.kind);
   D.me.done+=c.uah;D.me.balance+=c.uah;D.me.gems+=c.gem;k.due=now+k.cycle*60000;D.farm.now=now;if(D.me.done>=D.me.norm&&!D.farm.week[6].ok){D.farm.week[6].ok=true;D.me.streak++}t='+'+c.uah+' грн · +'+c.gem+' 💎'}
