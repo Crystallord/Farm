@@ -1,4 +1,4 @@
-# After a push that changes bot/, ask the bot to update itself from GitHub (selfUpdate in the bot).
+# After a push that changes bot/, ask the bot to update itself from GitHub (clears the loader cache, so the newest code runs at once).
 # Needs repo secrets: BOT_URL (the web app /exec address) and BOT_SECRET (Script Properties → SECRET).
 name: Deploy bot
 on:

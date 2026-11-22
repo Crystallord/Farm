@@ -4135,28 +4135,12 @@ function setup() {
   setCommands();
   migrate();
 }
-// ---------------------------------------------------------------- 🔄 self-update from GitHub
-// The code lives in github.com/Crystallord/farm (bot/). /update (or the GitHub Action after a push) puts it into this
-// Apps Script project and moves the web app deployment to the new version: no copy-paste in the editor.
-// Needs once: the Apps Script API switched on (script.google.com/home/usersettings) and the scopes in appsscript.json.
-const GH_RAW = 'https://raw.githubusercontent.com/Crystallord/farm/main/bot/';
+// ---------------------------------------------------------------- 🔄 code from GitHub
+// The code runs through bot/loader.gs in the Apps Script project: it takes this file from GitHub and keeps it
+// in the script cache for 15 minutes. selfUpdate drops that cache, so the next run uses the newest code.
 function selfUpdate(sha) {
-  const id = ScriptApp.getScriptId(), api = 'https://script.googleapis.com/v1/projects/' + id, h = { Authorization: 'Bearer ' + ScriptApp.getOAuthToken() };
-  const get = function (u) { const r = UrlFetchApp.fetch(u, { headers: h, muteHttpExceptions: true }); if (r.getResponseCode() >= 300) throw new Error(u.split('?')[0] + ' → ' + r.getResponseCode() + ' ' + r.getContentText().slice(0, 300)); return r.getContentText(); };
-  const send = function (method, u, body) { const r = UrlFetchApp.fetch(u, { method: method, headers: h, contentType: 'application/json', payload: JSON.stringify(body), muteHttpExceptions: true });
-    if (r.getResponseCode() >= 300) throw new Error(method + ' ' + u.replace(api, '') + ' → ' + r.getResponseCode() + ' ' + r.getContentText().slice(0, 300)); return JSON.parse(r.getContentText() || '{}'); };
-  const nocache = '?t=' + Date.now();
-  const code = UrlFetchApp.fetch(GH_RAW + 'farm_reminder_bot.gs' + nocache).getContentText(), manifest = UrlFetchApp.fetch(GH_RAW + 'appsscript.json' + nocache).getContentText();
-  if (code.indexOf('function doPost') < 0) throw new Error('у GitHub не той файл');
-  const files = JSON.parse(get(api + '/content')).files, main = files.filter(function (f) { return f.type === 'SERVER_JS' && f.source.indexOf('function doPost') >= 0; })[0] || files.filter(function (f) { return f.type === 'SERVER_JS'; })[0];
-  const out = files.filter(function (f) { return f !== main && f.name !== 'appsscript'; }).map(function (f) { return { name: f.name, type: f.type, source: f.source }; })
-    .concat([{ name: 'appsscript', type: 'JSON', source: manifest }, { name: main ? main.name : 'Code', type: 'SERVER_JS', source: code }]);
-  send('put', api + '/content', { files: out });
-  const v = send('post', api + '/versions', { description: 'GitHub ' + (sha ? sha.slice(0, 7) + ' ' : '') + Utilities.formatDate(new Date(), tz(), 'dd.MM HH:mm') });
-  const dep = (String(props().getProperty('WEBAPP_URL') || '').match(/\/s\/([^/]+)\/exec/) || [])[1];
-  if (!dep) throw new Error('не знайшов WEBAPP_URL у Script Properties');
-  send('put', api + '/deployments/' + dep, { deploymentConfig: { scriptId: id, versionNumber: v.versionNumber, manifestFileName: 'appsscript', description: 'v' + v.versionNumber } });
-  return '🔄 ' + b('Бот оновлено з GitHub') + ' → версія ' + b(v.versionNumber) + (v.versionNumber > 180 ? '\n⚠️ Версій уже ' + v.versionNumber + ' з 200: видали старі в редакторі (Project history).' : '');
+  CacheService.getScriptCache().remove('botsrc_n');
+  return '🔄 ' + b('Готово!') + ' Наступне повідомлення бот обробить уже свіжим кодом із GitHub' + (sha ? ' (' + esc(String(sha).slice(0, 7)) + ')' : '') + '.';
 }
 // Fallback: no webhook, the bot checks Telegram every minute (replies come up to a minute late).
 function setupPolling() {
