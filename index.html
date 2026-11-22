@@ -139,11 +139,17 @@ body{padding-bottom:96px}
 .food{display:flex;align-items:center;gap:12px}
 .food .e{font-size:34px}.food .tx{flex:1}.food .tx b{font-weight:900;display:block}.food .tx small{font-weight:700;color:var(--mute);font-size:12px}
 .food .buy{width:auto;padding:10px 14px;font-size:14px}
+
+.task .cnt{font-size:11.5px;font-weight:900;color:#1d8a45}.task .wt{font-size:11.5px;font-weight:900;color:#5b3fd6}
+.task .list{margin-top:4px;font-size:11.5px;color:var(--mute);font-weight:700;line-height:1.35}
+.err{background:#fff;border-radius:18px;padding:18px;text-align:center;font-weight:800;color:#b3402b}
+.loading{opacity:.55;pointer-events:none}
+.lockinfo{font-size:11.5px;font-weight:900;color:#b35a00}
 </style></head><body>
 <div class="wrap view on" id="v_farm">
   <div class="card streak">
     <div class="flame dim" id="flame">🔥</div>
-    <div class="sk"><b><span id="sd">9</span> днів поспіль</b><small id="sw" class="warn">Виконай норму сьогодні — інакше вогник згасне</small>
+    <div class="sk"><b><span id="sd">0</span> <span id="sdw">днів</span> поспіль</b><small id="sw" class="warn">Виконай норму сьогодні — інакше вогник згасне</small>
       <div class="days" id="days"></div></div>
   </div>
   <div class="bal">
@@ -167,7 +173,7 @@ body{padding-bottom:96px}
   <div class="hv" id="hv"></div>
   <div class="sect"><b>Посадила щось інше?</b><small>разовий збір</small></div>
   <div class="once" id="once"></div>
-  <div class="demo">демо-дані</div>
+  <div class="demo dm"></div>
 </div>
 <div class="wrap view" id="v_tasks">
   <div class="card th"><div class="mini"><svg viewBox="0 0 86 86"><circle class="tr" cx="43" cy="43" r="37"/><circle class="pr" id="tpr" cx="43" cy="43" r="37"/></svg><div class="ic">💎</div></div>
@@ -178,58 +184,52 @@ body{padding-bottom:96px}
 <div class="wrap view" id="v_shop">
   <div class="card sh"><div><b>Крамниця дня</b><small>у тебе <span id="sg">0</span> 💎</small></div><div class="timer">🔄 <span id="stm">--:--:--</span></div></div>
   <div class="items" id="items"></div>
-  <div class="sect"><b>Завтра в крамниці</b><small>тссс… 🤫</small></div>
+  <div class="sect"><b>Скоро відкриється</b><small id="rest"></small></div>
   <div class="items" id="tomorrow"></div>
   <div class="sect"><b>Корм для улюбленця</b><small id="foodn"></small></div>
   <div id="foods" style="display:flex;flex-direction:column;gap:10px"></div>
-  <div class="demo">демо-дані</div>
+  <div class="demo dm"></div>
 </div>
 <nav class="nav"><div class="in">
   <button class="tab on" data-v="farm"><span class="ti">🌾</span>Ферма</button>
-  <button class="tab" data-v="tasks"><span class="ti">📜</span>Завдання<span class="dot" id="tdot">0</span></button>
-  <button class="tab" data-v="shop"><span class="ti">🛍️</span>Крамниця<span class="dot" id="sdot">3</span></button>
+  <button class="tab" data-v="tasks"><span class="ti">📜</span>Завдання<span class="dot" id="tdot" style="display:none">0</span></button>
+  <button class="tab" data-v="shop"><span class="ti">🛍️</span>Крамниця<span class="dot" id="sdot" style="display:none">0</span></button>
 </div></nav>
 <canvas id="cf"></canvas><div class="toast" id="toast"></div>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script>
-const TG=window.Telegram&&Telegram.WebApp; try{TG.ready();TG.expand()}catch(e){}
-const hap=(t)=>{try{t==='ok'?TG.HapticFeedback.notificationOccurred('success'):TG.HapticFeedback.impactOccurred(t||'medium')}catch(e){}};
-// ---------- demo state (later: from appState) ----------
-const S={streak:9,uah:342.5,gem:128,norm:50,earned:31.4,week:[1,1,1,1,1,0,0],today:5,
- crops:[{id:'beds',name:'Грядки',ic:'🌱',uah:4.2,gem:.5,cycle:20,left:0},
-        {id:'plots',name:'Ділянки',ic:'🌾',uah:9.8,gem:1,cycle:35,left:12}]};
-const R=95,C=2*Math.PI*R,$=id=>document.getElementById(id);
-const fmt=v=>v.toLocaleString('uk-UA',{minimumFractionDigits:v%1?2:0,maximumFractionDigits:2});
+// ===================== setup
+const TG=window.Telegram&&Telegram.WebApp; try{TG.ready();TG.expand();TG.setHeaderColor&&TG.setHeaderColor('#ffe7c4');TG.setBackgroundColor&&TG.setBackgroundColor('#fff7ec')}catch(e){}
+const qs=new URLSearchParams(location.search), API=qs.get('api')||window.FARM_API||'', DEMO=qs.get('demo')==='1'||!(TG&&TG.initData);
+const hap=t=>{try{t==='ok'?TG.HapticFeedback.notificationOccurred('success'):t==='err'?TG.HapticFeedback.notificationOccurred('error'):TG.HapticFeedback.impactOccurred(t||'medium')}catch(e){}};
+const $=id=>document.getElementById(id), R=95, C=2*Math.PI*R;
+const fmt=v=>(+v).toLocaleString('uk-UA',{minimumFractionDigits:(+v)%1?2:0,maximumFractionDigits:2});
+const plural=(n,f)=>{n=Math.abs(n)%100;const b=n%10;return n>10&&n<20?f[2]:b===1?f[0]:b>=2&&b<=4?f[1]:f[2]};
+let S=null, OFF=0, busy=false, game='ar';
+document.querySelectorAll('.dm').forEach(e=>e.textContent=DEMO?'демо-режим (відкрито не з Telegram)':'');
+// ===================== server
+async function call(action,args){
+  if(DEMO) return demoCall(action,args||{});
+  const r=await fetch(API+(API.indexOf('?')<0?'?':'&')+'app=1',{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({initData:TG.initData,action,args:args||{}})});
+  return r.json();
+}
+async function act(action,args){
+  if(busy) return null; busy=true;
+  try{const r=await call(action,args);
+    if(r.error){toast(r.msg||'Помилка');hap('err');return r}
+    if(r.state) apply(r.state);
+    if(r.toast) toast(r.toast);
+    return r;
+  }catch(e){toast('Немає зв’язку з ботом 😕');hap('err');return null}finally{busy=false}
+}
+function apply(st){S=st;OFF=(st.farm&&st.farm.now?st.farm.now-Date.now():0);render()}
+// ===================== helpers
 function countTo(el,to,dec,ms=900){const from=+el.dataset.v||0;el.dataset.v=to;const t0=performance.now();
  (function f(t){const k=Math.min(1,(t-t0)/ms),e=1-Math.pow(1-k,3),v=from+(to-from)*e;el.textContent=dec?fmt(+v.toFixed(2)):Math.round(v);if(k<1)requestAnimationFrame(f)})(t0)}
-// ticks per harvest-size so the ring reads as "steps"
-function ticks(){const g=$('ticks');g.innerHTML='';const step=S.crops[0].uah/S.norm;for(let a=step;a<1;a+=step){const ang=a*2*Math.PI;
- const x1=115+(R-10)*Math.cos(ang),y1=115+(R-10)*Math.sin(ang),x2=115+(R+10)*Math.cos(ang),y2=115+(R+10)*Math.sin(ang);
- g.insertAdjacentHTML('beforeend',`<line class="tick" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`)}}
-function days(){const n=['Пн','Вт','Ср','Чт','Пт','Сб','Нд'];$('days').innerHTML=n.map((d,i)=>`<div class="d ${S.week[i]?'on':''} ${i===S.today?'today':''}"><i></i>${d}</div>`).join('')}
-function milestones(){const p=S.earned/S.norm;const M=[[.5,'½','+0 ₴'],[1,'✓','🔥 +1 день']];
- $('ms').innerHTML=`<div class="chip ${p>=.5?'got':''}">${p>=.5?'✅':'🎯'} Половина</div><div class="chip ${p>=1?'got':''}">${p>=1?'✅':'🏁'} Норма → 🔥 ${S.streak+(S.week[S.today]?0:1)}</div>`}
-function ring(first){const p=Math.min(1,S.earned/S.norm);
- $('prog').style.strokeDasharray=C;$('ghost').style.strokeDasharray=C;$('prog').style.strokeDashoffset=C*(1-p);$('ghost').style.strokeDashoffset=C*(1-p);
- countTo($('pv'),Math.floor(p*100));countTo($('earn'),S.earned,1);$('norm').textContent=fmt(S.norm);
- const rest=S.norm-S.earned,L=$('left');
- if(rest<=0){L.textContent='Норму виконано! 🎉';L.className='left done'}
- else{const n=Math.ceil(rest/S.crops[0].uah);L.textContent=n<=1?'Ще 1 збір — і норма!':`Ще ~${n} збори — ${fmt(+rest.toFixed(2))} ₴`;L.className='left'}
- milestones()}
-function preview(c){ // show where the ring will be after this harvest (goal-gradient)
- const p=Math.min(1,(S.earned+(c?c.uah:0))/S.norm);$('ghost').style.strokeDasharray=C;$('ghost').style.strokeDashoffset=C*(1-p)}
-function crops(){$('hv').innerHTML=S.crops.map(c=>`<div class="card crop" id="c_${c.id}"><div class="t">${c.ic} ${c.name}</div>
- <div class="mini"><svg viewBox="0 0 86 86"><circle class="tr" cx="43" cy="43" r="37"/><circle class="pr" cx="43" cy="43" r="37"/></svg><div class="ic">${c.ic}</div></div>
- <div class="rw">+${fmt(c.uah)} ₴ · +${c.gem} 💎</div><button class="btn"></button></div>`).join('');
- for(const c of S.crops){const el=$('c_'+c.id),b=el.querySelector('button');
-  b.onclick=()=>harvest(c,el);b.onpointerenter=()=>preview(c);b.onpointerleave=()=>preview();b.ontouchstart=()=>preview(c)}
- tickCrops()}
-function tickCrops(){for(const c of S.crops){const el=$('c_'+c.id);if(!el)continue;const pr=el.querySelector('.pr'),b=el.querySelector('button'),cc=2*Math.PI*37;
- pr.style.strokeDasharray=cc;pr.style.strokeDashoffset=cc*(c.left/c.cycle);
- const ready=c.left<=0;el.classList.toggle('ready',ready);
- b.textContent=ready?'Зібрав ✓':'⏳ '+Math.floor(c.left/60)+':'+String(Math.ceil(c.left%60)).padStart(2,'0')}}
-setInterval(()=>{for(const c of S.crops)if(c.left>0)c.left=Math.max(0,c.left-1);tickCrops()},1000);
-// flying particles along a curve
+function bump(e){const p=e.closest('.card');p.classList.remove('bump');void p.offsetWidth;p.classList.add('bump')}
+let tt;function toast(t){const e=$('toast');e.textContent=t;e.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>e.classList.remove('show'),2600)}
+function plus(el,txt,col){const r=el.getBoundingClientRect(),p=document.createElement('div');p.className='plus';p.textContent=txt;if(col)p.style.color=col;
+ p.style.left=(r.left+r.width/2-30)+'px';p.style.top=(r.top-10)+'px';document.body.appendChild(p);setTimeout(()=>p.remove(),1200)}
 function fly(from,to,char,n,done){const a=from.getBoundingClientRect(),b=to.getBoundingClientRect();let k=0;
  for(let i=0;i<n;i++){const s=document.createElement('div');s.className='float';s.textContent=char;s.style.fontSize=(18+Math.random()*10)+'px';document.body.appendChild(s);
   const x0=a.left+a.width/2+(Math.random()-.5)*60,y0=a.top+a.height/2,x1=b.left+b.width/2,y1=b.top+b.height/2,cx=(x0+x1)/2+(Math.random()-.5)*160,cy=Math.min(y0,y1)-80-Math.random()*80;
@@ -237,105 +237,129 @@ function fly(from,to,char,n,done){const a=from.getBoundingClientRect(),b=to.getB
   (function f(t){let u=(t-t0)/d;if(u<0){requestAnimationFrame(f);return}if(u>1){s.remove();if(++k===n&&done)done();return}
    const e=u<.5?2*u*u:1-Math.pow(-2*u+2,2)/2,x=(1-e)*(1-e)*x0+2*(1-e)*e*cx+e*e*x1,y=(1-e)*(1-e)*y0+2*(1-e)*e*cy+e*e*y1;
    s.style.transform=`translate(${x-12}px,${y-12}px) scale(${1-.4*e})`;s.style.opacity=1-.3*e;requestAnimationFrame(f)})(performance.now())}}
-function plus(el,txt,col){const r=el.getBoundingClientRect(),p=document.createElement('div');p.className='plus';p.textContent=txt;if(col)p.style.color=col;
- p.style.left=(r.left+r.width/2-30)+'px';p.style.top=(r.top-10)+'px';document.body.appendChild(p);setTimeout(()=>p.remove(),1200)}
-function harvest(c,el){
- if(c.left>0){hap('light');toast('Ще росте — зачекай ⏳');return}
- c.left=c.cycle;tickCrops();reward(el.querySelector('.mini'),c.uah,c.gem);
- // TODO: POST {action:'harvest',kind:c.id} to appApi
-}
-function bump(e){const p=e.closest('.card');p.classList.remove('bump');void p.offsetWidth;p.classList.add('bump')}
-function celebrate(){hap('ok');S.streak++;S.week[S.today]=1;days();$('sd').textContent=S.streak;
- const f=$('flame');f.classList.remove('dim');f.classList.add('pop');
- $('sw').textContent='Вогник горить! Завтра буде '+(S.streak+1);$('sw').className='';
- milestones();toast('🔥 Норму виконано! '+S.streak+' днів поспіль');confetti()}
-let tt;function toast(t){const e=$('toast');e.textContent=t;e.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>e.classList.remove('show'),2200)}
-function confetti(){const cv=$('cf'),x=cv.getContext('2d');cv.width=innerWidth*devicePixelRatio;cv.height=innerHeight*devicePixelRatio;x.scale(devicePixelRatio,devicePixelRatio);
+function confetti(){const cv=$('cf'),x=cv.getContext('2d');cv.width=innerWidth*devicePixelRatio;cv.height=innerHeight*devicePixelRatio;x.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
  const cols=['#ffb020','#ff6a2b','#3cc46a','#7b5cff','#ff5d8f','#2bb5ff'],P=[...Array(140)].map(()=>({x:innerWidth/2,y:innerHeight*.38,vx:(Math.random()-.5)*14,vy:-Math.random()*14-4,r:Math.random()*6+4,c:cols[Math.random()*6|0],a:Math.random()*6,va:(Math.random()-.5)*.4}));
  const t0=performance.now();(function f(t){x.clearRect(0,0,innerWidth,innerHeight);for(const p of P){p.vy+=.35;p.vx*=.99;p.x+=p.vx;p.y+=p.vy;p.a+=p.va;
   x.save();x.translate(p.x,p.y);x.rotate(p.a);x.fillStyle=p.c;x.fillRect(-p.r/2,-p.r/4,p.r,p.r/2);x.restore()}
   if(t-t0<2600)requestAnimationFrame(f);else x.clearRect(0,0,innerWidth,innerHeight)})(t0)}
-// streak warning: hours left today
-function streakWarn(){if(S.earned>=S.norm)return;const n=new Date(),h=23-n.getHours(),m=59-n.getMinutes();
- $('sw').textContent=`Ще ${h} год ${m} хв, щоб зберегти вогник`}
-
-// ---------- one-off harvests: add balance, restart the main timer of that kind
-S.once=[{id:'narc',name:'Нарциси',ic:'🌼',uah:3.1,kind:'beds'},{id:'clover',name:'Конюшина',ic:'🍀',uah:7.5,kind:'plots'},{id:'mint',name:'М’ята',ic:'🌿',uah:6.9,kind:'beds'}];
-function onceUI(){$('once').innerHTML=S.once.map(o=>{const k=S.crops.find(c=>c.id===o.kind);return `<button class="ob" id="o_${o.id}"><span class="e">${o.ic}</span><span class="n">${o.name}</span><span class="r">+${fmt(o.uah)} ₴ · +${k.gem} 💎</span><span class="x">↺ таймер «${k.name}»</span></button>`}).join('');
- for(const o of S.once){const el=$('o_'+o.id);el.onclick=()=>{const k=S.crops.find(c=>c.id===o.kind);reward(el,o.uah,k.gem);k.left=k.cycle;tickCrops();toast(o.ic+' '+o.name+' зібрано · таймер «'+k.name+'» з нуля')};
-  el.onpointerenter=()=>preview(o);el.onpointerleave=()=>preview();el.ontouchstart=()=>preview(o)}}
-// shared reward animation (used by main harvest too)
-function reward(el,uah,gem){hap('heavy');const before=S.earned;plus(el,'+'+fmt(uah)+' ₴');
- fly(el,$('rb'),'🪙',6,()=>{S.earned=+(S.earned+uah).toFixed(2);ring();hap('medium');if(before<S.norm&&S.earned>=S.norm)celebrate()});
- fly(el,$('uah').closest('.card'),'₴',4,()=>{S.uah+=uah;countTo($('uah'),S.uah,1);bump($('uah'))});
- fly(el,$('gem').closest('.card'),'💎',3,()=>{S.gem+=gem;gemUI()})}
-function gemUI(){countTo($('gem'),S.gem,1);bump($('gem'));shopUI()}
-// ---------- tabs
-document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{hap('light');document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===b));
- document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id==='v_'+b.dataset.v));scrollTo(0,0);
- if(b.dataset.v==='shop'){S.shopSeen=1;$('sdot').style.display='none'}});
-// ---------- tasks
-S.game='ar';S.pending=0;S.todayGem=0;
-S.tasks={ar:[
- {g:'Щодня',id:'daily',ic:'📜',name:'Щоденні квести',d:'усі щоденки',gem:5},
- {g:'Щодня',id:'gift',ic:'🎁',name:'Забрати подарунок',d:'щоденний вхід',gem:1},
- {g:'Щодня',id:'nui',ic:'🕯️',name:'Квести Нуі',d:'+1 за кожного персонажа',gem:1,n:3},
- {g:'Щодня',id:'dog',ic:'🐕',name:'Погуляти з собакою',d:'',gem:1},
- {g:'Коли є',id:'restock',ic:'📦',name:'Поповнити запаси ферми',d:'насіння, добрива',gem:10},
- {g:'Коли є',id:'flower',ic:'🐃',name:'Буйволи за «квітку»',d:'на всіх персонажах',gem:3},
- {g:'Коли є',id:'quest',ic:'🗺️',name:'Сюжетний квест',d:'',gem:5},
- {g:'Коли є',id:'event',ic:'🎪',name:'Івент',d:'',gem:5},
- {g:'Великі',id:'alt',ic:'🧙',name:'Прокачати альта',d:'і поставити пуголово',gem:50}],
- wow:[
- {g:'Підземелля (до 35 рівня)',id:'wd_rfc',ic:'🔥',name:'Ragefire Chasm',d:'перше проходження',gem:30},
- {g:'Підземелля (до 35 рівня)',id:'wd_dm',ic:'⛏️',name:'The Deadmines',d:'перше проходження',gem:30},
- {g:'Підземелля (до 35 рівня)',id:'wd_wc',ic:'🐍',name:'Wailing Caverns',d:'повторне',gem:20},
- {g:'Підземелля (до 35 рівня)',id:'wd_sfk',ic:'🏰',name:'Shadowfang Keep',d:'перше проходження',gem:30}]};
-const st={};
-function tasksUI(){const L=S.tasks[S.game];let html='',grp='';
- for(const t of L){if(t.g!==grp){grp=t.g;html+=`<div class="gl">${grp}</div>`}
-  const s=st[t.id]||'',n=t.n?` ×${t.n}`:'';
-  html+=`<div class="card task ${s}" id="t_${t.id}"><div class="e">${t.ic}</div><div class="tx"><b>${t.name}</b>${t.d?`<small>${t.d}</small>`:''}</div>
-   <span class="gemchip ${t.gem>=20?'big':''}">+${t.gem*(t.n||1)} 💎</span>
-   <button class="do">${s==='wait'?'⏳':s==='done'?'✓':'Зроблено'}</button></div>`}
- $('tlist').innerHTML=html;
+function confirmTG(text){return new Promise(res=>{try{TG.showConfirm(text,ok=>res(ok))}catch(e){res(confirm(text))}})}
+// ===================== render: farm
+const WD=['Нд','Пн','Вт','Ср','Чт','Пт','Сб'];
+function render(){if(!S)return;renderTop();renderRing();renderCrops();renderOnce();renderTasks();renderShop()}
+function renderTop(){const me=S.me,w=S.farm.week,done=w[w.length-1].ok;
+ $('sd').textContent=me.streak;$('sdw').textContent=plural(me.streak,['день','дні','днів']);
+ $('flame').classList.toggle('dim',!done);
+ $('days').innerHTML=w.map((d,i)=>`<div class="d ${d.ok?'on':''} ${i===w.length-1?'today':''}"><i></i>${i===w.length-1?'Сьог.':WD[d.wd]}</div>`).join('');
+ countTo($('uah'),me.balance,1);countTo($('gem'),me.gems,1);streakWarn()}
+function streakWarn(){if(!S)return;const w=S.farm.week,el=$('sw');
+ if(w[w.length-1].ok){el.textContent='Вогник горить! Завтра буде '+(S.me.streak+1);el.className='';return}
+ const n=new Date(),h=23-n.getHours(),m=59-n.getMinutes();el.textContent=`Ще ${h} год ${m} хв, щоб зберегти вогник`;el.className='warn'}
+function ticks(){const g=$('ticks');g.innerHTML='';if(!S.me.norm)return;const step=Math.min(...S.farm.crops.map(c=>c.uah||99))/S.me.norm;if(!(step>0.04))return;
+ for(let a=step;a<.999;a+=step){const ang=a*2*Math.PI,x1=115+(R-10)*Math.cos(ang),y1=115+(R-10)*Math.sin(ang),x2=115+(R+10)*Math.cos(ang),y2=115+(R+10)*Math.sin(ang);
+ g.insertAdjacentHTML('beforeend',`<line class="tick" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`)}}
+function renderRing(){const me=S.me,p=me.norm?Math.min(1,me.done/me.norm):0;ticks();
+ $('prog').style.strokeDasharray=C;$('ghost').style.strokeDasharray=C;$('prog').style.strokeDashoffset=C*(1-p);$('ghost').style.strokeDashoffset=C*(1-p);
+ countTo($('pv'),Math.floor(p*100));countTo($('earn'),me.done,1);$('norm').textContent=fmt(me.norm);
+ const rest=me.norm-me.done,L=$('left'),step=Math.max(...S.farm.crops.map(c=>c.uah));
+ if(rest<=0){L.textContent='Норму виконано! 🎉';L.className='left done'}
+ else{const n=Math.ceil(rest/step);L.textContent=n<=1?'Ще 1 збір — і норма!':`Ще ${fmt(+rest.toFixed(2))} ₴ · ~${n} ${plural(n,['збір','збори','зборів'])}`;L.className='left'}
+ $('ms').innerHTML=`<div class="chip ${p>=.5?'got':''}">${p>=.5?'✅':'🎯'} Половина</div><div class="chip ${p>=1?'got':''}">${p>=1?'✅':'🏁'} Норма → 🔥 ${S.farm.week[6].ok?me.streak:me.streak+1}</div>`}
+function preview(uah){if(!S||!S.me.norm)return;const p=Math.min(1,(S.me.done+(uah||0))/S.me.norm);$('ghost').style.strokeDashoffset=C*(1-p)}
+function leftMs(c){return c.due?Math.max(0,c.due-(Date.now()+OFF)):0}
+function renderCrops(){$('hv').innerHTML=S.farm.crops.map(c=>`<div class="card crop" id="c_${c.id}"><div class="t">${c.icon} ${c.name}</div>
+ <div class="mini"><svg viewBox="0 0 86 86"><circle class="tr" cx="43" cy="43" r="37"/><circle class="pr" cx="43" cy="43" r="37"/></svg><div class="ic">${c.icon.split(/(?=[\uD800-\uDBFF])/)[0]}</div></div>
+ <div class="rw">+${fmt(c.uah)} ₴ · +${fmt(c.gem)} 💎</div><button class="btn"></button></div>`).join('');
+ for(const c of S.farm.crops){const el=$('c_'+c.id),b=el.querySelector('button');b.onclick=()=>harvest(c,el.querySelector('.mini'));
+  b.onpointerenter=()=>preview(c.uah);b.onpointerleave=()=>preview();b.ontouchstart=()=>preview(c.uah)}
+ tickCrops()}
+function tickCrops(){if(!S)return;for(const c of S.farm.crops){const el=$('c_'+c.id);if(!el)continue;const pr=el.querySelector('.pr'),b=el.querySelector('button'),cc=2*Math.PI*37,l=leftMs(c);
+ pr.style.strokeDasharray=cc;pr.style.strokeDashoffset=cc*Math.min(1,l/(c.cycle*60000));
+ el.classList.toggle('ready',!l);const s=Math.ceil(l/1000);
+ b.textContent=!l?'Зібрав(ла) ✓':'⏳ '+(s>=3600?Math.floor(s/3600)+':'+String(Math.floor(s%3600/60)).padStart(2,'0')+':':Math.floor(s/60)+':')+String(s%60).padStart(2,'0')}}
+setInterval(()=>{tickCrops();streakWarn()},1000);
+function renderOnce(){const beds=S.farm.crops.find(c=>c.id==='beds');
+ $('once').innerHTML=S.farm.once.map(o=>`<button class="ob" id="o_${o.id}"><span class="e">${o.icon}</span><span class="n">${o.name}</span><span class="r">+${fmt(o.uah)} ₴ · +${fmt(o.gem)} 💎</span><span class="x">↺ таймер «Грядки»</span></button>`).join('');
+ for(const o of S.farm.once){const el=$('o_'+o.id);el.onclick=()=>harvest(Object.assign({},o,{kind:'beds',crop:o.id}),el,true);
+  el.onpointerenter=()=>preview(o.uah);el.onpointerleave=()=>preview();el.ontouchstart=()=>preview(o.uah)}}
+async function harvest(c,el,once){
+ if(busy)return;
+ if(!once&&leftMs(c)>0&&!(await confirmTG('Ще росте ⏳ Точно вже зібрано?')))return;
+ hap('heavy');const before=S.me.done,norm=S.me.norm;
+ plus(el,'+'+fmt(c.uah)+' ₴');
+ let landed=0,resp=null;const finish=()=>{if(++landed<2||!resp)return;
+   if(resp.state){apply(resp.state);hap('medium');bump($('uah'));bump($('gem'));if(before<norm&&resp.state.me.done>=norm)celebrate()}};
+ fly(el,$('rb'),'🪙',6,finish);fly(el,$('uah').closest('.card'),'₴',4);fly(el,$('gem').closest('.card'),'💎',3);
+ resp=await act('harvest',once?{kind:'beds',crop:c.crop}:{kind:c.id});
+ if(!resp||resp.error){render();return}
+ landed++;finish();landed--; // response may come after the coins landed
+}
+function celebrate(){hap('ok');const f=$('flame');f.classList.remove('dim');f.classList.remove('pop');void f.offsetWidth;f.classList.add('pop');
+ toast('🔥 Норму виконано! '+S.me.streak+' '+plural(S.me.streak,['день','дні','днів'])+' поспіль');confetti()}
+// ===================== tasks
+function goal(){const it=(S.shop.items||[]).filter(i=>i.id&&i.open).sort((a,b)=>a.price-b.price),g=S.me.gems;return it.find(i=>i.price>g)||it[it.length-1]}
+function renderTasks(){const T=S.tasks,g=goal(),pr=$('tpr'),cc=2*Math.PI*37,k=g?Math.min(1,S.me.gems/g.price):0;
+ pr.style.strokeDasharray=cc;pr.style.strokeDashoffset=cc*(1-k);
+ $('tt1').textContent=`У тебе ${fmt(S.me.gems)} 💎`;
+ $('tt2').textContent=!g?'':S.me.gems>=g.price?`Вистачає на ${g.icon} ${g.label}! 🛍️`:`До ${g.icon} ${g.label} ще ${Math.ceil(g.price-S.me.gems)} 💎`;
+ const p=$('tpend');p.style.display=T.waitN?'inline-flex':'none';p.textContent=`⏳ +${fmt(T.waitGems)} 💎 чекають підтвердження`;
+ document.querySelectorAll('#gseg button').forEach(x=>x.classList.toggle('on',x.dataset.g===game));
+ const L=game==='wow'?T.wow:T.ar;
+ $('tlist').innerHTML=(game==='wow'?`<div class="gl">Альянс · до ${T.maxLvl} рівня · перше +${L[0]?Math.max(...L.map(x=>x.gems)):''} 💎</div>`:'')+L.map(t=>`<div class="card task" id="t_${t.id}"><div class="e">${t.icon}</div>
+  <div class="tx"><b>${t.label}</b><small>${game==='wow'?t.lvl+' рів.'+(t.done?' · пройдено ×'+t.done:''):t.per}</small>
+  ${t.list?`<div class="list">${t.list.join('<br>')}</div>`:''}
+  ${t.today?`<div class="cnt">✓ сьогодні ×${t.today}</div>`:''}${t.wait?`<div class="wt">⏳ на перевірці ×${t.wait}</div>`:''}</div>
+  <span class="gemchip ${t.gems>=20?'big':''}">+${t.gems} 💎</span><button class="do">${game==='wow'?(t.done?'🔁':'Пройдено'):'Зроблено'}</button></div>`).join('');
  for(const t of L){const el=$('t_'+t.id);el.querySelector('.do').onclick=()=>doTask(t,el)}
- const daily=S.tasks.ar.filter(t=>t.g==='Щодня'),left=daily.filter(t=>!st[t.id]).length,tot=daily.reduce((a,t)=>a+t.gem*(t.n||1),0),got=daily.filter(t=>st[t.id]).reduce((a,t)=>a+t.gem*(t.n||1),0);
- const pr=$('tpr'),cc=2*Math.PI*37;pr.style.strokeDasharray=cc;pr.style.strokeDashoffset=cc*(1-got/tot);
- $('tt1').textContent=`Щоденні: ${got} / ${tot} 💎`;
- $('tt2').textContent=left?(left===1?'Лишилось 1 завдання — добий!':`Лишилось ${left} — ще +${tot-got} 💎 сьогодні`):'Усі щоденні закрито! 🎉';
- const p=$('tpend');p.style.display=S.pending?'inline-flex':'none';p.textContent=`⏳ +${S.pending} 💎 чекають підтвердження`;
- const all=Object.values(S.tasks).flat().filter(t=>!st[t.id]&&t.g==='Щодня').length;$('tdot').textContent=all;$('tdot').style.display=all?'grid':'none'}
-function doTask(t,el){if(st[t.id])return;st[t.id]='wait';const g=t.gem*(t.n||1);S.pending+=g;hap('heavy');
- plus(el.querySelector('.gemchip'),'+'+g+' 💎','#6a48f0');fly(el.querySelector('.gemchip'),$('tpend').style.display==='none'?$('tt1'):$('tpend'),'💎',Math.min(8,2+g/5|0),()=>{});
- setTimeout(()=>{tasksUI();toast('Надіслано на перевірку ✨ +'+g+' 💎 після ✓')},350);
- // demo: owner approves after 4 s
- setTimeout(()=>{st[t.id]='done';S.pending-=g;S.gem+=g;gemUI();tasksUI();toast('✅ «'+t.name+'» підтверджено · +'+g+' 💎');hap('ok')},4000)}
-document.querySelectorAll('#gseg button').forEach(b=>b.onclick=()=>{S.game=b.dataset.g;document.querySelectorAll('#gseg button').forEach(x=>x.classList.toggle('on',x===b));tasksUI()});
-// ---------- shop
-S.shop=[{id:'ice',ic:'🍦',name:'Морозиво',base:40,times:0,hot:1},{id:'cart',ic:'🎬',name:'Мультик +30 хв',base:25,times:1},{id:'toy',ic:'🧸',name:'Нова іграшка',base:150,times:0}];
-S.tom=[{ic:'🎮',name:'+30 хв гри'},{ic:'🍕',name:'Піца-вечір'},{ic:'🎨',name:'Набір для малювання'}];
-S.food={have:4,one:1,pack:10,packN:12,gemDay:false};
-const price=i=>Math.round(i.base*Math.pow(1.3,i.times));
-function shopUI(){$('sg').textContent=fmt(S.gem);$('items').innerHTML=S.shop.map(i=>{const p=price(i),k=Math.min(1,S.gem/p),need=Math.ceil(p-S.gem);
- return `<div class="card item" id="i_${i.id}">${i.hot?'<span class="hot">хіт</span>':''}${i.times?`<span class="rise">${i.times+1}-га за тиждень</span>`:''}
-  <div class="e">${i.ic}</div><b>${i.name}</b><div class="afford"><i style="width:${k*100}%"></i></div>
+ const n=T.ar.filter(t=>!t.today&&!t.wait).length;$('tdot').textContent=n;$('tdot').style.display='none'}
+async function doTask(t,el){if(busy)return;hap('heavy');const chip=el.querySelector('.gemchip');
+ plus(chip,'+'+t.gems+' 💎','#6a48f0');fly(chip,$('tt1'),'💎',Math.min(8,2+t.gems/5|0));
+ await act('task',{id:t.id})}
+document.querySelectorAll('#gseg button').forEach(b=>b.onclick=()=>{game=b.dataset.g;hap('light');renderTasks()});
+// ===================== shop
+function renderShop(){const sh=S.shop,g=S.me.gems;$('sg').textContent=fmt(g);
+ const on=sh.items.filter(i=>i.id&&i.open),locked=sh.items.filter(i=>!i.open).slice(0,4);
+ $('items').innerHTML=on.length?on.map(i=>{const k=Math.min(1,g/i.price),need=Math.ceil(i.price-g);
+  return `<div class="card item" id="i_${i.id}">${i.times?`<span class="rise">${i.times+1}-й раз · +${sh.rise}%</span>`:''}
+  <div class="e">${i.icon}</div><b>${i.label}</b><div class="afford"><i style="width:${k*100}%"></i></div>
   <div class="need">${need>0?`ще ${need} 💎 — і твоє!`:`можна купити ✨`}</div>
-  <button class="buy" ${need>0?'disabled':''}>${p} 💎</button></div>`}).join('');
- for(const i of S.shop){$('i_'+i.id).querySelector('.buy').onclick=()=>buy(i)}
- $('tomorrow').innerHTML=S.tom.map(i=>`<div class="card item lock"><div class="e">${i.ic}</div><b>???</b><div class="need" style="color:var(--mute)">відкриється завтра</div><button class="buy" disabled>🔒</button></div>`).join('');
- $('foodn').textContent=`у тебе ${S.food.have} 🦴`;
- $('foods').innerHTML=`<div class="card food"><div class="e">🦴</div><div class="tx"><b>Корм ×1</b><small>погодувати один раз</small></div><button class="buy" id="f1" ${S.gem<S.food.one?'disabled':''}>${S.food.one} 💎</button></div>
-  <div class="card food"><div class="e">📦</div><div class="tx"><b>Пак ×${S.food.packN}</b><small>${S.food.gemDay?'вигідно: −20% 🔥':'лише в кристальний день'}</small></div><button class="buy" id="f2" ${!S.food.gemDay||S.gem<S.food.pack?'disabled':''}>${S.food.gemDay?S.food.pack+' 💎':'🔒'}</button></div>`;
- $('f1').onclick=()=>{S.gem-=S.food.one;S.food.have++;hap('medium');plus($('f1'),'+1 🦴','#b35a00');countTo($('gem'),S.gem,1);shopUI()};
- $('f2').onclick=()=>{S.gem-=S.food.pack;S.food.have+=S.food.packN;hap('heavy');plus($('f2'),'+'+S.food.packN+' 🦴','#b35a00');countTo($('gem'),S.gem,1);shopUI()}}
-function buy(i){const p=price(i);if(S.gem<p)return;const el=$('i_'+i.id);hap('ok');
- fly($('gem').closest('.card').isConnected&&$('v_farm').classList.contains('on')?$('gem').closest('.card'):el.querySelector('.buy'),el.querySelector('.e'),'💎',Math.min(10,3+p/20|0),()=>{});
- el.querySelector('.e').style.transform='scale(1.4) rotate(-8deg)';setTimeout(()=>{S.gem-=p;i.times++;countTo($('gem'),S.gem,1);shopUI();confetti();toast(i.ic+' '+i.name+' — твоє! Наступна: '+price(i)+' 💎')},700)}
+  <button class="buy" ${need>0?'disabled':''}>${i.price} 💎</button></div>`}).join(''):'<div class="card" style="grid-column:1/-1;text-align:center;font-weight:800;color:var(--mute)">Сьогодні полиці порожні 🙈</div>';
+ for(const i of on){$('i_'+i.id).querySelector('.buy').onclick=()=>buy(i)}
+ $('rest').textContent=sh.resting?`ще ${sh.resting} ${plural(sh.resting,['товар','товари','товарів'])} у ротації`:'';
+ $('tomorrow').innerHTML=locked.map(i=>`<div class="card item lock"><div class="e">🎁</div><b>???</b><div class="lockinfo">🔥 на ${i.need}-й день стріку</div><button class="buy" disabled>${i.price} 💎</button></div>`).join('');
+ $('foodn').textContent=`у тебе ${S.inv.food} 🍖`;
+ const F=sh.food,season=!!sh.season;
+ $('foods').innerHTML=`<div class="card food"><div class="e">🍖</div><div class="tx"><b>Корм ×1</b><small>погодувати один раз</small></div><button class="buy" id="f1" ${g<F.price?'disabled':''}>${F.price} 💎</button></div>
+  <div class="card food"><div class="e">📦</div><div class="tx"><b>Пак ×${F.packN}</b><small>${season?'вигідно лише сьогодні 🔥':'лише в кристальний день'}</small></div><button class="buy" id="f2" ${!season||g<F.pack?'disabled':''}>${season?F.pack+' 💎':'🔒'}</button></div>`;
+ $('f1').onclick=()=>food(false,$('f1'));$('f2').onclick=()=>food(true,$('f2'));
+ $('sdot').textContent=on.filter(i=>i.price<=g).length;$('sdot').style.display=on.some(i=>i.price<=g)?'grid':'none'}
+async function buy(i){if(busy)return;const el=$('i_'+i.id);hap('heavy');el.querySelector('.e').style.transform='scale(1.4) rotate(-8deg)';
+ fly(el.querySelector('.buy'),el.querySelector('.e'),'💎',Math.min(10,3+i.price/20|0));
+ const r=await act('buy',{item:i.id});if(r&&r.ok){hap('ok');confetti()}}
+async function food(pack,btn){if(busy)return;hap('medium');const r=await act('food',{pack:pack});if(r&&r.ok)plus(btn,'🍖','#b35a00')}
 function shopTimer(){const n=new Date(),e=new Date(n);e.setHours(24,0,0,0);const d=Math.max(0,(e-n)/1000|0);
  $('stm').textContent=[d/3600|0,(d%3600)/60|0,d%60].map(x=>String(x).padStart(2,'0')).join(':')}
 setInterval(shopTimer,1000);shopTimer();
-onceUI();tasksUI();shopUI();
-
-days();ticks();crops();ring(true);countTo($('uah'),S.uah,1);countTo($('gem'),S.gem,1);streakWarn();setInterval(streakWarn,30000);
+// ===================== tabs
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{hap('light');document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===b));
+ document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id==='v_'+b.dataset.v));scrollTo(0,0)});
+// ===================== demo (outside Telegram)
+let D=null;
+function demoState(){const now=Date.now();return{me:{name:'Марія',gems:67,balance:533,streak:9,done:21,norm:30},
+ farm:{now,week:[...Array(7)].map((_,i)=>({wd:(new Date(now-(6-i)*864e5)).getDay(),ok:i<6&&i!==1})),
+  crops:[{id:'beds',name:'Грядки',icon:'🌱',uah:14,gem:1,cycle:120,due:0},{id:'plots',name:'Компостери й бандли',icon:'🪱',uah:13,gem:1,cycle:90,due:now+25*60000}],
+  once:[{id:'narcissus',icon:'🌼',name:'Нарциси',uah:6,gem:.5},{id:'clover',icon:'🍀',name:'Конюшина',uah:6,gem:.5},{id:'mr',icon:'🌿',name:'М’ята',uah:16,gem:1}]},
+ tasks:{ar:[{id:'alt',icon:'🧑‍🌾',label:'Прокачати альта й поставити пугало',per:'за альта',gems:50,today:0,wait:0},{id:'restock',icon:'📦',label:'Поповнити запаси ферми',per:'за раз',gems:10,today:0,wait:0},{id:'daily',icon:'☀️',label:'Щоденні справи',per:'за персонажа',gems:5,today:1,wait:1,list:['📅 Нагорода в календарі','🫘 Боб з ринку']},{id:'gift',icon:'🎁',label:'Забрати подарунок',per:'за персонажа',gems:1,today:0,wait:0}],
+  wow:[{id:'wd_dm',icon:'🏰',label:'The Deadmines',lvl:'18-23',gems:30,done:0,wait:0},{id:'wd_wc',icon:'🏰',label:'Wailing Caverns',lvl:'17-25',gems:20,done:1,wait:0}],waitGems:5,waitN:1,maxLvl:35},
+ shop:{season:null,rise:30,resting:4,items:[{id:'ice',icon:'🍦',label:'Морозиво',open:true,price:40,times:0},{id:'cart',icon:'🎬',label:'Мультик +30 хв',open:true,price:33,times:1},{id:'toy',icon:'🧸',label:'Нова іграшка',open:true,price:90,times:0},{id:null,open:false,need:12,price:60},{id:null,open:false,need:14,price:80}],food:{price:1,pack:10,packN:12}},
+ inv:{food:4}}}
+function demoCall(a,x){D=D||demoState();let t='',res=null;const now=Date.now();
+ if(a==='harvest'){const c=x.crop?D.farm.once.find(o=>o.id===x.crop):D.farm.crops.find(c=>c.id===x.kind);const k=D.farm.crops.find(c=>c.id===x.kind);
+  D.me.done+=c.uah;D.me.balance+=c.uah;D.me.gems+=c.gem;k.due=now+k.cycle*60000;D.farm.now=now;if(D.me.done>=D.me.norm&&!D.farm.week[6].ok){D.farm.week[6].ok=true;D.me.streak++}t='+'+c.uah+' грн · +'+c.gem+' 💎'}
+ if(a==='task'){const T=[...D.tasks.ar,...D.tasks.wow].find(t=>t.id===x.id);T.wait++;D.tasks.waitN++;D.tasks.waitGems+=T.gems;t='⏳ Надіслано на підтвердження: +'+T.gems+' 💎'}
+ if(a==='buy'){const i=D.shop.items.find(i=>i.id===x.item);if(D.me.gems<i.price)return Promise.resolve({ok:true,toast:'Не вистачає 💎',state:D});D.me.gems-=i.price;i.times++;i.price=Math.round(i.price*1.3);t=i.icon+' куплено!'}
+ if(a==='food'){D.me.gems-=x.pack?D.shop.food.pack:D.shop.food.price;D.inv.food+=x.pack?12:1;t='🍖 +'+(x.pack?12:1)}
+ return new Promise(r=>setTimeout(()=>r({ok:true,toast:t,res,state:JSON.parse(JSON.stringify(D))}),350))}
+// ===================== start
+if(!DEMO&&!API) document.querySelector('.wrap').insertAdjacentHTML('afterbegin','<div class="err">Не вказано адресу бота. Відкрий застосунок кнопкою «📱 Відкрити ферму» з бота.</div>');
+else act('state');
 </script></body></html>
