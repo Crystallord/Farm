@@ -4148,7 +4148,7 @@ function selfUpdate(sha) {
   const nocache = '?t=' + Date.now();
   const code = UrlFetchApp.fetch(GH_RAW + 'farm_reminder_bot.gs' + nocache).getContentText(), manifest = UrlFetchApp.fetch(GH_RAW + 'appsscript.json' + nocache).getContentText();
   if (code.indexOf('function doPost') < 0) throw new Error('у GitHub не той файл');
-  const files = JSON.parse(get(api + '/content')).files, main = files.filter(function (f) { return f.type === 'SERVER_JS'; })[0];
+  const files = JSON.parse(get(api + '/content')).files, main = files.filter(function (f) { return f.type === 'SERVER_JS' && f.source.indexOf('function doPost') >= 0; })[0] || files.filter(function (f) { return f.type === 'SERVER_JS'; })[0];
   const out = files.filter(function (f) { return f !== main && f.name !== 'appsscript'; }).map(function (f) { return { name: f.name, type: f.type, source: f.source }; })
     .concat([{ name: 'appsscript', type: 'JSON', source: manifest }, { name: main ? main.name : 'Code', type: 'SERVER_JS', source: code }]);
   send('put', api + '/content', { files: out });
