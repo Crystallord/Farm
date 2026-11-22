@@ -347,7 +347,7 @@ let D=null;
 function demoState(){const now=Date.now();return{me:{name:'Марія',gems:67,balance:533,streak:9,done:21,norm:30},
  farm:{now,week:[...Array(7)].map((_,i)=>({wd:(new Date(now-(6-i)*864e5)).getDay(),ok:i<6&&i!==1})),
   crops:[{id:'beds',name:'Грядки',icon:'🌱',uah:14,gem:1,cycle:120,due:0},{id:'plots',name:'Компостери й бандли',icon:'🪱',uah:13,gem:1,cycle:90,due:now+25*60000}],
-  once:[{id:'narcissus',icon:'🌼',name:'Нарциси',uah:6,gem:.5},{id:'clover',icon:'🍀',name:'Конюшина',uah:6,gem:.5},{id:'mr',icon:'🌿',name:'М’ята',uah:16,gem:1}]},
+  once:[{id:'narcissus',icon:'🌼',name:'Narcissus',uah:6,gem:.5},{id:'clover',icon:'🍀',name:'Clover',uah:6,gem:.5},{id:'mr',icon:'🌿',name:'Mint',uah:16,gem:1}]},
  tasks:{ar:[{id:'alt',icon:'🧑‍🌾',label:'Прокачати альта й поставити пугало',per:'за альта',gems:50,today:0,wait:0},{id:'restock',icon:'📦',label:'Поповнити запаси ферми',per:'за раз',gems:10,today:0,wait:0},{id:'daily',icon:'☀️',label:'Щоденні справи',per:'за персонажа',gems:5,today:1,wait:1,list:['📅 Нагорода в календарі','🫘 Боб з ринку']},{id:'gift',icon:'🎁',label:'Забрати подарунок',per:'за персонажа',gems:1,today:0,wait:0}],
   wow:[{id:'wd_dm',icon:'🏰',label:'The Deadmines',lvl:'18-23',gems:30,done:0,wait:0},{id:'wd_wc',icon:'🏰',label:'Wailing Caverns',lvl:'17-25',gems:20,done:1,wait:0}],waitGems:5,waitN:1,maxLvl:35},
  shop:{season:null,rise:30,resting:4,items:[{id:'ice',icon:'🍦',label:'Морозиво',open:true,price:40,times:0},{id:'cart',icon:'🎬',label:'Мультик +30 хв',open:true,price:33,times:1},{id:'toy',icon:'🧸',label:'Нова іграшка',open:true,price:90,times:0},{id:null,open:false,need:12,price:60},{id:null,open:false,need:14,price:80}],food:{price:1,pack:10,packN:12}},
