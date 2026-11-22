@@ -4202,8 +4202,26 @@ function setup() {
 // The code runs through bot/loader.gs in the Apps Script project: it takes this file from GitHub and keeps it
 // in the script cache for 15 minutes. selfUpdate drops that cache, so the next run uses the newest code.
 function selfUpdate(sha) {
-  CacheService.getScriptCache().remove('botsrc_n');
-  return '🔄 ' + b('Готово!') + ' Наступне повідомлення бот обробить уже свіжим кодом із GitHub' + (sha ? ' (' + esc(String(sha).slice(0, 7)) + ')' : '') + '.';
+  // raw.githubusercontent.com keeps a file ~5 min in its cache, so the plain address can still give the old code.
+  // The address with the exact commit is never stale: take the newest commit, fetch that file and put it into the loader's cache.
+  const c = CacheService.getScriptCache();
+  try {
+    const head = UrlFetchApp.fetch('https://api.github.com/repos/Crystallord/farm/commits/main', { headers: { Accept: 'application/vnd.github.sha' }, muteHttpExceptions: true });
+    const ref = head.getResponseCode() === 200 ? head.getContentText().trim() : (sha || '');
+    if (!/^[0-9a-f]{40}$/.test(ref)) throw new Error('GitHub: ' + head.getResponseCode());
+    const r = UrlFetchApp.fetch('https://raw.githubusercontent.com/Crystallord/farm/' + ref + '/bot/farm_reminder_bot.gs', { muteHttpExceptions: true });
+    if (r.getResponseCode() !== 200) throw new Error('GitHub: ' + r.getResponseCode());
+    const src = r.getContentText();
+    new Function(src); // a broken file would stop the bot: check that it parses before using it
+    const parts = {}, N = Math.ceil(src.length / 40000);
+    for (let i = 0; i < N; i++) parts['botsrc_' + i] = src.slice(i * 40000, (i + 1) * 40000);
+    parts.botsrc_n = String(N);
+    c.putAll(parts, 900);
+    return '🔄 ' + b('Готово!') + ' Код із GitHub (' + ref.slice(0, 7) + ') уже працює.';
+  } catch (err) {
+    c.remove('botsrc_n');
+    return '🔄 Кеш скинуто, свіжий код підтягнеться за кілька хвилин (' + esc(String(err.message || err)).slice(0, 120) + ').';
+  }
 }
 // Fallback: no webhook, the bot checks Telegram every minute (replies come up to a minute late).
 function setupPolling() {
