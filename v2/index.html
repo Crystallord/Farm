@@ -219,6 +219,31 @@ body{padding-bottom:96px}
 .recs{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .recs div{background:#fff;border-radius:18px;padding:12px;box-shadow:0 2px 0 #f0dcc0;text-align:center}
 .recs b{display:block;font-size:20px;font-weight:900;font-variant-numeric:tabular-nums}.recs small{font-size:11.5px;color:var(--mute);font-weight:800}
+
+.claimc{background:linear-gradient(135deg,#fff3c4,#ffe08a);box-shadow:0 2px 0 #f0c860,0 10px 24px rgba(255,176,32,.3)}
+.claimc h4{margin:0 0 8px;font-size:16px;font-weight:900}
+.cl{display:flex;align-items:center;gap:10px;padding:6px 0}.cl+.cl{border-top:1px dashed rgba(122,74,0,.2)}
+.cl .e{font-size:24px}.cl b{flex:1;font-size:14px}.cl button{border:0;border-radius:12px;padding:7px 10px;font:900 12.5px Nunito,sans-serif;background:#fff;color:#7a4a00;box-shadow:0 2px 0 #e0b84a;cursor:pointer}
+.claimall{width:100%;margin-top:10px;border:0;border-radius:16px;padding:13px;font:900 16px Nunito,sans-serif;color:#fff;background:linear-gradient(#ffb020,#ff7a1a);box-shadow:0 4px 0 #d9620a;cursor:pointer;animation:breathe2 1.6s infinite}
+@keyframes breathe2{50%{box-shadow:0 4px 0 #d9620a,0 0 0 8px rgba(255,176,32,.3)}}
+.gx{display:flex;flex-direction:column;gap:10px}.gx .h{display:flex;justify-content:space-between;align-items:baseline}.gx b{font-weight:900;font-size:15px}.gx small{color:var(--mute);font-weight:800;font-size:12px}
+.chips{display:flex;gap:8px}.chips button{flex:1;border:0;border-radius:14px;padding:10px 4px;font:900 14px Nunito,sans-serif;background:#f1ecff;color:#5b3fd6;cursor:pointer;box-shadow:0 3px 0 #ddd3ff}
+.chips button:active{transform:translateY(2px);box-shadow:0 1px 0 #ddd3ff}.chips button:disabled{opacity:.4}
+.chips.uah button{background:#e9ffef;color:#1d8a45;box-shadow:0 3px 0 #c8efd4}
+.appr h4{margin:0 0 6px;font-size:15px;font-weight:900}
+.ap{display:flex;align-items:center;gap:8px;padding:7px 0}.ap+.ap{border-top:1px solid #f3e9dc}
+.ap .tx{flex:1;font-size:13px;font-weight:800}.ap .tx small{display:block;color:var(--mute);font-size:11.5px}
+.ap button{border:0;border-radius:11px;width:38px;height:36px;font-size:17px;cursor:pointer;background:#e9ffef}.ap button.no{background:#ffece4}
+.take{margin-top:12px;width:100%;border:0;border-radius:16px;padding:12px;font:900 15px Nunito,sans-serif;color:#0f4a33;background:#b9ffd6;box-shadow:0 4px 0 #6fd59b;cursor:pointer}
+.tile{cursor:pointer}.tile .go{font-size:11.5px;font-weight:900;color:#1d8a45;margin-top:2px}
+.shade{position:fixed;inset:0;background:rgba(40,25,10,.45);z-index:90;display:none;align-items:flex-end}
+.shade.on{display:flex;animation:fadein .2s}@keyframes fadein{from{opacity:0}}
+.sheet{width:100%;max-width:480px;margin:0 auto;background:var(--bg);border-radius:24px 24px 0 0;padding:18px 16px calc(22px + env(safe-area-inset-bottom));animation:up .3s cubic-bezier(.2,.9,.3,1.1)}
+@keyframes up{from{transform:translateY(100%)}}
+.sheet h3{margin:0;font-size:19px;font-weight:900}.sheet p{margin:6px 0 12px;color:var(--mute);font-weight:800;font-size:13px}
+.sheet .kv{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}.sheet .kv div{background:#fff;border-radius:14px;padding:10px}
+.sheet .kv b{display:block;font-size:17px;font-weight:900}.sheet .kv small{font-size:11.5px;color:var(--mute);font-weight:800}
+.sheet .big{width:100%;margin-top:10px}.sheet .ghostb{width:100%;margin-top:10px;border:0;background:none;font:900 14px Nunito,sans-serif;color:var(--mute);padding:8px;cursor:pointer}
 </style></head><body>
 <div class="wrap view on" id="v_farm">
   <div class="card top">
@@ -240,6 +265,7 @@ body{padding-bottom:96px}
 <div class="wrap view" id="v_tasks">
   <div class="card th"><div class="mini"><svg viewBox="0 0 86 86"><circle class="tr" cx="43" cy="43" r="37"/><circle class="pr" id="tpr" cx="43" cy="43" r="37"/></svg><div class="ic">💎</div></div>
     <div><b id="tt1">Сьогодні +0 💎</b><small id="tt2"></small><div class="pend" id="tpend" style="display:none"></div></div></div>
+  <div class="card appr" id="appr" style="display:none"></div>
   <div class="seg" id="gseg"><button data-g="ar" class="on">⚔️ ArcheRage</button><button data-g="wow">🐉 WoW</button></div>
   <div id="tlist" style="display:flex;flex-direction:column;gap:10px"></div>
 </div>
@@ -256,16 +282,18 @@ body{padding-bottom:96px}
   <div class="card ihero"><small>Твої ділянки заробили сьогодні</small>
     <div class="tick"><span id="ti">0</span><span class="dec" id="td">,00000</span> <span class="cur">₴</span></div>
     <div class="irow"><div><b id="iday">0</b><small>₴ на день</small></div><div><b id="imon">0</b><small>₴ на місяць</small></div><div><b id="iwal">0</b><small>₴ до виплати</small></div></div>
-    <div class="inote">якщо базова ферма збирає на 100%</div></div>
+    <div class="inote">якщо базова ферма збирає на 100%</div><button class="take" id="itake" style="display:none"></button></div>
   <div class="sect"><b>Мої ділянки</b><small id="icnt"></small></div>
   <div class="tiles" id="tiles"></div>
   <div id="offs"></div>
   <div class="demo dm"></div>
 </div>
 <div class="wrap view" id="v_me">
-  <div class="card mehd"><div><b id="mname">Я</b><small id="machs"></small></div><div class="trio" id="trio"></div></div>
+  <div class="card mehd"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><b id="mname">Я</b><small id="machs"></small></div><div class="bals"><div class="bv2"><span id="muah">0</span> ₴</div><div class="bv2 g" id="mgemw"><span id="mgem">0</span> 💎</div></div></div><div class="trio" id="trio"></div></div>
+  <div class="card claimc" id="claim" style="display:none"></div>
   <div class="sect"><b>🎒 Мої речі</b><small id="icount"></small></div>
   <div class="tiles" id="mitems"></div>
+  <div class="card gx" id="gx"></div>
   <div class="sect"><b>📊 Останні 7 днів</b><small id="wtot"></small></div>
   <div class="card chart" id="chart"></div>
   <div class="sect"><b>👨‍👩‍👧 Родина цього тижня</b></div>
@@ -284,7 +312,7 @@ body{padding-bottom:96px}
   <button class="tab" data-v="shop"><span class="ti">🛍️</span>Крамниця<span class="dot" id="sdot" style="display:none">0</span></button>
   <button class="tab" data-v="me"><span class="ti">👤</span>Я<span class="dot" id="mdot" style="display:none">0</span></button>
 </div></nav>
-<canvas id="cf"></canvas><div class="toast" id="toast"></div>
+<div class="shade" id="shade"><div class="sheet" id="sheet"></div></div><canvas id="cf"></canvas><div class="toast" id="toast"></div>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script>
 // ===================== setup
@@ -334,7 +362,7 @@ function confetti(){const cv=$('cf'),x=cv.getContext('2d');cv.width=innerWidth*d
 function confirmTG(text){return new Promise(res=>{try{TG.showConfirm(text,ok=>res(ok))}catch(e){res(confirm(text))}})}
 // ===================== render: farm
 const WD=['Нд','Пн','Вт','Ср','Чт','Пт','Сб'];
-function render(){if(!S)return;renderTop();renderRing();renderCrops();renderOnce();renderTasks();renderShop();if(S.invest)renderInvest();renderMe()}
+function render(){if(!S)return;renderTop();renderRing();renderCrops();renderOnce();renderTasks();renderShop();if(S.invest)renderInvest();renderMe();renderClaim();renderAppr()}
 function renderTop(){const me=S.me,w=S.farm.week,done=w[w.length-1].ok;
  $('sd').textContent=me.streak;$('sdw').textContent=plural(me.streak,['день','дні','днів']);
  $('flame').classList.toggle('dim',!done);
@@ -437,11 +465,14 @@ function renderInvest(){const I=S.invest,mine=I.plots.filter(p=>p.share>0);
  $('tiles').innerHTML=mine.length?mine.map(p=>{const pc=Math.round(p.share*100);return `<div class="card tile">
   <div class="pie" style="background:conic-gradient(#2fb45c ${pc*3.6}deg,#e7f6ec 0)"><span>${pc}%</span></div>
   <div class="tn">🏡 ${p.name}</div><div class="tt">${p.type}</div>
-  <div class="mo">+${fmt(Math.round(p.day*30))} <small>₴/міс</small></div><div class="dd">+${fmt(+p.day.toFixed(2))} ₴ на день</div></div>`}).join('')
+  <div class="mo">+${fmt(Math.round(p.day*30))} <small>₴/міс</small></div><div class="dd">+${fmt(+p.day.toFixed(2))} ₴ на день</div><div class="go">Деталі ›</div></div>`}).join('')
   :'<div class="card empty">Поки немає частки в жодній ділянці.<br>Вклади у збір нижче — і тут почне капати 🌱</div>';
  $('offs').innerHTML=I.offers.length?'<div class="sect"><b>Збір на нову ділянку</b><small>вкладай у боті</small></div><div class="tiles">'+I.offers.map(o=>{const k=Math.min(1,o.raised/o.price);
-  return `<div class="card tile raise"><div class="tn">🏗 ${o.name}</div><div class="tt">${o.type}</div><div class="pbar"><i style="width:${k*100}%"></i></div>
-  <div class="dd">${fmt(o.raised)} / ${fmt(o.price)} ₴ · ${Math.round(k*100)}%</div><div class="mo">+${fmt(Math.round(o.dayAll*30))} <small>₴/міс усім</small></div>${o.my?`<div class="dd">твій внесок ${fmt(o.my)} ₴</div>`:''}</div>`}).join('')+'</div>':''}
+  return `<div class="card tile raise" data-o="${o.id}"><div class="tn">🏗 ${o.name}</div><div class="tt">${o.type}</div><div class="pbar"><i style="width:${k*100}%"></i></div>
+  <div class="dd">${fmt(o.raised)} / ${fmt(o.price)} ₴ · ${Math.round(k*100)}%</div><div class="mo">+${fmt(Math.round(o.dayAll*30))} <small>₴/міс усім</small></div>${o.my?`<div class="dd">твій внесок ${fmt(o.my)} ₴</div>`:''}<div class="go" style="color:#b35a00">Вкласти ›</div></div>`}).join('')+'</div>':'';
+ $('tiles').querySelectorAll('.tile').forEach((el,i)=>el.onclick=()=>plotSheet(mine[i]));
+ $('offs').querySelectorAll('.tile').forEach(el=>el.onclick=()=>offerSheet(I.offers.find(o=>o.id===el.dataset.o)));
+ const tk=$('itake');tk.style.display=I.wallet>0?'':'none';tk.textContent=`💰 Забрати ${fmt(I.wallet)} ₴ на баланс`;tk.onclick=ivtake}
 function tickInvest(){if(!S||!S.invest||!$('v_inv').classList.contains('on'))return;const n=new Date(),sec=(n-new Date(n.getFullYear(),n.getMonth(),n.getDate()))/1000;
  const v=S.invest.daily*sec/86400,s=v.toFixed(5).split('.');$('ti').textContent=(+s[0]).toLocaleString('uk-UA');$('td').textContent=','+s[1];requestAnimationFrame(tickInvest)}
 // ===================== me: stats + inventory
@@ -474,6 +505,49 @@ function renderMe(){const M=S.my;if(!M)return;
   <div><b>🚜 ${fmt(R.harvests)}</b><small>зборів усього</small></div><div><b>💰 ${fmt(Math.round(R.earned))} ₴</b><small>зароблено</small></div>`}
 $('achmore').onclick=()=>{achAll=!achAll;renderMe()};
 async function useIt(i,btn){if(busy)return;hap('heavy');const r=await act('item',{what:i.what});if(r&&r.ok){plus(btn,i.icon);hap('ok');if(i.what==='prize')confetti()}}
+// ===================== bottom sheet
+function sheet(html){$('sheet').innerHTML=html;$('shade').classList.add('on')}
+function unsheet(){$('shade').classList.remove('on')}
+$('shade').onclick=e=>{if(e.target.id==='shade')unsheet()};
+// ===================== claim achievements, exchange
+function renderClaim(){const M=S.my,C=M.claim||[],el=$('claim');
+ $('muah').textContent=fmt(S.me.balance);$('mgem').textContent=fmt(S.me.gems);
+ if(!C.length){el.style.display='none';}else{el.style.display='';
+ el.innerHTML=`<h4>🎁 Нагороди за досягнення</h4>`+C.slice(0,6).map(c=>`<div class="cl"><span class="e">${c.icon}</span><b>${c.name}</b><button data-k="${c.key}">+${M.achGem} 💎</button></div>`).join('')+
+  (C.length>6?`<div class="cl"><b style="text-align:center;color:#7a4a00">…і ще ${C.length-6}</b></div>`:'')+`<button class="claimall" id="clall">Забрати все · +${C.length*M.achGem} 💎</button>`;
+ el.querySelectorAll('.cl button').forEach(b=>b.onclick=()=>claim(b.dataset.k,b));$('clall').onclick=()=>claim('all',$('clall'))}
+ const md=$('mdot'),n=C.length+(M.items||[]).filter(i=>i.act).length;md.textContent=n;md.style.display=n?'grid':'none';
+ const g=S.me.gems,r=M.gemUah;
+ $('gx').innerHTML=`<div class="h"><b>💱 Обміняти кристали</b><small>1 💎 = ${fmt(r)} ₴</small></div><div class="chips">${[10,50].map(v=>`<button data-n="${v}" ${g<v?'disabled':''}>${v} 💎 → ${fmt(v*r)} ₴</button>`).join('')}<button data-n="all" ${g<1?'disabled':''}>Усі ${fmt(Math.floor(g))}</button></div>`;
+ $('gx').querySelectorAll('button').forEach(b=>b.onclick=()=>exchange(b.dataset.n,b))}
+async function claim(key,btn){if(busy)return;hap('heavy');fly(btn,$('mgemw'),'💎',key==='all'?10:3);const r=await act('claim',{key});if(r&&r.ok){hap('ok');bump($('mgemw'));if(key==='all')confetti()}}
+async function exchange(n,btn){if(busy)return;const k=n==='all'?Math.floor(S.me.gems):+n;
+ if(!(await confirmTG(`Обміняти ${k} 💎 на ${fmt(k*S.my.gemUah)} ₴?`)))return;hap('heavy');fly(btn,$('muah'),'₴',5);await act('gemx',{n:String(n)})}
+// ===================== owner approvals
+function renderAppr(){const A=S.tasks.approve,el=$('appr');if(!A||!A.length){el.style.display='none';return}el.style.display='';
+ el.innerHTML=`<h4>✅ На перевірку · ${A.length}</h4>`+A.map(x=>`<div class="ap"><div class="tx">${x.icon} ${x.who}: ${x.label}<small>+${x.gems} 💎 · ${x.at}</small></div><button data-ok="1" data-id="${x.id}">✅</button><button class="no" data-ok="" data-id="${x.id}">❌</button></div>`).join('')+
+  (A.length>1?`<button class="buy" style="margin-top:8px" data-ok="1" data-id="all">✅ Підтвердити всі (${A.length})</button>`:'');
+ el.querySelectorAll('button').forEach(b=>b.onclick=async()=>{hap('medium');await act('decide',{ok:!!b.dataset.ok,which:b.dataset.id})})}
+// ===================== invest actions
+function plotSheet(p){const I=S.invest,pc=Math.round(p.share*100);
+ sheet(`<h3>🏡 ${p.name}</h3><p>${p.type} · твоя частка ${pc}% (${fmt(p.my)} ₴)</p>
+ <div class="kv"><div><b>+${fmt(Math.round(p.day*30))} ₴</b><small>на місяць тобі</small></div><div><b>+${fmt(+p.day.toFixed(2))} ₴</b><small>на день тобі</small></div>
+ <div><b>${fmt(p.got)} ₴</b><small>уже отримано</small></div><div><b>+${fmt(Math.round(p.dayAll*30))} ₴</b><small>ділянка всім/міс</small></div></div>
+ ${p.canSell?`<button class="buy big" id="sell" style="background:linear-gradient(#ff8a6a,#e2552b);box-shadow:0 4px 0 #b3402b">↩️ Продати частку за ${fmt(p.my)} ₴</button>`:(p.my&&!p.canSell&&p.sellFrom?`<p>Продати частку можна з ${p.sellFrom.slice(8)}.${p.sellFrom.slice(5,7)} 🌱</p>`:'')}
+ <button class="ghostb" onclick="unsheet()">Закрити</button>`);
+ if($('sell'))$('sell').onclick=async()=>{if(!(await confirmTG(`Продати частку «${p.name}» за ${fmt(p.my)} ₴? Дохід з неї припиниться.`)))return;const r=await act('sell',{pid:p.id});if(r&&r.ok)unsheet()}}
+function offerSheet(o){const I=S.invest,left=Math.max(0,o.price-o.raised),bal=I.balance,k=Math.min(1,o.raised/o.price);
+ const amts=[20,50,100,200].filter(a=>a<left);
+ sheet(`<h3>🏗 ${o.name}</h3><p>${o.type} · зібрано ${fmt(o.raised)} з ${fmt(o.price)} ₴</p>
+ <div class="pbar" style="height:14px;margin-bottom:12px"><i style="width:${k*100}%"></i></div>
+ <div class="kv"><div><b>${fmt(bal)} ₴</b><small>у тебе на балансі</small></div><div><b>${fmt(o.my)} ₴</b><small>твій внесок</small></div>
+ <div><b>+${fmt(Math.round(o.dayAll*30))} ₴</b><small>ділянка власникам/міс</small></div><div><b>${fmt(left)} ₴</b><small>лишилось зібрати</small></div></div>
+ <div class="chips uah">${amts.map(a=>`<button data-a="${a}" ${bal<a?'disabled':''}>+${a} ₴</button>`).join('')}<button data-a="all" ${bal<Math.min(I.min,left)?'disabled':''}>Усе</button></div>
+ ${o.my?`<button class="ghostb" id="back" style="color:#e2552b">↩️ Забрати свій внесок (${fmt(o.my)} ₴)</button>`:''}
+ <button class="ghostb" onclick="unsheet()">Закрити</button>`);
+ $('sheet').querySelectorAll('.chips button').forEach(b=>b.onclick=async()=>{hap('heavy');const r=await act('pledge',{oid:o.id,amt:b.dataset.a});if(r&&r.ok){confetti();const n=S.invest.offers.find(x=>x.id===o.id);if(n)offerSheet(n);else unsheet()}});
+ if($('back'))$('back').onclick=async()=>{if(!(await confirmTG(`Повернути ${fmt(o.my)} ₴ на баланс?`)))return;const r=await act('pledge',{oid:o.id,amt:'back'});if(r&&r.ok)unsheet()}}
+async function ivtake(){if(busy)return;hap('heavy');fly($('itake'),$('itake'),'₴',5);const r=await act('ivtake');if(r&&r.ok)confetti()}
 // ===================== tabs
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{hap('light');document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===b));
  document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id==='v_'+b.dataset.v));scrollTo(0,0);if(b.dataset.v==='inv')tickInvest()});
@@ -486,12 +560,15 @@ function demoState(){const now=Date.now();return{me:{name:'Марія',gems:67,b
  tasks:{ar:[{id:'alt',icon:'🧑‍🌾',label:'Прокачати альта й поставити пугало',per:'за альта',gems:50,today:0,wait:0},{id:'restock',icon:'📦',label:'Поповнити запаси ферми',per:'за раз',gems:10,today:0,wait:0},{id:'daily',icon:'☀️',label:'Щоденні справи',per:'за персонажа',gems:5,today:1,wait:1,list:['📅 Нагорода в календарі','🫘 Боб з ринку']},{id:'gift',icon:'🎁',label:'Забрати подарунок',per:'за персонажа',gems:1,today:0,wait:0}],
   wow:[{id:'wd_dm',icon:'🏰',label:'The Deadmines',lvl:'18-23',gems:30,done:0,wait:0},{id:'wd_wc',icon:'🏰',label:'Wailing Caverns',lvl:'17-25',gems:20,done:1,wait:0}],waitGems:5,waitN:1,maxLvl:35},
  shop:{season:null,rise:30,resting:4,items:[{id:'ice',icon:'🍦',label:'Морозиво',open:true,price:40,times:0},{id:'cart',icon:'🎬',label:'Мультик +30 хв',open:true,price:33,times:1},{id:'toy',icon:'🧸',label:'Нова іграшка',open:true,price:90,times:0},{id:null,open:false,need:12,price:60},{id:null,open:false,need:14,price:80}],food:{price:1,pack:10,packN:12}},
- inv:{food:4},my:{today:{n:2,uah:21},week:{n:9,uah:112},month:{n:41,uah:533},days:[...Array(7)].map((_,i)=>({day:new Date(Date.now()-(6-i)*864e5).toISOString().slice(0,10),uah:[34,12,31,45,0,30,21][i],n:3})),rec:{bestStreak:12,bestDay:7,harvests:241,earned:3120},family:[{name:'Тато',color:'🟩',uah:140},{name:'Марія',color:'🟨',uah:112,me:true}],ach:{got:7,total:64,next:[{title:'🚜 Збори',v:41,need:50,icon:'🚜',name:'Справжня фермерка',from:10},{title:'🔥 Стрік',v:9,need:14,icon:'🔥',name:'Два тижні',from:7},{title:'💰 Заробіток',v:533,need:1000,icon:'💎',name:'Тисячниця',from:500},{title:'⚡ Рекорд за день',v:4,need:6,icon:'⚡',name:'Робочий день',from:0},{title:'🏁 Перегони',v:1,need:3,icon:'🏁',name:'Чемпіонка',from:1}]},items:[{what:'prize',icon:'🎁',label:'Невідкритий приз',n:1,act:'Відкрити'},{what:'ice',icon:'🍦',label:'Морозиво',n:2,act:'Хочу!'},{what:'cpn_x',icon:'🍽️',label:'Мий за мною посуд',n:1,act:'Використати'},{what:'',icon:'❄️',label:'Заморозка стріку',n:1,note:'спрацює сама'}]},invest:{daily:3.42,wallet:12.5,plots:[{id:'p1',name:'Сонячна',type:'16×16 з будинком',share:.31,day:1.14,dayAll:3.68},{id:'p2',name:'Лісова',type:'24×24 з будинком',share:.2,day:2.28,dayAll:11.4}],offers:[{id:'o1',name:'Річкова',type:'16×16 з будинком',price:3000,raised:1860,my:500,dayAll:3.68}]}}}
+ inv:{food:4},my:{today:{n:2,uah:21},week:{n:9,uah:112},month:{n:41,uah:533},days:[...Array(7)].map((_,i)=>({day:new Date(Date.now()-(6-i)*864e5).toISOString().slice(0,10),uah:[34,12,31,45,0,30,21][i],n:3})),rec:{bestStreak:12,bestDay:7,harvests:241,earned:3120},family:[{name:'Тато',color:'🟩',uah:140},{name:'Марія',color:'🟨',uah:112,me:true}],claim:[{key:'first',icon:'🌅',name:'З першого дня'},{key:'0.0',icon:'🌱',name:'Перший урожай'},{key:'0.1',icon:'🧺',name:'Десять кошиків'}],achGem:1,gemUah:.5,ach:{got:7,total:64,next:[{title:'🚜 Збори',v:41,need:50,icon:'🚜',name:'Справжня фермерка',from:10},{title:'🔥 Стрік',v:9,need:14,icon:'🔥',name:'Два тижні',from:7},{title:'💰 Заробіток',v:533,need:1000,icon:'💎',name:'Тисячниця',from:500},{title:'⚡ Рекорд за день',v:4,need:6,icon:'⚡',name:'Робочий день',from:0},{title:'🏁 Перегони',v:1,need:3,icon:'🏁',name:'Чемпіонка',from:1}]},items:[{what:'prize',icon:'🎁',label:'Невідкритий приз',n:1,act:'Відкрити'},{what:'ice',icon:'🍦',label:'Морозиво',n:2,act:'Хочу!'},{what:'cpn_x',icon:'🍽️',label:'Мий за мною посуд',n:1,act:'Використати'},{what:'',icon:'❄️',label:'Заморозка стріку',n:1,note:'спрацює сама'}]},invest:{min:20,balance:533,daily:3.42,wallet:12.5,plots:[{id:'p1',name:'Сонячна',type:'16×16 з будинком',share:.31,my:930,got:12,canSell:true,day:1.14,dayAll:3.68},{id:'p2',name:'Лісова',type:'24×24 з будинком',share:.2,day:2.28,dayAll:11.4}],offers:[{id:'o1',name:'Річкова',type:'16×16 з будинком',price:3000,raised:1860,my:500,dayAll:3.68}]}}}
 function demoCall(a,x){D=D||demoState();let t='',res=null;const now=Date.now();
  if(a==='harvest'){const c=x.crop?D.farm.once.find(o=>o.id===x.crop):D.farm.crops.find(c=>c.id===x.kind);const k=D.farm.crops.find(c=>c.id===x.kind);
   D.me.done+=c.uah;D.me.balance+=c.uah;D.me.gems+=c.gem;k.due=now+k.cycle*60000;D.farm.now=now;if(D.me.done>=D.me.norm&&!D.farm.week[6].ok){D.farm.week[6].ok=true;D.me.streak++}t='+'+c.uah+' грн · +'+c.gem+' 💎'}
  if(a==='task'){const T=[...D.tasks.ar,...D.tasks.wow].find(t=>t.id===x.id);T.wait++;D.tasks.waitN++;D.tasks.waitGems+=T.gems;t='⏳ Надіслано на підтвердження: +'+T.gems+' 💎'}
  if(a==='buy'){const i=D.shop.items.find(i=>i.id===x.item);if(D.me.gems<i.price)return Promise.resolve({ok:true,toast:'Не вистачає 💎',state:D});D.me.gems-=i.price;i.times++;i.price=Math.round(i.price*1.3);t=i.icon+' куплено!'}
+ if(a==='claim'){const n=x.key==='all'?D.my.claim.length:1;D.me.gems+=n;D.my.claim=x.key==='all'?[]:D.my.claim.filter(c=>c.key!==x.key);t='🏅 +'+n+' 💎'}
+ if(a==='pledge'){const o=D.invest.offers.find(o=>o.id===x.oid),v=x.amt==='all'?D.invest.balance:+x.amt;o.raised+=v;o.my+=v;D.invest.balance-=v;D.me.balance-=v;t='💼 +'+v+' грн'}
+ if(a==='ivtake'){D.me.balance+=D.invest.wallet;t='💰 +'+D.invest.wallet;D.invest.wallet=0}
  if(a==='food'){D.me.gems-=x.pack?D.shop.food.pack:D.shop.food.price;D.inv.food+=x.pack?12:1;t='🍖 +'+(x.pack?12:1)}
  return new Promise(r=>setTimeout(()=>r({ok:true,toast:t,res,state:JSON.parse(JSON.stringify(D))}),350))}
 // ===================== start

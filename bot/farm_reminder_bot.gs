@@ -2517,7 +2517,7 @@ function checkAch(st, id) {
   if (fresh.length && st.group) {
     const p = st.people[id];
     const m = sayK(st, 'ach:' + id, fresh.map(function (s) { return '🏅 ' + esc(p.name) + ' ' + verb(p, 'отримав', 'отримала') + ' досягнення ' + s[1] + ' ' + b('«' + achName(st, id, s) + '»') + '!'; }).join('\n') +
-      '\nУсі досягнення: 🏅 у /menu');
+      '\n💎 Нагорода +' + (st.cfg.achGem || 1) + ' за кожне — забирай у 📱 застосунку (вкладка «Я»)');
     react(st.group, m && m.result && m.result.message_id, '🎉');
   }
 }
@@ -3417,6 +3417,16 @@ function appApi(e) {
         else if (/^(ice|vac|cash|cpn_[\w-]+)$/.test(w)) useItem(st, user, w, id, q, noop);
         else q.out.push('Такого предмета немає');
       }
+      else if (body.action === 'claim') appClaim(st, id, String(a.key || 'all'), q);
+      else if (body.action === 'pledge') pledge(st, user, String(a.oid), String(a.amt), q);
+      else if (body.action === 'ivtake') {
+        const w = money((st.invWallet || {})[id] || 0);
+        if (w <= 0) q.out.push('Поки нічого забирати');
+        else { st.invWallet[id] = 0; st.balance[id] = money((st.balance[id] || 0) + w); q.out.push('💰 +' + w + ' грн на баланс');
+          sayK(st, 'ivtake', '🏦 ' + esc(person(st, user).name) + ' ' + verb(person(st, user), 'забрав', 'забрала') + ' дохід із землі: ' + grn(w) + '! 🌱'); checkAch(st, id); }
+      }
+      else if (body.action === 'sell') sellShare(st, user, String(a.pid), id, true, q, noop);
+      else if (body.action === 'decide') { if (String(id) !== String(st.owner)) q.out.push('Підтверджує лише власник'); else { decideTasks(st, !!a.ok, String(a.which), q, noop); postPending(st); } }
       else if (body.action === 'wear') { const pet = petOf(st, id); const why = petOk(pet) ? petCloth(st, id, String(a.slot), String(a.item)) : 'Улюбленця ще немає'; q.out.push(why ? why.replace(/<[^>]+>/g, '') : '👕 Обновка!'); }
       else changed = false; // 'state': just look
       const pet = petOf(st, id); if (petOk(pet)) petTick(st, pet, now);
@@ -3487,15 +3497,37 @@ function appTasks(st, id) {
       .map(function (t) { return { id: t.id, icon: t.icon, label: t.label, per: t.per, note: t.note || '', list: t.list ? DAILY : null, gems: st.cfg.taskGems[t.id], today: n[t.id] || 0, wait: waitOf(t.id) }; }),
     wow: wowList(st).map(function (d) { return { id: 'wd_' + d[0], icon: '🏰', label: d[1], lvl: d[2], gems: wowGems(st, id, d[0]), done: wowDone(st, id, d[0]), wait: waitOf('wd_' + d[0]) }; }),
     waitGems: pend.reduce(function (a, x) { return a + x.gems; }, 0), waitN: pend.length,
+    approve: String(id) === String(st.owner) ? (st.pend || []).map(function (x) { const t = taskDef(x.task) || { icon: '?', label: x.task }; return { id: x.id, who: nameOf(st, x.uid), icon: t.icon, label: t.label, gems: x.gems, at: hhmm(x.at) }; }) : null,
     todayGems: Object.keys(lg.tasks || {}).reduce(function (a, k) { return a + lg.tasks[k]; }, 0), game: (st.earnGame || {})[id] || 'ar', maxLvl: st.cfg.wowMaxLvl,
   };
 }
 function appInvest(st, id) {
   const mine = function (p) { return shareOf(p, id); };
+  const today = dayKey(Date.now(), st.cfg);
   const plots = (st.cfg.iplots || []).map(function (p) { const d = offerDaily(st, p), k = mine(p);
-    return { id: p.id, name: p.name, type: typeLabel(p.type), share: k, my: money(p.shares[id] || 0), price: p.price, dayAll: money(d), day: d * k, owners: Object.keys(p.shares).filter(function (u) { return p.shares[u] > 0; }).length }; });
+    return { sellFrom: addDays(p.since, SELL_AFTER), canSell: !!p.shares[id] && String(id) !== String(st.owner) && today >= addDays(p.since, SELL_AFTER), got: money((p.got || {})[id] || 0), id: p.id, name: p.name, type: typeLabel(p.type), share: k, my: money(p.shares[id] || 0), price: p.price, dayAll: money(d), day: d * k, owners: Object.keys(p.shares).filter(function (u) { return p.shares[u] > 0; }).length }; });
   const offers = (st.offers || []).map(function (o) { return { id: o.id, name: o.name, type: typeLabel(o.type), price: o.price, raised: money(offerSum(o)), my: money(o.pledges[id] || 0), dayAll: money(offerDaily(st, o)) }; });
-  return { daily: plots.reduce(function (a, p) { return a + p.day; }, 0), wallet: money((st.invWallet || {})[id] || 0), plots: plots, offers: offers };
+  return { min: INV_MIN, balance: money(st.balance[id] || 0), daily: plots.reduce(function (a, p) { return a + p.day; }, 0), wallet: money((st.invWallet || {})[id] || 0), plots: plots, offers: offers };
+}
+// 🏅 +1 💎 for every achievement, taken by hand in the app (old ones too): st.achPaid[uid] = { achKey: day }
+function achLabel(st, id, key) {
+  if (key === 'first') return { icon: '🌅', name: 'З першого дня' };
+  const g = ACH_GROUPS[+key.split('.')[0]], s = g && g.steps[+key.split('.')[1]];
+  return s ? { icon: s[1], name: achName(st, id, s) } : null;
+}
+function achUnpaid(st, id) {
+  const mine = st.ach[id] || {}, paid = (st.achPaid || {})[id] || {};
+  return Object.keys(mine).filter(function (k) { return !paid[k] && achLabel(st, id, k); });
+}
+function appClaim(st, id, key, q) {
+  const list = achUnpaid(st, id).filter(function (k) { return key === 'all' || k === key; });
+  if (!list.length) { q.out.push('Уже забрано'); return; }
+  const per = st.cfg.achGem || 1, day = dayKey(Date.now(), st.cfg);
+  st.achPaid = st.achPaid || {}; st.achPaid[id] = st.achPaid[id] || {};
+  list.forEach(function (k) { st.achPaid[id][k] = day; });
+  inv(st, id).gems = money(inv(st, id).gems + list.length * per);
+  q.out.push('🏅 +' + list.length * per + ' 💎 за ' + list.length + ' ' + plural(list.length, ['досягнення', 'досягнення', 'досягнень']));
+  q.res = { gems: list.length * per };
 }
 function appMe(st, id, now) { // 👤 stats, records, the family this week, the next achievements, the inventory
   const day = dayKey(now, st.cfg), wk = 'w:' + weekKey(day), mo = 'm:' + monthKey(now);
@@ -3503,6 +3535,7 @@ function appMe(st, id, now) { // 👤 stats, records, the family this week, the 
   const days = []; for (let i = 6; i >= 0; i--) { const d = dayKey(now - i * 86400000, st.cfg); days.push(Object.assign({ day: d }, pick('d:' + d))); }
   const mine = st.ach[id] || {}, x = inv(st, id);
   return {
+    claim: achUnpaid(st, id).map(function (k) { return Object.assign({ key: k }, achLabel(st, id, k)); }), achGem: st.cfg.achGem || 1, gemUah: st.cfg.gemUah,
     today: pick('d:' + day), week: pick(wk), month: pick(mo), days: days,
     rec: { bestStreak: bestStreak(st, id), bestDay: bestDay(st, id), harvests: harvestsRaw(st, id), earned: money(earnedRaw(st, id)) },
     family: Object.keys(st.people).map(function (u) { const w = pick(wk, u); return { name: nameOf(st, u), color: colorOf(st, u), uah: w.uah, n: w.n, me: u === String(id) }; })
