@@ -91,7 +91,7 @@ canvas#cf{position:fixed;inset:0;pointer-events:none;z-index:70}
 /* nav */
 body{padding-bottom:96px}
 .nav{position:fixed;left:0;right:0;bottom:0;z-index:40;padding:8px 12px calc(10px + env(safe-area-inset-bottom));background:rgba(255,247,236,.92);backdrop-filter:blur(10px);border-top:1px solid #f0dcc0}
-.nav .in{max-width:440px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.nav .in{max-width:440px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .tab{border:0;background:none;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:2px;font-weight:900;font-size:12px;color:var(--mute);cursor:pointer;position:relative;padding:4px 0}
 .tab .ti{font-size:25px;transition:transform .25s;filter:grayscale(.7) opacity(.7)}
 .tab.on{color:var(--ink)}.tab.on .ti{transform:translateY(-3px) scale(1.12);filter:none}
@@ -145,33 +145,63 @@ body{padding-bottom:96px}
 .err{background:#fff;border-radius:18px;padding:18px;text-align:center;font-weight:800;color:#b3402b}
 .loading{opacity:.55;pointer-events:none}
 .lockinfo{font-size:11.5px;font-weight:900;color:#b35a00}
+
+/* compact top */
+.top{padding:12px 14px}
+.top .streak{display:flex;align-items:center;gap:10px}
+.top .flame{font-size:32px}
+.top .sk b{font-size:18px}.top .sk small{font-size:11.5px}
+.bals{text-align:right;line-height:1.15}
+.bv2{font-size:19px;font-weight:900;font-variant-numeric:tabular-nums;white-space:nowrap}.bv2.g{color:#5b3fd6;font-size:16px}
+.top .days{margin-top:10px}
+/* norm bar */
+.normc{padding:12px 14px}
+.nh{display:flex;justify-content:space-between;align-items:baseline;font-weight:800;color:var(--mute);font-size:13px}
+.nh b{color:var(--ink)}.nh span b{font-size:17px;font-variant-numeric:tabular-nums}
+.bar{position:relative;height:26px;border-radius:13px;background:#f3e9dc;margin:8px 0 8px;overflow:hidden}
+.bar i{position:absolute;left:0;top:0;bottom:0;border-radius:13px;transition:width 1.1s cubic-bezier(.2,.9,.25,1.1)}
+.bar .fl{background:linear-gradient(90deg,#ffcf3a,#ff6a2b);box-shadow:0 0 10px rgba(255,150,40,.5)}
+.bar .gh{background:rgba(255,176,32,.38);transition:width .25s}
+.bar .tk{position:absolute;top:0;bottom:0;width:3px;background:#fff;opacity:.9}
+.bar .pc{position:absolute;right:10px;top:0;line-height:26px;font-weight:900;font-size:13px;color:#7a4a00}
+.nf{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.nf .left{margin:0;font-size:12.5px}.nx{font-size:12px;font-weight:900;color:var(--mute);white-space:nowrap}
+.crop{padding:12px 10px}.mini{width:70px;height:70px}.mini .ic{font-size:28px}
+.items{align-items:stretch}.item .need{margin-top:auto}.item b{min-height:2.3em;display:flex;align-items:center}
+/* invest */
+.ihero{text-align:center;padding:18px 14px;background:linear-gradient(160deg,#1f6f4a,#0f4a33);color:#eafff3;box-shadow:0 10px 24px rgba(15,74,51,.35)}
+.ihero small{font-weight:800;opacity:.8;font-size:12.5px}
+.tick{font-size:44px;font-weight:900;font-variant-numeric:tabular-nums;margin:6px 0 10px;letter-spacing:-.5px;text-shadow:0 0 18px rgba(120,255,180,.35)}
+.tick .dec{font-size:26px;opacity:.85}.tick .cur{font-size:26px}
+.irow{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.irow div{background:rgba(255,255,255,.1);border-radius:14px;padding:8px 4px}
+.irow b{display:block;font-size:17px;font-weight:900;font-variant-numeric:tabular-nums}.irow small{font-size:11px}
+.inote{margin-top:10px;font-size:11px;opacity:.6;font-weight:700}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tile{padding:13px;display:flex;flex-direction:column;gap:6px;position:relative;overflow:hidden}
+.tile .tn{font-weight:900;font-size:15px}.tile .tt{font-size:11.5px;color:var(--mute);font-weight:800}
+.tile .pie{position:absolute;right:10px;top:10px;width:38px;height:38px;border-radius:50%}
+.tile .pie span{position:absolute;inset:6px;border-radius:50%;background:#fff;display:grid;place-items:center;font-size:10px;font-weight:900}
+.tile .mo{font-size:22px;font-weight:900;color:#1d8a45;margin-top:4px;font-variant-numeric:tabular-nums}.tile .mo small{font-size:12px;color:var(--mute)}
+.tile .dd{font-size:12px;font-weight:800;color:var(--mute)}
+.tile.raise .mo{color:#b35a00}
+.pbar{height:9px;border-radius:5px;background:#f3e9dc;overflow:hidden}.pbar i{display:block;height:100%;background:linear-gradient(90deg,#ffcf3a,#ff6a2b);border-radius:5px}
+.empty{grid-column:1/-1;text-align:center;font-weight:800;color:var(--mute);padding:18px}
 </style></head><body>
 <div class="wrap view on" id="v_farm">
-  <div class="card streak">
-    <div class="flame dim" id="flame">🔥</div>
-    <div class="sk"><b><span id="sd">0</span> <span id="sdw">днів</span> поспіль</b><small id="sw" class="warn">Виконай норму сьогодні — інакше вогник згасне</small>
-      <div class="days" id="days"></div></div>
+  <div class="card top">
+    <div class="streak"><div class="flame dim" id="flame">🔥</div>
+      <div class="sk"><b><span id="sd">0</span> <span id="sdw">днів</span> поспіль</b><small id="sw" class="warn"></small></div>
+      <div class="bals"><div class="bv2"><span id="uah">0</span> ₴</div><div class="bv2 g"><span id="gem">0</span> 💎</div></div></div>
+    <div class="days" id="days"></div>
   </div>
-  <div class="bal">
-    <div class="card"><div class="bi uah">₴</div><div><div class="bv" id="uah">0</div><div class="bl">гривні</div></div></div>
-    <div class="card"><div class="bi gem">💎</div><div><div class="bv" id="gem">0</div><div class="bl">кристали</div></div></div>
-  </div>
-  <div class="card hero">
-    <h3>Норма на сьогодні</h3>
-    <div class="ringbox" id="rb">
-      <svg viewBox="0 0 230 230"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffcf3a"/><stop offset="1" stop-color="#ff6a2b"/></linearGradient></defs>
-        <circle class="track" cx="115" cy="115" r="95"/>
-        <circle class="ghost" id="ghost" cx="115" cy="115" r="95"/>
-        <circle class="prog" id="prog" cx="115" cy="115" r="95"/>
-        <g id="ticks"></g></svg>
-      <div class="center"><div class="pct"><span id="pv">0</span><span>%</span></div>
-        <div class="of"><span id="earn">0</span> / <span id="norm">0</span> ₴</div>
-        <div class="left" id="left">…</div></div>
-    </div>
-    <div class="ms" id="ms"></div>
+  <div class="card normc" id="rb">
+    <div class="nh"><b>Норма сьогодні</b><span><b id="earn">0</b> / <span id="norm">0</span> ₴</span></div>
+    <div class="bar"><i class="gh" id="ghost"></i><i class="fl" id="prog"></i><div id="ticks"></div><span class="pc"><span id="pv">0</span>%</span></div>
+    <div class="nf"><span class="left" id="left">…</span><span class="nx" id="ms"></span></div>
   </div>
   <div class="hv" id="hv"></div>
-  <div class="sect"><b>Посадила щось інше?</b><small>разовий збір</small></div>
+  <div class="sect" style="margin-top:22px"><b>Посадила щось інше?</b><small>разовий збір</small></div>
   <div class="once" id="once"></div>
   <div class="demo dm"></div>
 </div>
@@ -190,9 +220,20 @@ body{padding-bottom:96px}
   <div id="foods" style="display:flex;flex-direction:column;gap:10px"></div>
   <div class="demo dm"></div>
 </div>
+<div class="wrap view" id="v_inv">
+  <div class="card ihero"><small>Твої ділянки заробили сьогодні</small>
+    <div class="tick"><span id="ti">0</span><span class="dec" id="td">,00000</span> <span class="cur">₴</span></div>
+    <div class="irow"><div><b id="iday">0</b><small>₴ на день</small></div><div><b id="imon">0</b><small>₴ на місяць</small></div><div><b id="iwal">0</b><small>₴ до виплати</small></div></div>
+    <div class="inote">якщо базова ферма збирає на 100%</div></div>
+  <div class="sect"><b>Мої ділянки</b><small id="icnt"></small></div>
+  <div class="tiles" id="tiles"></div>
+  <div id="offs"></div>
+  <div class="demo dm"></div>
+</div>
 <nav class="nav"><div class="in">
   <button class="tab on" data-v="farm"><span class="ti">🌾</span>Ферма</button>
   <button class="tab" data-v="tasks"><span class="ti">📜</span>Завдання<span class="dot" id="tdot" style="display:none">0</span></button>
+  <button class="tab" data-v="inv"><span class="ti">💼</span>Інвестиції</button>
   <button class="tab" data-v="shop"><span class="ti">🛍️</span>Крамниця<span class="dot" id="sdot" style="display:none">0</span></button>
 </div></nav>
 <canvas id="cf"></canvas><div class="toast" id="toast"></div>
@@ -245,26 +286,25 @@ function confetti(){const cv=$('cf'),x=cv.getContext('2d');cv.width=innerWidth*d
 function confirmTG(text){return new Promise(res=>{try{TG.showConfirm(text,ok=>res(ok))}catch(e){res(confirm(text))}})}
 // ===================== render: farm
 const WD=['Нд','Пн','Вт','Ср','Чт','Пт','Сб'];
-function render(){if(!S)return;renderTop();renderRing();renderCrops();renderOnce();renderTasks();renderShop()}
+function render(){if(!S)return;renderTop();renderRing();renderCrops();renderOnce();renderTasks();renderShop();if(S.invest)renderInvest()}
 function renderTop(){const me=S.me,w=S.farm.week,done=w[w.length-1].ok;
  $('sd').textContent=me.streak;$('sdw').textContent=plural(me.streak,['день','дні','днів']);
  $('flame').classList.toggle('dim',!done);
- $('days').innerHTML=w.map((d,i)=>`<div class="d ${d.ok?'on':''} ${i===w.length-1?'today':''}"><i></i>${i===w.length-1?'Сьог.':WD[d.wd]}</div>`).join('');
+ $('days').innerHTML=w.map((d,i)=>`<div class="d ${d.ok?'on':''} ${i===w.length-1?'today':''}"><i></i>${i===w.length-1?'Сьог.':WD[new Date(d.day+'T12:00:00').getDay()]}</div>`).join('');
  countTo($('uah'),me.balance,1);countTo($('gem'),me.gems,1);streakWarn()}
 function streakWarn(){if(!S)return;const w=S.farm.week,el=$('sw');
  if(w[w.length-1].ok){el.textContent='Вогник горить! Завтра буде '+(S.me.streak+1);el.className='';return}
  const n=new Date(),h=23-n.getHours(),m=59-n.getMinutes();el.textContent=`Ще ${h} год ${m} хв, щоб зберегти вогник`;el.className='warn'}
 function ticks(){const g=$('ticks');g.innerHTML='';if(!S.me.norm)return;const step=Math.min(...S.farm.crops.map(c=>c.uah||99))/S.me.norm;if(!(step>0.04))return;
- for(let a=step;a<.999;a+=step){const ang=a*2*Math.PI,x1=115+(R-10)*Math.cos(ang),y1=115+(R-10)*Math.sin(ang),x2=115+(R+10)*Math.cos(ang),y2=115+(R+10)*Math.sin(ang);
- g.insertAdjacentHTML('beforeend',`<line class="tick" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`)}}
+ for(let a=step;a<.999;a+=step)g.insertAdjacentHTML('beforeend',`<span class="tk" style="left:calc(${a*100}% - 1px)"></span>`)}
 function renderRing(){const me=S.me,p=me.norm?Math.min(1,me.done/me.norm):0;ticks();
- $('prog').style.strokeDasharray=C;$('ghost').style.strokeDasharray=C;$('prog').style.strokeDashoffset=C*(1-p);$('ghost').style.strokeDashoffset=C*(1-p);
+ $('prog').style.width=(p*100)+'%';$('ghost').style.width=(p*100)+'%';
  countTo($('pv'),Math.floor(p*100));countTo($('earn'),me.done,1);$('norm').textContent=fmt(me.norm);
  const rest=me.norm-me.done,L=$('left'),step=Math.max(...S.farm.crops.map(c=>c.uah));
  if(rest<=0){L.textContent='Норму виконано! 🎉';L.className='left done'}
  else{const n=Math.ceil(rest/step);L.textContent=n<=1?'Ще 1 збір — і норма!':`Ще ${fmt(+rest.toFixed(2))} ₴ · ~${n} ${plural(n,['збір','збори','зборів'])}`;L.className='left'}
- $('ms').innerHTML=`<div class="chip ${p>=.5?'got':''}">${p>=.5?'✅':'🎯'} Половина</div><div class="chip ${p>=1?'got':''}">${p>=1?'✅':'🏁'} Норма → 🔥 ${S.farm.week[6].ok?me.streak:me.streak+1}</div>`}
-function preview(uah){if(!S||!S.me.norm)return;const p=Math.min(1,(S.me.done+(uah||0))/S.me.norm);$('ghost').style.strokeDashoffset=C*(1-p)}
+ $('ms').textContent=p>=1?'🔥 зараховано':'🏁 → 🔥 '+(me.streak+1)}
+function preview(uah){if(!S||!S.me.norm)return;const p=Math.min(1,(S.me.done+(uah||0))/S.me.norm);$('ghost').style.width=(p*100)+'%'}
 function leftMs(c){const at=c.ripe||c.due;return at?Math.max(0,at-(Date.now()+OFF)):0} // ripe: real growth end; due: the reminder (may be moved to the morning)
 function renderCrops(){$('hv').innerHTML=S.farm.crops.map(c=>`<div class="card crop" id="c_${c.id}"><div class="t">${c.icon} ${c.name}</div>
  <div class="mini"><svg viewBox="0 0 86 86"><circle class="tr" cx="43" cy="43" r="37"/><circle class="pr" cx="43" cy="43" r="37"/></svg><div class="ic">${c.icon.split(/(?=[\uD800-\uDBFF])/)[0]}</div></div>
@@ -289,8 +329,8 @@ async function harvest(c,el,once){
  hap('heavy');const before=S.me.done,norm=S.me.norm;
  plus(el,'+'+fmt(c.uah)+' ₴');
  let landed=0,resp=null;const finish=()=>{if(++landed<2||!resp)return;
-   if(resp.state){apply(resp.state);hap('medium');bump($('uah'));bump($('gem'));if(before<norm&&resp.state.me.done>=norm)celebrate()}};
- fly(el,$('rb'),'🪙',6,finish);fly(el,$('uah').closest('.card'),'₴',4);fly(el,$('gem').closest('.card'),'💎',3);
+   if(resp.state){apply(resp.state);hap('medium');bump($('uah'));if(before<norm&&resp.state.me.done>=norm)celebrate()}};
+ fly(el,$('rb'),'🪙',6,finish);fly(el,$('uah'),'₴',4);fly(el,$('gem'),'💎',3);
  resp=await act('harvest',once?{kind:'beds',crop:c.crop}:{kind:c.id});
  if(!resp||resp.error){render();return}
  landed++;finish();landed--; // response may come after the coins landed
@@ -326,7 +366,8 @@ function renderShop(){const sh=S.shop,g=S.me.gems;$('sg').textContent=fmt(g);
   <div class="need">${need>0?`ще ${need} 💎 — і твоє!`:`можна купити ✨`}</div>
   <button class="buy" ${need>0?'disabled':''}>${i.price} 💎</button></div>`}).join(''):'<div class="card" style="grid-column:1/-1;text-align:center;font-weight:800;color:var(--mute)">Сьогодні полиці порожні 🙈</div>';
  for(const i of on){$('i_'+i.id).querySelector('.buy').onclick=()=>buy(i)}
- $('rest').textContent=sh.resting?`ще ${sh.resting} ${plural(sh.resting,['товар','товари','товарів'])} у ротації`:'';
+ $('rest').textContent='';$('sg').parentNode.innerHTML=`у тебе <span id="sg">${fmt(g)}</span> 💎`+(sh.resting?` · завтра нові товари`:'');
+ $('rest').parentNode.style.display=locked.length?'':'none';$('tomorrow').style.display=locked.length?'':'none';
  $('tomorrow').innerHTML=locked.map(i=>`<div class="card item lock"><div class="e">🎁</div><b>???</b><div class="lockinfo">🔥 на ${i.need}-й день стріку</div><button class="buy" disabled>${i.price} 💎</button></div>`).join('');
  $('foodn').textContent=`у тебе ${S.inv.food} 🍖`;
  const F=sh.food,season=!!sh.season;
@@ -341,19 +382,33 @@ async function food(pack,btn){if(busy)return;hap('medium');const r=await act('fo
 function shopTimer(){const n=new Date(),e=new Date(n);e.setHours(24,0,0,0);const d=Math.max(0,(e-n)/1000|0);
  $('stm').textContent=[d/3600|0,(d%3600)/60|0,d%60].map(x=>String(x).padStart(2,'0')).join(':')}
 setInterval(shopTimer,1000);shopTimer();
+// ===================== investments
+function renderInvest(){const I=S.invest,mine=I.plots.filter(p=>p.share>0);
+ $('iday').textContent=fmt(+I.daily.toFixed(2));$('imon').textContent=fmt(Math.round(I.daily*30));$('iwal').textContent=fmt(I.wallet);
+ $('icnt').textContent=mine.length?mine.length+' '+plural(mine.length,['ділянка','ділянки','ділянок']):'';
+ $('tiles').innerHTML=mine.length?mine.map(p=>{const pc=Math.round(p.share*100);return `<div class="card tile">
+  <div class="pie" style="background:conic-gradient(#2fb45c ${pc*3.6}deg,#e7f6ec 0)"><span>${pc}%</span></div>
+  <div class="tn">🏡 ${p.name}</div><div class="tt">${p.type}</div>
+  <div class="mo">+${fmt(Math.round(p.day*30))} <small>₴/міс</small></div><div class="dd">+${fmt(+p.day.toFixed(2))} ₴ на день</div></div>`}).join('')
+  :'<div class="card empty">Поки немає частки в жодній ділянці.<br>Вклади у збір нижче — і тут почне капати 🌱</div>';
+ $('offs').innerHTML=I.offers.length?'<div class="sect"><b>Збір на нову ділянку</b><small>вкладай у боті</small></div><div class="tiles">'+I.offers.map(o=>{const k=Math.min(1,o.raised/o.price);
+  return `<div class="card tile raise"><div class="tn">🏗 ${o.name}</div><div class="tt">${o.type}</div><div class="pbar"><i style="width:${k*100}%"></i></div>
+  <div class="dd">${fmt(o.raised)} / ${fmt(o.price)} ₴ · ${Math.round(k*100)}%</div><div class="mo">+${fmt(Math.round(o.dayAll*30))} <small>₴/міс усім</small></div>${o.my?`<div class="dd">твій внесок ${fmt(o.my)} ₴</div>`:''}</div>`}).join('')+'</div>':''}
+function tickInvest(){if(!S||!S.invest||!$('v_inv').classList.contains('on'))return;const n=new Date(),sec=(n-new Date(n.getFullYear(),n.getMonth(),n.getDate()))/1000;
+ const v=S.invest.daily*sec/86400,s=v.toFixed(5).split('.');$('ti').textContent=(+s[0]).toLocaleString('uk-UA');$('td').textContent=','+s[1];requestAnimationFrame(tickInvest)}
 // ===================== tabs
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{hap('light');document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===b));
- document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id==='v_'+b.dataset.v));scrollTo(0,0)});
+ document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id==='v_'+b.dataset.v));scrollTo(0,0);if(b.dataset.v==='inv')tickInvest()});
 // ===================== demo (outside Telegram)
 let D=null;
 function demoState(){const now=Date.now();return{me:{name:'Марія',gems:67,balance:533,streak:9,done:21,norm:30},
- farm:{now,week:[...Array(7)].map((_,i)=>({wd:(new Date(now-(6-i)*864e5)).getDay(),ok:i<6&&i!==1})),
+ farm:{now,week:[...Array(7)].map((_,i)=>({day:new Date(now-(6-i)*864e5).toISOString().slice(0,10),ok:i<6&&i!==1})),
   crops:[{id:'beds',name:'Грядки',icon:'🌱',uah:14,gem:1,cycle:120,due:0},{id:'plots',name:'Хробаки',icon:'🪱',uah:13,gem:1,cycle:90,due:now+25*60000}],
   once:[{id:'narcissus',icon:'🌼',name:'Narcissus',uah:6,gem:.5},{id:'clover',icon:'🍀',name:'Clover',uah:6,gem:.5},{id:'mr',icon:'🌿',name:'Mint',uah:16,gem:1}]},
  tasks:{ar:[{id:'alt',icon:'🧑‍🌾',label:'Прокачати альта й поставити пугало',per:'за альта',gems:50,today:0,wait:0},{id:'restock',icon:'📦',label:'Поповнити запаси ферми',per:'за раз',gems:10,today:0,wait:0},{id:'daily',icon:'☀️',label:'Щоденні справи',per:'за персонажа',gems:5,today:1,wait:1,list:['📅 Нагорода в календарі','🫘 Боб з ринку']},{id:'gift',icon:'🎁',label:'Забрати подарунок',per:'за персонажа',gems:1,today:0,wait:0}],
   wow:[{id:'wd_dm',icon:'🏰',label:'The Deadmines',lvl:'18-23',gems:30,done:0,wait:0},{id:'wd_wc',icon:'🏰',label:'Wailing Caverns',lvl:'17-25',gems:20,done:1,wait:0}],waitGems:5,waitN:1,maxLvl:35},
  shop:{season:null,rise:30,resting:4,items:[{id:'ice',icon:'🍦',label:'Морозиво',open:true,price:40,times:0},{id:'cart',icon:'🎬',label:'Мультик +30 хв',open:true,price:33,times:1},{id:'toy',icon:'🧸',label:'Нова іграшка',open:true,price:90,times:0},{id:null,open:false,need:12,price:60},{id:null,open:false,need:14,price:80}],food:{price:1,pack:10,packN:12}},
- inv:{food:4}}}
+ inv:{food:4},invest:{daily:3.42,wallet:12.5,plots:[{id:'p1',name:'Сонячна',type:'16×16 з будинком',share:.31,day:1.14,dayAll:3.68},{id:'p2',name:'Лісова',type:'24×24 з будинком',share:.2,day:2.28,dayAll:11.4}],offers:[{id:'o1',name:'Річкова',type:'16×16 з будинком',price:3000,raised:1860,my:500,dayAll:3.68}]}}}
 function demoCall(a,x){D=D||demoState();let t='',res=null;const now=Date.now();
  if(a==='harvest'){const c=x.crop?D.farm.once.find(o=>o.id===x.crop):D.farm.crops.find(c=>c.id===x.kind);const k=D.farm.crops.find(c=>c.id===x.kind);
   D.me.done+=c.uah;D.me.balance+=c.uah;D.me.gems+=c.gem;k.due=now+k.cycle*60000;D.farm.now=now;if(D.me.done>=D.me.norm&&!D.farm.week[6].ok){D.farm.week[6].ok=true;D.me.streak++}t='+'+c.uah+' грн · +'+c.gem+' 💎'}

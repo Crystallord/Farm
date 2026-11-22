@@ -1,0 +1,19 @@
+# After a push that changes bot/, ask the bot to update itself from GitHub (selfUpdate in the bot).
+# Needs repo secrets: BOT_URL (the web app /exec address) and BOT_SECRET (Script Properties → SECRET).
+name: Deploy bot
+on:
+  push:
+    branches: [main]
+    paths: ['bot/**']
+  workflow_dispatch:
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Tell the bot to update
+        env:
+          BOT_URL: ${{ secrets.BOT_URL }}
+          BOT_SECRET: ${{ secrets.BOT_SECRET }}
+        run: |
+          if [ -z "$BOT_URL" ] || [ -z "$BOT_SECRET" ]; then echo "Secrets BOT_URL / BOT_SECRET are not set: skipping"; exit 0; fi
+          curl -sS -L -X POST "$BOT_URL?update=$BOT_SECRET&sha=$GITHUB_SHA" -H 'Content-Type: application/json' -d '{}' -o /dev/null -w "%{http_code}\n"
