@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Ферма</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<script>
+  // The bot's web app address (Apps Script → Deploy → Web app URL). The bot can also pass it as ?api=...
+  window.FARM_API = '';
+</script>
+<style>
+  :root {
+    --sky1: #bfe8ff; --sky2: #e9f7ff; --grass: #7cc95a; --grass2: #5fb043;
+    --ink: #2b2140; --muted: #7b7191; --card: #ffffff; --line: #efe9f7;
+    --pink: #ff6fa5; --violet: #8b6cff; --gold: #ffb627; --mint: #2fc6a4; --red: #ff5d5d;
+    --r: 22px; --shadow: 0 6px 0 rgba(43,33,64,.08), 0 10px 24px rgba(43,33,64,.08);
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    font-family: 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif; font-weight: 700; color: var(--ink);
+    background: linear-gradient(180deg, var(--sky1) 0%, var(--sky2) 260px, #f7f3ff 520px);
+    overscroll-behavior: none; user-select: none;
+  }
+  .wrap { max-width: 520px; margin: 0 auto; padding: 14px 14px 110px; }
+  /* header */
+  .top { display: flex; align-items: center; gap: 12px; }
+  .ava { width: 54px; height: 54px; border-radius: 18px; display: grid; place-items: center; font-size: 26px; font-weight: 900; color: #fff;
+    box-shadow: inset 0 -4px 0 rgba(0,0,0,.12); flex: none; }
+  .hello { font-size: 13px; color: var(--muted); }
+  .name { font-size: 22px; font-weight: 900; line-height: 1.1; }
+  .chips { display: flex; gap: 8px; margin: 14px 0 4px; flex-wrap: wrap; }
+  .chip { background: #fff; border-radius: 999px; padding: 7px 12px 7px 9px; display: flex; align-items: center; gap: 6px; font-weight: 900;
+    box-shadow: var(--shadow); font-size: 15px; }
+  .chip .e { font-size: 18px; }
+  .chip.gem { background: linear-gradient(135deg, #f3edff, #ffffff); }
+  .bump { animation: bump .5s ease; }
+  @keyframes bump { 30% { transform: scale(1.18); } 100% { transform: scale(1); } }
+  /* cards */
+  h2 { font-size: 19px; font-weight: 900; margin: 22px 4px 10px; display: flex; align-items: center; gap: 8px; }
+  h2 small { font-size: 13px; color: var(--muted); font-weight: 700; margin-left: auto; }
+  .card { background: var(--card); border-radius: var(--r); padding: 16px; box-shadow: var(--shadow); margin-bottom: 12px; position: relative; }
+  .row { display: flex; align-items: center; gap: 12px; }
+  .grow { flex: 1; min-width: 0; }
+  .sub { color: var(--muted); font-size: 13px; font-weight: 700; }
+  .big { font-size: 26px; font-weight: 900; }
+  .bar { height: 14px; background: #f0ebf8; border-radius: 99px; overflow: hidden; margin-top: 8px; }
+  .bar > i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--violet), var(--pink)); transition: width .6s cubic-bezier(.2,.9,.3,1.2); }
+  .bar.food > i { background: linear-gradient(90deg, #ffb35c, #ff7a59); }
+  .bar.ok > i { background: linear-gradient(90deg, #4cd685, #2fc6a4); }
+  .ring { width: 92px; height: 92px; flex: none; position: relative; }
+  .ring svg { transform: rotate(-90deg); }
+  .ring b { position: absolute; inset: 0; display: grid; place-items: center; font-size: 20px; font-weight: 900; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .stat { text-align: center; padding: 14px 8px; }
+  .stat .e { font-size: 30px; }
+  .stat .v { font-size: 22px; font-weight: 900; margin-top: 2px; }
+  /* buttons */
+  .btn { border: 0; font: inherit; font-weight: 900; font-size: 16px; color: #fff; background: var(--violet); border-radius: 16px; padding: 13px 16px;
+    box-shadow: inset 0 -4px 0 rgba(0,0,0,.15); cursor: pointer; width: 100%; transition: transform .08s; }
+  .btn:active { transform: translateY(2px) scale(.98); box-shadow: inset 0 -1px 0 rgba(0,0,0,.15); }
+  .btn.pink { background: var(--pink); } .btn.gold { background: var(--gold); color: #4a3200; } .btn.mint { background: var(--mint); }
+  .btn.ghost { background: #f0ebf8; color: var(--ink); box-shadow: inset 0 -3px 0 rgba(0,0,0,.06); }
+  .btn[disabled] { opacity: .45; }
+  .btn.sm { padding: 9px 12px; font-size: 14px; border-radius: 13px; width: auto; }
+  /* pet scene */
+  .scene { height: 250px; border-radius: 26px; overflow: hidden; position: relative; box-shadow: var(--shadow);
+    background: linear-gradient(180deg, #8fd3ff 0%, #c9ecff 55%, var(--grass) 55%, var(--grass2) 100%); }
+  .sun { position: absolute; top: 18px; right: 22px; font-size: 40px; animation: spin 18s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .cloud { position: absolute; top: 30px; font-size: 34px; opacity: .95; animation: drift 26s linear infinite; }
+  @keyframes drift { from { left: -60px; } to { left: 110%; } }
+  .flower { position: absolute; bottom: 16px; font-size: 22px; }
+  .petbox { position: absolute; left: 50%; bottom: 34px; transform: translateX(-50%); width: 150px; height: 150px; }
+  .pet { font-size: 112px; line-height: 1; display: block; text-align: center; animation: idle 2.2s ease-in-out infinite; transform-origin: 50% 100%; filter: drop-shadow(0 6px 0 rgba(0,0,0,.12)); }
+  .pet.sad { animation: idle 3.5s ease-in-out infinite; filter: grayscale(.35) drop-shadow(0 6px 0 rgba(0,0,0,.12)); }
+  @keyframes idle { 0%,100% { transform: translateY(0) scaleY(1); } 50% { transform: translateY(-6px) scaleY(1.03); } }
+  .pet.jump { animation: jump .7s ease; }
+  @keyframes jump { 30% { transform: translateY(-46px) rotate(-6deg); } 60% { transform: translateY(0) scaleY(.9); } 100% { transform: none; } }
+  .wear { position: absolute; font-size: 38px; filter: drop-shadow(0 3px 0 rgba(0,0,0,.15)); pointer-events: none; }
+  .wear.head { top: -14px; left: 58px; transform: rotate(12deg); }
+  .wear.body { bottom: 22px; left: -8px; font-size: 34px; }
+  .wear.legs { bottom: -6px; right: 2px; font-size: 30px; }
+  .shadow { position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%); width: 120px; height: 18px; border-radius: 50%; background: rgba(0,0,0,.14); }
+  .lvl { position: absolute; bottom: 14px; left: 14px; background: #fff; border-radius: 999px; padding: 6px 12px; font-weight: 900; box-shadow: var(--shadow); }
+  .bubble { position: absolute; left: 50%; top: 22px; transform: translateX(-50%); background: #fff; border-radius: 16px; padding: 8px 12px; font-size: 14px;
+    box-shadow: var(--shadow); white-space: nowrap; animation: pop .35s ease; }
+  .bubble:after { content: ''; position: absolute; bottom: -8px; left: 50%; margin-left: -8px; border: 8px solid transparent; border-top-color: #fff; border-bottom: 0; }
+  @keyframes pop { from { transform: translateX(-50%) scale(.6); opacity: 0; } }
+  .fly { position: fixed; font-size: 34px; pointer-events: none; z-index: 50; transition: transform .7s cubic-bezier(.3,.7,.4,1), opacity .7s; }
+  .heart { position: absolute; font-size: 26px; pointer-events: none; animation: rise 1.2s ease-out forwards; }
+  @keyframes rise { to { transform: translateY(-90px) scale(1.4); opacity: 0; } }
+  /* wardrobe */
+  .slot { margin-top: 12px; }
+  .slot-title { font-size: 14px; color: var(--muted); margin: 0 0 8px 2px; }
+  .items { display: flex; gap: 10px; flex-wrap: wrap; }
+  .item { width: 74px; border-radius: 18px; background: #f6f2fc; text-align: center; padding: 8px 4px 7px; cursor: pointer; position: relative; border: 3px solid transparent; }
+  .item .e { font-size: 32px; display: block; }
+  .item .p { font-size: 12px; color: var(--muted); }
+  .item.on { border-color: var(--violet); background: #efe8ff; }
+  .item.lock { opacity: .45; cursor: default; }
+  /* shop */
+  .shopcard { display: flex; gap: 14px; align-items: center; }
+  .icon { width: 66px; height: 66px; border-radius: 20px; display: grid; place-items: center; font-size: 36px; flex: none;
+    background: linear-gradient(135deg, #fff3d6, #ffe0ef); }
+  .icon.lock { background: #f0ebf8; filter: grayscale(1); }
+  .ptag { display: inline-flex; align-items: center; gap: 4px; font-weight: 900; font-size: 18px; }
+  .ptag s { color: var(--muted); font-size: 14px; font-weight: 700; }
+  .badge { display: inline-block; font-size: 12px; padding: 3px 8px; border-radius: 99px; background: #fff0d6; color: #9a5b00; margin-left: 6px; }
+  .badge.v { background: #efe8ff; color: var(--violet); }
+  .blur { display: inline-block; height: 14px; width: 120px; border-radius: 8px; background: repeating-linear-gradient(90deg, #e7e0f3 0 10px, #f2edf9 10px 20px); vertical-align: middle; }
+  .note { text-align: center; color: var(--muted); font-size: 14px; padding: 10px; }
+  /* inventory */
+  .inv { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .slotbox { background: #fff; border-radius: 20px; box-shadow: var(--shadow); text-align: center; padding: 12px 6px 10px; position: relative; }
+  .slotbox .e { font-size: 34px; }
+  .slotbox .n { position: absolute; top: 8px; right: 10px; background: var(--pink); color: #fff; font-size: 12px; border-radius: 99px; padding: 2px 7px; }
+  .slotbox .t { font-size: 12px; color: var(--muted); line-height: 1.2; margin-top: 4px; min-height: 30px; }
+  .coupon { display: flex; align-items: center; gap: 12px; border: 3px dashed #e3d8f6; background: #fffdf6; }
+  /* nav */
+  .nav { position: fixed; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,.96); backdrop-filter: blur(8px); box-shadow: 0 -6px 24px rgba(43,33,64,.1);
+    padding: 8px 10px calc(8px + env(safe-area-inset-bottom)); display: flex; justify-content: space-around; z-index: 20; }
+  .tab { border: 0; background: none; font: inherit; font-weight: 800; font-size: 12px; color: var(--muted); display: flex; flex-direction: column; align-items: center; gap: 2px;
+    padding: 6px 10px; border-radius: 16px; cursor: pointer; min-width: 70px; }
+  .tab .e { font-size: 26px; transition: transform .2s; }
+  .tab.on { color: var(--ink); background: #f1ebff; }
+  .tab.on .e { transform: translateY(-2px) scale(1.12); }
+  /* toast, loader, confetti */
+  .toast { position: fixed; top: 12px; left: 50%; transform: translate(-50%, -140%); background: var(--ink); color: #fff; padding: 12px 16px; border-radius: 16px; z-index: 60;
+    max-width: 92%; font-size: 15px; transition: transform .35s cubic-bezier(.2,.9,.3,1.2); text-align: center; }
+  .toast.on { transform: translate(-50%, 0); }
+  .loader { position: fixed; inset: 0; display: grid; place-items: center; background: rgba(247,243,255,.6); z-index: 40; opacity: 0; pointer-events: none; transition: opacity .2s; }
+  .loader.on { opacity: 1; pointer-events: all; }
+  .loader span { font-size: 46px; animation: idle .8s ease-in-out infinite; }
+  .conf { position: fixed; top: -40px; font-size: 24px; z-index: 55; pointer-events: none; animation: fall 1.6s ease-in forwards; }
+  @keyframes fall { to { transform: translateY(110vh) rotate(540deg); } }
+  .empty { text-align: center; padding: 30px 10px; color: var(--muted); }
+  .empty .e { font-size: 54px; display: block; margin-bottom: 8px; }
+  .hide { display: none !important; }
+  .fade { animation: fadein .35s ease; }
+  @keyframes fadein { from { opacity: 0; transform: translateY(8px); } }
+</style>
+</head>
+<body>
+<div class="wrap" id="app">
+  <div class="top">
+    <div class="ava" id="ava">?</div>
+    <div class="grow"><div class="hello" id="hello">Привіт!</div><div class="name" id="name">…</div></div>
+  </div>
+  <div class="chips">
+    <div class="chip gem" id="cGem"><span class="e">💎</span><span id="gems">0</span></div>
+    <div class="chip"><span class="e">💰</span><span id="bal">0</span> грн</div>
+    <div class="chip"><span class="e">🔥</span><span id="streak">0</span></div>
+  </div>
+  <div id="view"></div>
+</div>
+
+<nav class="nav">
+  <button class="tab on" data-t="me"><span class="e">🏡</span>Я</button>
+  <button class="tab" data-t="pet"><span class="e">🐾</span>Улюбленець</button>
+  <button class="tab" data-t="shop"><span class="e">🛒</span>Магазин</button>
+  <button class="tab" data-t="inv"><span class="e">🎒</span>Речі</button>
+</nav>
+<div class="toast" id="toast"></div>
+<div class="loader" id="loader"><span>🌱</span></div>
+
+<script>
+const tg = window.Telegram && Telegram.WebApp;
+const qs = new URLSearchParams(location.search);
+const API = qs.get('api') || window.FARM_API;
+const DEMO = qs.get('demo') === '1' || !(tg && tg.initData);
+let S = null, tab = qs.get('tab') || 'me';
+
+if (tg) { tg.ready(); tg.expand(); try { tg.setHeaderColor('#bfe8ff'); tg.setBackgroundColor('#f7f3ff'); } catch (e) {} }
+const $ = (id) => document.getElementById(id);
+const esc = (t) => String(t == null ? '' : t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const haptic = (k) => { try { k === 'ok' ? tg.HapticFeedback.notificationOccurred('success') : k === 'err' ? tg.HapticFeedback.notificationOccurred('error') : tg.HapticFeedback.impactOccurred('light'); } catch (e) {} };
+const plural = (n, f) => { n = Math.abs(n) % 100; const d = n % 10; return n > 10 && n < 20 ? f[2] : d === 1 ? f[0] : d >= 2 && d <= 4 ? f[1] : f[2]; };
+const num = (v) => (Math.round(v * 100) / 100).toString().replace('.', ',');
+const COLORS = { '🟩': '#4cc76f', '🟨': '#ffbf2f', '🟦': '#4a9dff', '🟪': '#a86bff', '🟧': '#ff8c3a', '🟥': '#ff5d5d', '🟫': '#a5754a' };
+
+let toastT;
+function toast(t) { if (!t) return; const el = $('toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('on'), 2600); }
+function confetti(set) { const e = set || ['💎', '✨', '🎉', '⭐', '💖']; for (let i = 0; i < 22; i++) { const c = document.createElement('div'); c.className = 'conf'; c.textContent = e[i % e.length];
+  c.style.left = Math.random() * 100 + 'vw'; c.style.animationDelay = Math.random() * .4 + 's'; c.style.fontSize = 18 + Math.random() * 16 + 'px'; document.body.appendChild(c); setTimeout(() => c.remove(), 2400); } }
+function ask(text) { return new Promise((res) => { if (tg && tg.showConfirm && !DEMO) tg.showConfirm(text, res); else res(window.confirm(text)); }); }
+
+async function call(action, args) {
+  $('loader').classList.add('on');
+  try {
+    let r;
+    if (DEMO) r = demoCall(action, args);
+    else {
+      const resp = await fetch(API + (API.indexOf('?') < 0 ? '?' : '&') + 'app=1', { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ initData: tg.initData, action: action, args: args || {} }) });
+      r = await resp.json();
+    }
+    if (r.error) { haptic('err'); showError(r.msg); return null; }
+    const oldGems = S ? S.me.gems : null;
+    S = r.state; paint();
+    if (oldGems !== null && oldGems !== S.me.gems) { $('cGem').classList.remove('bump'); void $('cGem').offsetWidth; $('cGem').classList.add('bump'); }
+    if (r.toast) toast(r.toast);
+    return r;
+  } catch (e) { haptic('err'); toast('Немає зв\'язку з фермою 😢 Спробуй ще раз'); return null; }
+  finally { $('loader').classList.remove('on'); }
+}
+function showError(msg) { $('view').innerHTML = '<div class="card empty"><span class="e">🙈</span>' + esc(msg) + '</div>'; }
+
+function paint() {
+  const m = S.me;
+  $('ava').textContent = m.name.slice(0, 1).toUpperCase(); $('ava').style.background = COLORS[m.color] || '#8b6cff';
+  $('name').textContent = m.name; $('hello').textContent = hello();
+  $('gems').textContent = num(m.gems); $('bal').textContent = num(m.balance); $('streak').textContent = m.streak;
+  document.querySelectorAll('.tab').forEach((b) => b.classList.toggle('on', b.dataset.t === tab));
+  $('view').innerHTML = '<div class="fade">' + ({ me: viewMe, pet: viewPet, shop: viewShop, inv: viewInv }[tab])() + '</div>';
+}
+function hello() { const h = new Date().getHours(); return h < 6 ? 'Доброї ночі 🌙' : h < 12 ? 'Доброго ранку ☀️' : h < 18 ? 'Гарного дня 🌻' : 'Доброго вечора 🌆'; }
+
+function ring(p) {
+  const r = 38, c = 2 * Math.PI * r, v = Math.max(0, Math.min(1, p));
+  return '<svg width="92" height="92"><circle cx="46" cy="46" r="' + r + '" fill="none" stroke="#f0ebf8" stroke-width="11"/>' +
+    '<circle cx="46" cy="46" r="' + r + '" fill="none" stroke="' + (v >= 1 ? '#2fc6a4' : '#8b6cff') + '" stroke-width="11" stroke-linecap="round" stroke-dasharray="' + (c * v) + ' ' + c + '"/></svg>';
+}
+function viewMe() {
+  const m = S.me, p = m.norm ? m.done / m.norm : 0, pet = S.pet;
+  let h = '<h2>🎯 Сьогодні</h2><div class="card row"><div class="ring">' + ring(p) + '<b>' + Math.min(100, Math.round(p * 100)) + '%</b></div><div class="grow">' +
+    '<div class="big">' + num(m.done) + ' <span class="sub">з ' + m.norm + ' грн</span></div>' +
+    '<div class="sub">' + (p >= 1 ? '✅ Норму виконано! Далі — бонусні 💎' : 'До норми ще ' + num(Math.max(0, m.norm - m.done)) + ' грн') + '</div></div></div>';
+  h += '<div class="grid2"><div class="card stat"><div class="e">🔥</div><div class="v">' + m.streak + '</div><div class="sub">' + plural(m.streak, ['день', 'дні', 'днів']) + ' стріку</div></div>' +
+    '<div class="card stat"><div class="e">💎</div><div class="v">' + num(m.gems) + '</div><div class="sub">≈ ' + num(m.gems * S.gemUah) + ' грн</div></div></div>';
+  if (m.invest || m.wallet) h += '<div class="card row"><div class="icon">🏦</div><div class="grow"><div class="big">+' + Math.round(m.invest) + ' <span class="sub">грн/міс</span></div><div class="sub">твоя земля заробляє' + (m.wallet ? ' · чекає ' + num(m.wallet) + ' грн' : '') + '</div></div></div>';
+  if (pet) h += '<div class="card row" onclick="go(\'pet\')"><div class="icon" style="font-size:42px">' + pet.icon + '</div><div class="grow"><div class="big" style="font-size:20px">' + esc(pet.name) + ' <span class="badge v">' + pet.level + ' рівень</span></div>' +
+    '<div class="bar ' + (pet.fed < pet.min ? 'food' : 'ok') + '"><i style="width:' + pet.fed + '%"></i></div><div class="sub" style="margin-top:6px">' + (pet.fed < pet.min ? '🥺 Хоче їсти!' : '😊 Сита й щаслива') + '</div></div></div>';
+  h += '<button class="btn pink" onclick="go(\'shop\')">🛒 До магазину</button>';
+  return h;
+}
+function viewPet() {
+  const pet = S.pet;
+  if (!pet) return '<div class="card empty"><span class="e">🐾</span>Улюбленця ще немає.<br>Знайди його в боті: 🐾 Улюбленець</div>';
+  const xpP = pet.xpTo ? (pet.xp - pet.xpFrom) / (pet.xpTo - pet.xpFrom) : 1, hungry = pet.fed < pet.min;
+  const worn = (id) => { const s = pet.slots.find((x) => x.id === id); const it = s && s.wear && s.items.find((x) => x.id === s.wear); return it ? '<span class="wear ' + id + '">' + it.icon + '</span>' : ''; };
+  const words = hungry ? ['Я голодн' + (pet.female ? 'а' : 'ий') + '… 🥺', 'Можна смаколик? 🍖'] : pet.trainedToday ? ['Ми сьогодні молодці! ⭐', 'Гав-гав! 💖', 'Пограємось? 🎾'] : ['Підемо в дару? ✨', 'Я готов' + (pet.female ? 'а' : 'ий') + ' допомагати! 🐾'];
+  let h = '<div class="scene" id="scene"><span class="sun">🌞</span><span class="cloud">☁️</span><span class="flower" style="right:70px;bottom:12px">🌷</span><span class="flower" style="left:24px;bottom:58px">🌼</span><span class="flower" style="right:24px">🌻</span>' +
+    '<div class="lvl">⭐ ' + pet.level + ' рівень</div><div class="bubble" id="bub">' + words[Math.floor(Math.random() * words.length)] + '</div>' +
+    '<div class="shadow"></div><div class="petbox" onclick="pat()"><span class="pet ' + (hungry ? 'sad' : '') + '" id="petE">' + pet.icon + '</span>' + worn('head') + worn('body') + worn('legs') + '</div></div>';
+  h += '<div class="card"><div class="row"><div class="grow"><div class="big" style="font-size:24px">' + esc(pet.name) + '</div><div class="sub">Помічник: +' + pet.help + '% до знахідок · знайшла ' + num(pet.found) + ' грн</div></div></div>' +
+    '<div class="sub" style="margin-top:12px">⭐ Досвід ' + pet.xp + (pet.xpTo ? ' / ' + pet.xpTo : '') + '</div><div class="bar"><i style="width:' + Math.round(xpP * 100) + '%"></i></div>' +
+    '<div class="sub" style="margin-top:12px">🍖 Ситість ' + pet.fed + '%' + (hungry ? ' — треба хоча б ' + pet.min + '%' : '') + '</div><div class="bar ' + (hungry ? 'food' : 'ok') + '"><i style="width:' + pet.fed + '%"></i></div>' +
+    '<div style="margin-top:14px"><button class="btn gold" id="feedB" onclick="feed()">🍖 Нагодувати · ' + (S.inv.food ? 'корм є (' + S.inv.food + ')' : S.shop.food.price + ' 💎') + '</button></div></div>';
+  h += '<h2>👕 Гардероб <small>річ — ' + pet.cloth + ' 💎</small></h2><div class="card">';
+  pet.slots.forEach((s) => {
+    h += '<div class="slot"><div class="slot-title">' + s.title + (s.open ? '' : ' · 🔒 з ' + s.lvl + ' рівня') + '</div><div class="items">';
+    s.items.forEach((it) => {
+      const on = s.wear === it.id;
+      h += '<div class="item ' + (on ? 'on ' : '') + (s.open ? '' : 'lock') + '" onclick="' + (s.open ? 'wear(\'' + s.id + '\',\'' + it.id + '\',' + it.own + ')' : '') + '"><span class="e">' + it.icon + '</span>' +
+        '<span class="p">' + (on ? 'вдягнуто' : it.own ? 'вдягти' : pet.cloth + ' 💎') + '</span></div>';
+    });
+    h += '</div></div>';
+  });
+  return h + '</div>';
+}
+function viewShop() {
+  const sh = S.shop;
+  let h = '<h2>🛒 Сьогодні в продажу <small>' + (sh.season ? '💎 сезон −' + sh.boost + '%' : 'завтра — інші') + '</small></h2>';
+  sh.items.forEach((it) => {
+    if (!it.open) { h += '<div class="card shopcard" style="opacity:.75"><div class="icon lock">🎁</div><div class="grow"><span class="blur"></span><div class="sub" style="margin-top:8px">🔒 Відкриється на ' + it.need + '-й день стріку · ще ' + (it.need - S.me.streak) + ' ' + plural(it.need - S.me.streak, ['день', 'дні', 'днів']) + '</div></div><div class="ptag">' + it.price + ' 💎</div></div>'; return; }
+    const can = S.me.gems >= it.price;
+    h += '<div class="card"><div class="shopcard"><div class="icon">' + it.icon + '</div><div class="grow"><div style="font-size:16px;line-height:1.25">' + esc(it.label) + '</div>' +
+      (it.hint ? '<div class="sub" style="margin-top:4px">' + esc(it.hint) + '</div>' : '') +
+      (it.times ? '<div style="margin-top:6px"><span class="badge">↑ ' + (it.times + 1) + '-й раз цього тижня</span></div>' : '') + '</div></div>' +
+      '<div class="row" style="margin-top:12px"><div class="ptag grow">' + (it.price < it.base ? '<s>' + it.base + '</s>' : '') + it.price + ' 💎</div>' +
+      '<button class="btn sm ' + (can ? 'pink' : 'ghost') + '" onclick="buy(\'' + it.id + '\',' + it.price + ',\'' + esc(it.label).replace(/'/g, '') + '\')">' + (can ? 'Купити' : 'Бракує ' + num(it.price - S.me.gems)) + '</button></div></div>';
+  });
+  if (sh.resting) h += '<div class="note">🌙 Ще ' + sh.resting + ' ' + plural(sh.resting, ['товар', 'товари', 'товарів']) + ' відпочивають — з\'являться в інші дні</div>';
+  h += '<div class="note">📈 Те саме вдруге за тиждень — дорожче на ' + sh.rise + '%</div>';
+  h += '<h2>🍖 Корм для улюбленця</h2><div class="card"><div class="row"><div class="icon">🍖</div><div class="grow"><div class="big" style="font-size:20px">' + sh.food.price + ' 💎 <span class="sub">за штуку</span></div><div class="sub">у тебе: ' + S.inv.food + '</div></div>' +
+    '<button class="btn sm gold" onclick="food(false)">+1</button></div>' +
+    (sh.season ? '<button class="btn mint" style="margin-top:12px" onclick="food(true)">🎁 Набір ' + sh.food.packN + ' корму за ' + sh.food.pack + ' 💎</button>' : '<div class="sub" style="margin-top:10px">💎 У кристальний сезон — набір ' + sh.food.packN + ' за ' + sh.food.pack + ' 💎</div>') + '</div>';
+  return h;
+}
+function viewInv() {
+  const v = S.inv, cells = [];
+  if (v.gifts) cells.push(['🎁', v.gifts, 'Приз — відкрий у боті']);
+  if (v.food) cells.push(['🍖', v.food, 'Корм']);
+  if (v.freeze) cells.push(['❄️', v.freeze, 'Заморозка стріку']);
+  if (v.ice) cells.push(['🍦', v.ice, 'Морозиво']);
+  if (v.vac) cells.push(['🏖', v.vac, 'Відпустка']);
+  if (v.cash) cells.push(['💵', num(v.cash), 'Грошовий приз']);
+  let h = '<h2>🎟 Мої купони</h2>';
+  h += v.coupons.length ? v.coupons.map((c) => '<div class="card coupon"><div class="icon">' + c.icon + '</div><div class="grow"><div style="line-height:1.25">' + esc(c.label) + '</div><div class="sub">× ' + c.n + '</div></div>' +
+    '<button class="btn sm mint" onclick="useC(\'' + c.id + '\',\'' + esc(c.label).replace(/'/g, '') + '\')">Використати</button></div>').join('') : '<div class="card empty" style="padding:18px"><span class="e" style="font-size:40px">🎟</span>Купонів поки немає — купи в магазині</div>';
+  h += '<h2>🎒 Речі</h2>' + (cells.length ? '<div class="inv">' + cells.map((c) => '<div class="slotbox"><div class="e">' + c[0] + '</div><span class="n">' + c[1] + '</span><div class="t">' + c[2] + '</div></div>').join('') + '</div>' : '<div class="card empty" style="padding:18px">Поки порожньо</div>');
+  h += '<h2>💱 Обмін кристалів <small>1 💎 = ' + num(S.gemUah) + ' грн</small></h2><div class="card"><div class="grid2">' +
+    [10, 25, 50, 100].map((n) => '<button class="btn ghost" style="font-size:14px;padding:12px 6px" ' + (S.me.gems >= n ? '' : 'disabled') + ' onclick="gemx(' + n + ')">' + n + ' 💎 → ' + num(n * S.gemUah) + ' грн</button>').join('') + '</div></div>';
+  return h;
+}
+
+function go(t) { tab = t; haptic(); paint(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+document.querySelectorAll('.tab').forEach((b) => b.addEventListener('click', () => go(b.dataset.t)));
+
+async function buy(id, price, label) {
+  if (S.me.gems < price) { haptic('err'); toast('Бракує ' + num(price - S.me.gems) + ' 💎 — заробляй у боті!'); return; }
+  if (!(await ask('Купити «' + label + '» за ' + price + ' 💎?'))) return;
+  const r = await call('buy', { item: id }); if (r && /Куплено/.test(r.toast)) { haptic('ok'); confetti(); }
+}
+async function food(pack) { const r = await call('food', { pack: pack }); if (r) haptic('ok'); }
+async function useC(id, label) { if (!(await ask('Використати купон «' + label + '»? Бот напише в групу.'))) return; const r = await call('use', { item: id }); if (r) { haptic('ok'); confetti(['🎟', '🎉', '✨']); } }
+async function gemx(n) { if (!(await ask('Обміняти ' + n + ' 💎 на ' + num(n * S.gemUah) + ' грн?'))) return; const r = await call('gemx', { n: n }); if (r) haptic('ok'); }
+async function wear(slot, item, own) {
+  if (!own && !(await ask('Купити цю річ за ' + S.pet.cloth + ' 💎?'))) return;
+  const r = await call('wear', { slot: slot, item: item }); if (r) { haptic('ok'); hop(); if (!own) confetti(['👕', '✨', '💖']); }
+}
+async function feed() {
+  const b = $('feedB').getBoundingClientRect(), p = $('petE').getBoundingClientRect(), f = document.createElement('div');
+  f.className = 'fly'; f.textContent = '🍖'; f.style.left = b.left + b.width / 2 - 17 + 'px'; f.style.top = b.top + 'px'; document.body.appendChild(f);
+  requestAnimationFrame(() => { f.style.transform = 'translate(' + (p.left + p.width / 2 - b.left - b.width / 2) + 'px,' + (p.top + p.height / 2 - b.top) + 'px) scale(.6)'; f.style.opacity = '0.2'; });
+  setTimeout(() => f.remove(), 750);
+  const r = await call('feed'); if (r && /Ням/.test(r.toast)) { haptic('ok'); hop(); hearts(); }
+}
+function hop() { const e = $('petE'); if (!e) return; e.classList.remove('jump'); void e.offsetWidth; e.classList.add('jump'); }
+function hearts() { const sc = $('scene'); if (!sc) return; for (let i = 0; i < 6; i++) { const h = document.createElement('span'); h.className = 'heart'; h.textContent = ['💖', '💕', '⭐'][i % 3];
+  h.style.left = 40 + Math.random() * 20 + '%'; h.style.bottom = 120 + Math.random() * 30 + 'px'; h.style.animationDelay = i * .12 + 's'; sc.appendChild(h); setTimeout(() => h.remove(), 1800); } }
+function pat() { haptic(); hop(); hearts(); const w = ['Гав! 💖', 'Ще погладь! 🥰', 'Ти найкраща! ⭐', 'Мур-р-р 💕']; const b = $('bub'); if (b) { b.textContent = w[Math.floor(Math.random() * w.length)]; b.style.animation = 'none'; void b.offsetWidth; b.style.animation = ''; } }
+
+// ---- demo data (opened outside Telegram, or with ?demo=1): the page works without the bot
+function demoState() {
+  return { me: { name: 'Марія', female: true, color: '🟨', gems: 67.5, balance: 533, streak: 9, done: 24, norm: 30, invest: 35, wallet: 1.2 },
+    pet: { kind: 'dog', icon: '🐕', name: 'Бусінка', female: true, level: 5, xp: 240, xpFrom: 210, xpTo: 320, fed: 60, min: 50, help: 4, trainedToday: true, finds: 7, found: 3.4, cloth: 25,
+      slots: [{ id: 'head', title: '🎩 Голова', lvl: 4, open: true, wear: 'bow', items: [{ id: 'bow', icon: '🎀', own: true }, { id: 'hat', icon: '🎩' }, { id: 'cap', icon: '🧢' }, { id: 'crown', icon: '👑' }] },
+        { id: 'body', title: '🦺 Тіло', lvl: 5, open: true, wear: null, items: [{ id: 'sweater', icon: '🧥' }, { id: 'cape', icon: '🦸' }, { id: 'vest', icon: '🦺' }] },
+        { id: 'legs', title: '🧦 Ніжки', lvl: 7, open: false, wear: null, items: [{ id: 'socks', icon: '🧦' }, { id: 'boots', icon: '👢' }, { id: 'sneakers', icon: '👟' }] }] },
+    shop: { season: false, boost: 20, daily: 3, rise: 30, resting: 5, food: { price: 1, pack: 10, packN: 12 }, items: [
+      { id: 'dishes', icon: '🍽', label: 'Мий за мною посуд увесь день', price: 33, base: 25, times: 1, open: true, need: 3 },
+      { id: 'game', icon: '🎮', label: 'Пограти зі мною в будь-яку гру 1 годину', price: 35, base: 35, times: 0, open: true, need: 6 },
+      { id: 'massage', icon: '💆', label: 'Масаж (мінімум 10 хвилин)', price: 45, base: 45, times: 0, open: true, need: 8 },
+      { open: false, need: 10, price: 80 }] },
+    inv: { food: 2, ice: 1, vac: 0, cash: 0, freeze: 1, gifts: 1, coupons: [{ id: 'dishes', icon: '🍽', label: 'Мий за мною посуд увесь день', n: 1 }] }, gemUah: 0.5 };
+}
+let D = null;
+function demoCall(action, a) {
+  D = D || demoState(); let t = '';
+  if (action === 'buy') { const it = D.shop.items.find((x) => x.id === a.item); D.me.gems -= it.price; it.times++; it.price = Math.round(it.base * Math.pow(1.3, it.times)); t = '✅ Куплено'; }
+  if (action === 'feed') { if (D.inv.food) D.inv.food--; else D.me.gems -= 1; D.pet.fed = Math.min(100, D.pet.fed + 25); t = '🍖 Ням! +25% ситості'; }
+  if (action === 'food') { D.me.gems -= a.pack ? 10 : 1; D.inv.food += a.pack ? 12 : 1; t = '🍖 +' + (a.pack ? 12 : 1) + ' корму'; }
+  if (action === 'gemx') { D.me.gems -= a.n; D.me.balance += a.n * .5; t = '💱 ' + a.n + ' 💎 → +' + a.n * .5 + ' грн'; }
+  if (action === 'use') { D.inv.coupons = []; t = '🎟 Купон використано! Дивись у групі'; }
+  if (action === 'wear') { const s = D.pet.slots.find((x) => x.id === a.slot), it = s.items.find((x) => x.id === a.item); if (!it.own) { D.me.gems -= 25; it.own = true; } s.wear = a.item; t = '👕 Обновка!'; }
+  return { ok: true, toast: t, state: JSON.parse(JSON.stringify(D)) };
+}
+
+if (!DEMO && !API) showError('Не вказано адресу бота (FARM_API). Відкрий застосунок кнопкою з бота.');
+else call('state');
+</script>
+</body>
+</html>
