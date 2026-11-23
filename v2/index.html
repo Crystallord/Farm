@@ -491,7 +491,8 @@ body.busy button:not(.pending),body.busy .tile,body.busy .ob{opacity:.6;transiti
 // ===================== setup
 const TG=window.Telegram&&Telegram.WebApp; try{TG.ready();TG.expand();TG.setHeaderColor&&TG.setHeaderColor('#ffe7c4');TG.setBackgroundColor&&TG.setBackgroundColor('#fff7ec')}catch(e){}
 const qs=new URLSearchParams(location.search), API=qs.get('api')||window.FARM_API||'', DEMO=qs.get('demo')==='1'||!(TG&&TG.initData);
-const hap=t=>{try{t==='ok'?TG.HapticFeedback.notificationOccurred('success'):t==='err'?TG.HapticFeedback.notificationOccurred('error'):TG.HapticFeedback.impactOccurred(t||'medium')}catch(e){}};
+const quiet=()=>{const h=new Date().getHours();return h<8}; // 00:00–08:00: no vibration
+const hap=t=>{if(quiet())return;try{t==='ok'?TG.HapticFeedback.notificationOccurred('success'):t==='err'?TG.HapticFeedback.notificationOccurred('error'):TG.HapticFeedback.impactOccurred(t||'medium')}catch(e){}};
 const $=id=>document.getElementById(id), R=95, C=2*Math.PI*R;
 const fmt=v=>(+v).toLocaleString('uk-UA',{minimumFractionDigits:(+v)%1?2:0,maximumFractionDigits:2});
 const plural=(n,f)=>{n=Math.abs(n)%100;const b=n%10;return n>10&&n<20?f[2]:b===1?f[0]:b>=2&&b<=4?f[1]:f[2]};
