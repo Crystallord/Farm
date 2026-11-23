@@ -770,8 +770,7 @@ function fullStats(){const F=S.fstats;if(!F)return;const pp=F.people,per=fsPer,m
  <div class="sect" style="margin:14px 2px 0"><b>🏆 Хто в чому найкращий</b><small>${{today:'сьогодні',yday:'вчора',week:'цього тижня',lweek:'минулого тижня',month:'цього місяця',all:'за весь час'}[per]}</small></div>
  <div class="cats">${per!=='all'&&per!=='month'||true?'':''}${best(p=>p.fun[per].gin,'💎 Заробили кристалів',v=>fmt(v))}${best(p=>p.fun[per].gout,'🛍️ Витратили кристалів',v=>fmt(v))}
   ${best(p=>p.fun[per].looks,'🎨 Куплено стилю',v=>v)}${best(p=>p.fun[per].xp,'🐾 Досвід улюбленця',v=>'+'+v)}${best(p=>p.fun[per].inv,'💼 Вкладено в землю',v=>fmt(v)+' ₴')}${per==='today'?best(p=>p.normPct,'🎯 Норма сьогодні',v=>v+'%'):per==='yday'?best(p=>p.normPctY,'🎯 Норма вчора',v=>v+'%'):''}
-  ${best(p=>p.streak,'🔥 Стрік зараз',v=>v+' дн.')}${best(p=>p.best,'🏅 Рекорд стріку',v=>v+' дн.')}${best(p=>p.normDays,'🎯 Норм за 14 днів',v=>v)}${best(p=>p.bestDay,'⚡ Зборів за день',v=>v)}
-  ${best(p=>p.tasks7,'📋 Завдань за 7 днів',v=>v)}${best(p=>p.ach,'🏅 Досягнень',v=>v)}${best(p=>p.land,'🏡 Найбільший землевласник',v=>fmt(Math.round(v))+' ₴')}${best(p=>p.all.n,'🚜 Зборів за весь час',v=>fmt(v))}</div>
+  ${best(p=>((p.per||{})[per]||{}).bestDay,per==='today'||per==='yday'?'⚡ Зборів':'⚡ Найбільше зборів за день',v=>v)}${best(p=>((p.per||{})[per]||{}).tasks,'📋 Завдань',v=>v)}${best(p=>((p.per||{})[per]||{}).ach,'🏅 Досягнень',v=>v)}${best(p=>p.land,'🏡 Найбільший землевласник',v=>fmt(Math.round(v))+' ₴')}</div>
  <div class="sect" style="margin:6px 2px 6px"><b>📈 Останні 14 днів</b></div>
  <div class="gch">${F.days.map((d,k)=>{const m=Math.max(1,...pp.flatMap(p=>p.days));return `<div class="gd">${pp.map((p,j)=>`<i style="height:${p.days[k]/m*100}%;background:${PCOL[j%6]}"></i>`).join('')}${k%2?'':`<small>${+d.slice(8)}</small>`}</div>`}).join('')}</div>
  <div class="lg">${pp.map((p,j)=>`<span><i style="background:${PCOL[j%6]}"></i>${P(p.id).name}</span>`).join('')}</div>

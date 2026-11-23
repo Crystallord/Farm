@@ -1,0 +1,25 @@
+# Every night: take the bot's state and keep an ENCRYPTED copy in backups/ (the repo is public).
+# Needs repo secrets: BOT_URL (web app /exec address), BOT_SECRET (Script Properties → SECRET), BACKUP_KEY (any long password).
+# Decrypt: openssl enc -d -aes-256-cbc -pbkdf2 -in backups/state-YYYY-MM-DD.json.enc -out state.json -pass pass:<BACKUP_KEY>
+name: Backup bot state
+on:
+  schedule: [{ cron: '30 22 * * *' }]   # 00:30 Kyiv
+  workflow_dispatch:
+permissions: { contents: write }
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch and encrypt
+        env: { BOT_URL: '${{ secrets.BOT_URL }}', BOT_SECRET: '${{ secrets.BOT_SECRET }}', BACKUP_KEY: '${{ secrets.BACKUP_KEY }}' }
+        run: |
+          if [ -z "$BOT_URL" ] || [ -z "$BOT_SECRET" ] || [ -z "$BACKUP_KEY" ]; then echo "Secrets are not set: skipping"; exit 0; fi
+          curl -sS -L -X POST "$BOT_URL?backup=$BOT_SECRET" -H 'Content-Type: application/json' -d '{}' -o state.json
+          python3 -c "import json;d=json.load(open('state.json'));assert 'people' in d" || { echo "Not a state"; exit 1; }
+          mkdir -p backups
+          openssl enc -aes-256-cbc -pbkdf2 -salt -in state.json -out "backups/state-$(date -u +%F).json.enc" -pass env:BACKUP_KEY
+          rm state.json
+          ls backups/*.enc | sort | head -n -30 | xargs -r git rm -q
+          git config user.name "farm-backup"; git config user.email "backup@users.noreply.github.com"
+          git add backups && git commit -qm "Backup $(date -u +%F)" && git push || echo "nothing new"

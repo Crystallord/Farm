@@ -529,6 +529,15 @@ function colorOf(st, id) {
 }
 
 // ---------------------------------------------------------------- Telegram
+// 💾 every evening the whole state goes to the owner's private chat as a file (silent): a copy outside Google
+function backupToOwner(st) {
+  try {
+    if (!st.owner) return;
+    const name = 'farm-backup-' + dayKey(Date.now(), st.cfg) + '.json';
+    UrlFetchApp.fetch('https://api.telegram.org/bot' + props().getProperty('BOT_TOKEN') + '/sendDocument', { method: 'post', muteHttpExceptions: true,
+      payload: { chat_id: String(st.owner), disable_notification: 'true', caption: '💾 Резервна копія ферми', document: Utilities.newBlob(readState(), 'application/json', name) } });
+  } catch (err) { console.error(err); }
+}
 function tg(method, payload) {
   const url = 'https://api.telegram.org/bot' + props().getProperty('BOT_TOKEN') + '/' + method;
   const res = UrlFetchApp.fetch(url, {
@@ -773,7 +782,7 @@ function fire(kind, e) {
       if (!st.timers.warn) startTimerAt(st, 'warn', nextHour(Math.max(st.cfg.dayStart, st.cfg.dayEnd - 2)));
       const at = hourOf(Date.now()) < st.cfg.dayStart ? Date.now() - (hourOf(Date.now()) + 1) * 3600000 : Date.now(); // the summary at 24:00 belongs to the day that just ended
       const streaks = settleStreaks(st, at), divs = payDividends(st, at), contest = settleContests(st, at);
-      saveState(st); postEvening(st, streaks, divs); if (contest) sayK(st, 'contest', contest); checkAchAll(st); updateTags(st); maybeFinishRace(st); seasonEvening(st); saveState(st); return;
+      saveState(st); postEvening(st, streaks, divs); if (contest) sayK(st, 'contest', contest); backupToOwner(st); checkAchAll(st); updateTags(st); maybeFinishRace(st); seasonEvening(st); saveState(st); return;
     }
     if (kind === 'warn') { startTimerAt(st, 'warn', nextHour(Math.max(st.cfg.dayStart, st.cfg.dayEnd - 2))); saveState(st); postStreakWarn(st); saveState(st); return; }
     if (kind === 'nag') { postNag(st); saveState(st); return; }
@@ -896,7 +905,7 @@ function credit(st, user, kind, uahAmount, now) {
 }
 function gemLog(st, day, id) {
   const d = st.gemLog[day] = st.gemLog[day] || {};
-  Object.keys(st.gemLog).sort().slice(0, -7).forEach(function (k) { delete st.gemLog[k]; });
+  Object.keys(st.gemLog).sort().slice(0, -35).forEach(function (k) { delete st.gemLog[k]; });
   return d[id] = d[id] || { bonus: 0, tasks: {} };
 }
 function statsText(st, now) {
@@ -3799,7 +3808,10 @@ function appFarmStats(st, now) {
       normDays: days.filter(function (d) { const r = (st.stats['d:' + d] || {})[u]; return r && p.norm && (r.g !== undefined ? r.g : r.uah) >= p.norm; }).length,
       land: money((st.cfg.iplots || []).reduce(function (a, pl) { return a + (pl.shares[u] || 0); }, 0)),
       fun: (function () { // the kid-friendly numbers: crystals earned / spent, style items, pet XP, money invested
-        const sum = function (from, k, to) { return money(Object.keys(st.dayLog || {}).filter(function (d) { return d >= from && (!to || d <= to); }).reduce(function (a, d) { return a + (((st.dayLog[d] || {})[u] || {})[k] || 0); }, 0)); };
+        const glGin = function (d) { const g = ((st.gemLog || {})[d] || {})[u]; if (!g) return 0; return (g.bonus || 0) + (g.harv || 0) + Object.keys(g.tasks || {}).reduce(function (a, k) { return a + g.tasks[k]; }, 0); };
+        const allDays = Object.keys(st.dayLog || {}).concat(Object.keys(st.gemLog || {})).filter(function (d, i, a) { return a.indexOf(d) === i; });
+        const sum = function (from, k, to) { return money(allDays.filter(function (d) { return d >= from && (!to || d <= to); }).reduce(function (a, d) {
+          const r = ((st.dayLog || {})[d] || {})[u]; return a + (r ? r[k] || 0 : k === 'gin' ? glGin(d) : 0); }, 0)); }; // before the day log existed: crystals from the gem log
         const own = (st.lookOwn || {})[u] || {}, looks = function (from, to) { return Object.keys(own).filter(function (k) { return own[k] >= from && (!to || own[k] <= to); }).length; };
         const rng = function (from, to) { return { gin: sum(from, 'gin', to), gout: sum(from, 'gout', to), xp: sum(from, 'xp', to), inv: sum(from, 'inv', to), looks: looks(from, to) }; };
         const w = weekKey(day), m = monthKey(now) + '-01';
@@ -3807,6 +3819,16 @@ function appFarmStats(st, now) {
           week: { gin: sum(w, 'gin'), gout: sum(w, 'gout'), xp: sum(w, 'xp'), inv: sum(w, 'inv'), looks: looks(w) },
           month: { gin: sum(m, 'gin'), gout: sum(m, 'gout'), xp: sum(m, 'xp'), inv: sum(m, 'inv'), looks: looks(m) },
           all: { gin: sum('', 'gin'), gout: sum('', 'gout'), xp: sum('', 'xp'), inv: sum('', 'inv'), looks: Object.keys(own).length } };
+      })(),
+      per: (function () { // per period: the best day by harvests, tasks done, achievements got
+        const R = { today: [day, day], yday: [yd, yd], week: [weekKey(day), day], lweek: [lw, addDays(lw, 6)], month: [monthKey(now) + '-01', day], all: ['', day] };
+        const ach = st.ach[u] || {};
+        return Object.keys(R).reduce(function (o, k) { const a = R[k][0], z = R[k][1];
+          const inR = function (d) { return d >= a && d <= z; };
+          o[k] = { bestDay: Object.keys(st.stats).filter(function (x) { return x[0] === 'd' && inR(x.slice(2)); }).reduce(function (m, x) { return Math.max(m, (st.stats[x][u] || {}).n || 0); }, 0),
+            tasks: Object.keys(st.gemLog || {}).filter(inR).reduce(function (m, d) { const n = ((st.gemLog[d] || {})[u] || {}).n || {}; return m + Object.keys(n).reduce(function (b, q) { return b + n[q]; }, 0); }, 0),
+            ach: Object.keys(ach).filter(function (q) { return inR(ach[q]); }).length };
+          return o; }, {});
       })(),
       normPct: p.norm ? Math.round(pick('d:' + day, u).uah / p.norm * 100) : 0, normPctY: p.norm ? Math.round(pick('d:' + yd, u).uah / p.norm * 100) : 0,
       days: days.map(function (d) { return pick('d:' + d, u).uah; }) };
@@ -4050,6 +4072,10 @@ function onTrade(st, user, parts, q, edit, eph) {
 // ---------------------------------------------------------------- webhook
 function doPost(e) {
   if (e && e.parameter && e.parameter.app === '1') return appApi(e);
+  if (e && e.parameter && e.parameter.backup) { // GitHub Action: ?backup=<SECRET> → the whole state (encrypted there before it is saved)
+    if (e.parameter.backup !== props().getProperty('SECRET')) return ok();
+    return ContentService.createTextOutput(readState()).setMimeType(ContentService.MimeType.JSON);
+  }
   if (e && e.parameter && e.parameter.update) { // GitHub Action after a push: ?update=<SECRET>
     if (e.parameter.update !== props().getProperty('SECRET')) return ok();
     try { const r = selfUpdate(e.parameter.sha || ''); const st = loadState(); if (st.owner) say(st.owner, r); } catch (err) { console.error(err); reportError(err); }
