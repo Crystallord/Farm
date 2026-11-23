@@ -385,6 +385,14 @@ body{padding-bottom:96px}
 .bv{font-size:15px;font-weight:800;line-height:1.45;margin:4px 0 12px;white-space:pre-line}.bv b{font-weight:900}
 .vbtn{display:flex;flex-direction:column;gap:8px}.vbtn .row{display:flex;gap:8px}.vbtn button{flex:1;border:0;border-radius:14px;padding:12px 8px;font:900 14px Nunito,sans-serif;cursor:pointer;background:#fff;color:var(--ink);box-shadow:0 3px 0 #eddcc4}
 .vbtn button.pri{background:linear-gradient(#53d97f,#2fb45c);color:#fff;box-shadow:0 3px 0 #23914a}
+
+body.busy::before{content:"";position:fixed;left:0;top:0;height:3px;width:40%;z-index:100;background:linear-gradient(90deg,#ffb020,#ff6a2b);animation:load 1s ease-in-out infinite;border-radius:2px}
+@keyframes load{0%{left:-40%}100%{left:100%}}
+body.busy button:not(.pending),body.busy .tile,body.busy .ob{opacity:.6;transition:opacity .2s}
+.pending{position:relative;color:transparent!important;pointer-events:none;animation:none!important}
+.pending>*{visibility:hidden}
+.pending::after{content:"";position:absolute;left:50%;top:50%;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;border:3px solid rgba(0,0,0,.15);border-top-color:#ff7a1a;animation:spin .7s linear infinite;visibility:visible}
+.tile.pending,.trc.pending,.race.pending,.ob.pending{color:inherit!important}.tile.pending>*,.trc.pending>*,.race.pending>*,.ob.pending>*{visibility:visible;opacity:.4}
 </style></head><body>
 <header class="hdr" id="hdr"><span id="hava" class="tapme"></span><div class="hn"><b id="hname">…</b><span id="httl"></span><span id="hbst"></span></div>
   <div class="hb"><span class="hs"><span class="flame dim" id="flame">🔥</span><b id="hst">0</b></span><span class="hm"><b id="uah">0</b> ₴</span><span class="hg"><b id="gem">0</b> 💎</span></div></header>
@@ -485,20 +493,27 @@ async function call(action,args){
   const r=await fetch(API+(API.indexOf('?')<0?'?':'&')+'app=1',{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({initData:TG.initData,action,args:args||{}})});
   return r.json();
 }
+// ⏳ pending: the tapped button shows a spinner, everything else waits (no double taps)
+let lastTap=null;
+document.addEventListener('pointerdown',e=>{lastTap=e.target.closest('button,.tile,.trc,.ob,.race')},true);
+document.addEventListener('click',e=>{if(busy&&e.target.closest('button,.tile,.trc,.ob,.race,.tab')){e.stopPropagation();e.preventDefault();hap('light')}},true);
+function pend(on){const b=lastTap;document.body.classList.toggle('busy',on);
+  if(on&&b&&b.isConnected){b.classList.add('pending');b.dataset.pw=b.style.minWidth;b.style.minWidth=b.offsetWidth+'px'}
+  if(!on)document.querySelectorAll('.pending').forEach(x=>{x.classList.remove('pending');x.style.minWidth=x.dataset.pw||''})}
 async function act(action,args){
-  if(busy) return null; busy=true;
+  if(busy) return null; busy=true;pend(true);
   try{const r=await call(action,args);
     if(r.error){toast(r.msg||'Помилка');hap('err');return r}
     if(r.state) apply(r.state);
     if(r.toast) toast(r.toast);
     return r;
-  }catch(e){toast('Немає зв’язку з ботом 😕 '+(e&&e.message?e.message.slice(0,60):''));hap('err');return null}finally{busy=false}
+  }catch(e){toast('Немає зв’язку з ботом 😕 '+(e&&e.message?e.message.slice(0,60):''));hap('err');return null}finally{busy=false;pend(false)}
 }
 function apply(st){S=st;OFF=(st.farm&&st.farm.now?st.farm.now-Date.now():0);render()}
 // ===================== helpers
 function countTo(el,to,dec,ms=900){const from=+el.dataset.v||0;el.dataset.v=to;const t0=performance.now();
  (function f(t){const k=Math.min(1,(t-t0)/ms),e=1-Math.pow(1-k,3),v=from+(to-from)*e;el.textContent=dec?fmt(+v.toFixed(2)):Math.round(v);if(k<1)requestAnimationFrame(f)})(t0)}
-function bump(e){const p=e.closest('.card');p.classList.remove('bump');void p.offsetWidth;p.classList.add('bump')}
+function bump(e){const p=e.closest('.card')||e.closest('span')||e;p.classList.remove('bump');void p.offsetWidth;p.classList.add('bump')}
 let tt;function toast(t){const e=$('toast');e.textContent=t;e.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>e.classList.remove('show'),2600)}
 function plus(el,txt,col){const r=el.getBoundingClientRect(),p=document.createElement('div');p.className='plus';p.textContent=txt;if(col)p.style.color=col;
  p.style.left=(r.left+r.width/2-30)+'px';p.style.top=(r.top-10)+'px';document.body.appendChild(p);setTimeout(()=>p.remove(),1200)}
