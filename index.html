@@ -387,7 +387,7 @@ async function act(action,args){
     if(r.state) apply(r.state);
     if(r.toast) toast(r.toast);
     return r;
-  }catch(e){toast('Немає зв’язку з ботом 😕');hap('err');return null}finally{busy=false}
+  }catch(e){toast('Немає зв’язку з ботом 😕 '+(e&&e.message?e.message.slice(0,60):''));hap('err');return null}finally{busy=false}
 }
 function apply(st){S=st;OFF=(st.farm&&st.farm.now?st.farm.now-Date.now():0);render()}
 // ===================== helpers
@@ -412,7 +412,8 @@ function confetti(){const cv=$('cf'),x=cv.getContext('2d');cv.width=innerWidth*d
 function confirmTG(text){return new Promise(res=>{try{TG.showConfirm(text,ok=>res(ok))}catch(e){res(confirm(text))}})}
 // ===================== render: farm
 const WD=['Нд','Пн','Вт','Ср','Чт','Пт','Сб'];
-function render(){if(!S)return;renderTop();renderRing();renderCrops();renderOnce();renderTasks();renderShop();if(S.invest)renderInvest();renderMe();renderClaim();renderAppr()}
+function safe(f){try{f()}catch(e){console.error(e);toast('⚠️ '+(e&&e.message||e))}}
+function render(){if(!S)return;safe(()=>{renderTop()});safe(()=>{renderRing()});safe(()=>{renderCrops()});safe(()=>{renderOnce()});safe(()=>{renderTasks()});safe(()=>{renderShop()});safe(()=>{if(S.invest)renderInvest()});safe(()=>{renderMe()});safe(()=>{renderClaim()});safe(()=>{renderAppr()});}
 function renderTop(){const me=S.me,w=S.farm.week,done=w[w.length-1].ok,mp=P(me.id);
  $('tava').innerHTML=ava(mp.look,50);$('tname').innerHTML=me.name+(mp.look.ti?` <span class="ttl">${mp.look.ti}</span>`:'');$('tava').onclick=styleSheet;
  $('sd').textContent=me.streak;$('sdw').textContent=plural(me.streak,['день','дні','днів']);
