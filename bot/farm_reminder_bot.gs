@@ -1719,6 +1719,8 @@ const CHORES = ['dishes', 'dogwash', 'dogday', 'lesson', 'clean'];
 function useCoupon(st, user, itemId, q) {
   const it = shopItem(itemId), x = inv(st, user.id), p = person(st, user), day = dayKey(Date.now(), st.cfg), uid = String(user.id);
   if (!it || !x.coupons[itemId]) { toast(q, 'Цього вже немає'); return false; }
+  const nd = money(doneToday(st, uid, Date.now())); // a coupon works only after today's norm is done
+  if (p.norm && nd < p.norm) { toast(q, '🎯 Спершу норма! Купон спрацює, коли збереш ' + p.norm + ' грн (зараз ' + nd + ', ще ' + money(p.norm - nd) + ')'); return false; }
   if (CHORES.indexOf(itemId) >= 0) {
     st.choreDay = st.choreDay || {};
     const used = st.choreDay[uid];
@@ -3881,8 +3883,8 @@ function appMe(st, id, now) { // 👤 stats, records, the family this week, the 
       x.ice ? [{ what: 'ice', icon: '🍦', label: 'Морозиво', n: x.ice, act: 'Хочу!' }] : [],
       x.vac.length ? [{ what: 'vac', icon: '🏖', label: 'Відпустка (' + money(x.vac[0]) + ' грн)', n: x.vac.length, act: 'Сьогодні' }] : [],
       x.cash ? [{ what: 'cash', icon: '💰', label: 'Грошовий приз', n: money(x.cash), unit: 'грн', act: 'Забрати' }] : [],
-      Object.keys(x.coupons).filter(function (k) { return x.coupons[k] > 0 && shopItem(k); }).map(function (k) { const it = shopItem(k), cd = (st.choreDay || {})[id], blocked = CHORES.indexOf(k) >= 0 && cd && cd.day === dayKey(now, st.cfg);
-        return { what: 'cpn_' + k, icon: it.icon, label: it.label, n: x.coupons[k], act: blocked ? '' : 'Використати', note: blocked ? '🌙 завтра (1 справа на день)' : '', chore: CHORES.indexOf(k) >= 0 }; }),
+      Object.keys(x.coupons).filter(function (k) { return x.coupons[k] > 0 && shopItem(k); }).map(function (k) { const it = shopItem(k), cd = (st.choreDay || {})[id], blocked = CHORES.indexOf(k) >= 0 && cd && cd.day === dayKey(now, st.cfg), pn = (st.people[id] || {}).norm || 0, nd = money(doneToday(st, id, now)), noNorm = pn && nd < pn;
+        return { what: 'cpn_' + k, icon: it.icon, label: it.label, n: x.coupons[k], act: blocked || noNorm ? '' : 'Використати', note: blocked ? '🌙 завтра (1 справа на день)' : noNorm ? '🎯 після норми (ще ' + money(pn - nd) + ' ₴)' : '', chore: CHORES.indexOf(k) >= 0 }; }),
       x.freeze ? [{ what: '', icon: '❄️', label: 'Заморозка стріку', n: x.freeze, note: 'спрацює сама' }] : [],
       x.food ? [{ what: '', icon: '🍖', label: 'Корм', n: x.food, note: 'для улюбленця' }] : []),
   };
