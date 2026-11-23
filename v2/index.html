@@ -559,7 +559,7 @@ function preview(uah){if(!S||!S.me.norm)return;previewing=uah?1:0;ghostSet(uah||
 function ghostSet(add){const g=$('ghost'),p=Math.min(1,(S.me.done+add)/S.me.norm);g.style.width=(p*100)+'%';const on=add>0&&S.me.done<S.me.norm;
  if(on!==g.classList.contains('pulse')){g.classList.toggle('pulse',on);g.style.animationDelay=-(Date.now()%1600)+'ms'}}
 function leftMs(c){const at=c.ripe||c.due;return at?Math.max(0,at-(Date.now()+OFF)):0} // ripe: real growth end; due: the reminder (may be moved to the morning)
-function renderCrops(){$('hv').innerHTML=S.farm.crops.map(c=>`<div class="card crop" id="c_${c.id}"><div class="t">${c.icon} ${c.name}</div>
+function renderCrops(){$('hv').innerHTML=S.farm.crops.map(c=>`<div class="card crop" id="c_${c.id}"><div class="t">${c.icon} ${c.name}</div>${c.crop?`<div class="rw" style="margin-top:-6px">${c.crop}</div>`:''}
  <div class="mini"><svg viewBox="0 0 86 86"><circle class="tr" cx="43" cy="43" r="37"/><circle class="pr" cx="43" cy="43" r="37"/></svg><div class="ic">${c.icon.split(/(?=[\uD800-\uDBFF])/)[0]}</div></div>
  <div class="rw">+${fmt(c.uah)} ₴ · +${fmt(c.gem)} 💎</div><button class="btn"></button></div>`).join('');
  for(const c of S.farm.crops){const el=$('c_'+c.id),b=el.querySelector('button');b.onclick=()=>harvest(c,el.querySelector('.mini'));

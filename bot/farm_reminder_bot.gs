@@ -3502,7 +3502,16 @@ function applySetting(st, parts) {
   const c = st.cfg, what = parts[1], clamp = function (v, lo, hi) { return Math.max(lo, Math.min(hi, v)); };
   if (what === 'page') return PAGES[parts[2]] ? parts[2] : 'main';
   if (applyPetSetting(st, parts)) return 'pets';
-  if (what === 'bedCrop' && CROPS[parts[2]]) { c.bedCrop = parts[2]; return 'main'; }
+  if (what === 'bedCrop' && CROPS[parts[2]]) { // a running seedbed timer is moved to the new crop's time (from the last harvest)
+    const oldMin = KINDS.beds.cycle(c); c.bedCrop = parts[2]; const newMin = KINDS.beds.cycle(c);
+    const g = (st.grown || {}).beds, t = st.timers.beds;
+    if (g && g > Date.now() - newMin * 60000 && oldMin !== newMin) {
+      const start = g - oldMin * 60000, ripe = start + newMin * 60000;
+      st.grown.beds = ripe;
+      if (t && !(st.open || {}).beds) startTimerAt(st, 'beds', nextActive(Math.max(Date.now() + 60000, ripe), c));
+    }
+    return 'main';
+  }
   if (what === 'bundleCrop' && BUNDLES[parts[2]]) { c.bundleCrop = parts[2]; return 'bundles'; }
   if (what === 'nbundles') { c.nbundles = clamp((c.nbundles || 0) + +parts[2], 0, 1000); return 'bundles'; }
   if (what === 'bundles') { c.bundles = clamp((c.bundles || 0) + +parts[2], 0, farmCalc(c).spots); return 'bundles'; }
@@ -3705,7 +3714,7 @@ function appFarm(st, id, now) {
   return {
     now: now, week: week,
     crops: ['beds', 'plots'].map(function (k) { const t = st.timers[k];
-      return { id: k, name: k === 'beds' ? 'Грядки' : 'Хробаки', icon: k === 'beds' ? '🌱' : '🪱',
+      return { id: k, name: k === 'beds' ? 'Грядки' : 'Хробаки', icon: k === 'beds' ? ({ narcissus: '🌼', clover: '🍀', corn: '🌽', mr: '🌿', tc: '🌵' }[st.cfg.bedCrop] || '🌱') : '🪱', crop: k === 'beds' ? bedCrop(st.cfg).label : '',
         uah: rewardNow(st, k), gem: harvestGemFor(st, k, now), cycle: KINDS[k].cycle(st.cfg), due: t ? t.due : 0, ripe: (st.grown || {})[k] || 0 }; }),
     once: Object.keys(ONCE_CROPS).map(function (c) { const cf = Object.assign({}, st.cfg, { bedCrop: c });
       return { id: c, icon: ONCE_CROPS[c], name: { narcissus: 'Narcissus', clover: 'Clover', mr: 'Mint' }[c], uah: KINDS.beds.reward(cf), gem: KINDS.beds.cycle(cf) <= 60 ? g / 2 : g }; }),
