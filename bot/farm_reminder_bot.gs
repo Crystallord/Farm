@@ -11,7 +11,7 @@
  *  "⏳ Зараз не можу" keeps the buttons, so someone else can harvest now; otherwise it reminds again later.
  *  Every reminder shows each person's daily norm (harvests a day, set per person in the settings).
  * Daily checklist at dayStart (calendar, vigor, farmhands on 3 characters).
- * Evening summary at dayEnd: today and this week per person, and how much money each can get now.
+ * Evening summary at 23:59 (the day ends at midnight): today and this week per person, and how much money each can get now.
  * Money: "💸 Отримати мої гроші" sets the person's balance to 0 and tells the owner privately whom to pay.
  * 📈 Статистика: a table per day of the week (or per week of the month) for each person and the farm in total.
  * Farm bank: bankPct % of every harvest goes to the bank; the reward people see is the rest (the bank is not shown
@@ -54,7 +54,7 @@ const DEFAULTS = {
   plotTimer: 0,        // minutes between composter/bundle reminders; 0 = growth time
   snooze: 20,          // minutes for "Зараз не можу"
   dayStart: 10,        // reminders from 10:00 (the daily checklist comes then) ...
-  dayEnd: 22,          // ... to 22:00 (the evening summary comes then); quiet at night
+  dayEnd: 22,          // ... to 22:00; quiet at night (the day itself ends at midnight: summary at 23:59)
   norm: 40,            // fallback norm in UAH; a person's norm = share % of what the farm can give a day (farmMax)
   share: 20,           // share % of a new person
   overPct: 4, overMax: 10, // over the norm: +1 💎 for every overPct % of farmMax (≈10 UAH now), at most overMax 💎 a day
@@ -299,6 +299,11 @@ function loadState() {
       if (st.timers.beds && !(st.open || {}).beds) { try { startTimerAt(st, 'beds', nextActive(Math.max(Date.now() + 60000, ripe), st.cfg)); } catch (e) { console.error(e); } }
     }
   }
+  if (!st.fixEve24 && st.timers && st.group) { // 23.11: the day ends at midnight: move the evening summary and the warning
+    st.fixEve24 = true;
+    if (hourOf(Date.now()) >= st.cfg.dayEnd && st.timers.evening) st.eveningDone = dayKey(Date.now(), st.cfg); // today's summary already ran at dayEnd
+    try { startTimerAt(st, 'evening', nextEvening()); startTimerAt(st, 'warn', nextHour(Math.max(st.cfg.dayStart, WARN_HOUR))); } catch (e) { console.error(e); }
+  }
   if (!st.fixDishes1123) { // 23.11: Maria used the dishes coupon before the "norm first" rule: give it back
     st.fixDishes1123 = true;
     Object.keys(st.people || {}).filter(function (u) { return String(u) !== String(st.owner) && /^Мар/.test(st.people[u].name || ''); }).forEach(function (u) {
@@ -496,7 +501,7 @@ function buyExcl(st, id, k, q) {
 }
 function appContest(st, id, now) {
   const day = dayKey(now, st.cfg), wk = weekKey(day), w = (st.cwins || {})[wk] || {};
-  return { ends: nextHour(st.cfg.dayEnd), done: !!(st.contestDone || {})[day],
+  return { ends: nextHour(0), done: !!(st.contestDone || {})[day],
     last: (function () { const ks = Object.keys(st.contestLog || {}).filter(function (k) { return k < day; }).sort(); return ks.length ? { day: ks[ks.length - 1], list: st.contestLog[ks[ks.length - 1]] } : null; })(),
     turbo: !!(((st.boosts || {})[id] || {}).turbo && st.boosts[id].turbo.day === day),
     list: contestsOf(day).map(function (c) { return { pz: c.prize, id: c.id, hint: c.hint, go: c.go, icon: c.icon, label: c.label, unit: c.unit, prize: cPrizeText(c.prize),
@@ -755,6 +760,9 @@ function nextActive(ms, cfg) { // first moment >= ms inside the active hours (ni
   for (let i = 0; i < 48 * 60 && !inWindow(t, cfg); i++) t += 60000;
   return t;
 }
+// The day ends at midnight everywhere (streaks, contests, the app): the evening summary runs at 23:59, still "today".
+function nextEvening() { const t = nextHour(0) - 60000; return t > Date.now() + 30000 ? t : t + 86400000; }
+const WARN_HOUR = 22; // "2 hours left" before midnight
 function nextHour(hour) { // next moment at hour:00
   let t = Math.ceil(Date.now() / 3600000) * 3600000;
   for (let i = 0; i < 48 && hourOf(t) !== hour; i++) t += 3600000;
@@ -781,8 +789,8 @@ function startTimerAt(st, kind, due) {
 function startTimer(st, kind, minutes) { startTimerAt(st, kind, nextActive(Date.now() + minutes * 60 * 1000, st.cfg)); }
 function scheduleDayEvents(st) {
   startTimerAt(st, 'daily', nextHour(st.cfg.dayStart));
-  startTimerAt(st, 'evening', nextHour(st.cfg.dayEnd));
-  startTimerAt(st, 'warn', nextHour(Math.max(st.cfg.dayStart, st.cfg.dayEnd - 2))); // streak at risk
+  startTimerAt(st, 'evening', nextEvening());
+  startTimerAt(st, 'warn', nextHour(Math.max(st.cfg.dayStart, WARN_HOUR))); // streak at risk
 }
 function fire(kind, e) {
   withLock(function () {
@@ -793,13 +801,15 @@ function fire(kind, e) {
     delete st.timers[kind];
     if (kind === 'daily') { startTimerAt(st, 'daily', nextHour(st.cfg.dayStart)); saveState(st); postDaily(st); seasonMorning(st); saveState(st); return; }
     if (kind === 'evening') {
-      startTimerAt(st, 'evening', nextHour(st.cfg.dayEnd));
-      if (!st.timers.warn) startTimerAt(st, 'warn', nextHour(Math.max(st.cfg.dayStart, st.cfg.dayEnd - 2)));
+      startTimerAt(st, 'evening', nextEvening());
+      if (!st.timers.warn) startTimerAt(st, 'warn', nextHour(Math.max(st.cfg.dayStart, WARN_HOUR)));
+      if (st.eveningDone === dayKey(Date.now(), st.cfg)) { saveState(st); return; } // already settled today (the old 23:00 run)
+      st.eveningDone = dayKey(Date.now(), st.cfg);
       const at = hourOf(Date.now()) < st.cfg.dayStart ? Date.now() - (hourOf(Date.now()) + 1) * 3600000 : Date.now(); // the summary at 24:00 belongs to the day that just ended
       const streaks = settleStreaks(st, at), divs = payDividends(st, at), contest = settleContests(st, at);
       saveState(st); postEvening(st, streaks, divs); if (contest) sayK(st, 'contest', contest); backupToOwner(st); checkAchAll(st); updateTags(st); maybeFinishRace(st); seasonEvening(st); saveState(st); return;
     }
-    if (kind === 'warn') { startTimerAt(st, 'warn', nextHour(Math.max(st.cfg.dayStart, st.cfg.dayEnd - 2))); saveState(st); postStreakWarn(st); saveState(st); return; }
+    if (kind === 'warn') { startTimerAt(st, 'warn', nextHour(Math.max(st.cfg.dayStart, WARN_HOUR))); saveState(st); postStreakWarn(st); saveState(st); return; }
     if (kind === 'nag') { postNag(st); saveState(st); return; }
     if (!inWindow(Date.now(), st.cfg)) { startTimer(st, kind, 0); saveState(st); return; } // night: wait for the morning
     // Together: if the other kind is due within `together` minutes, wait for it and send one reminder for both.
@@ -984,7 +994,7 @@ function postNag(st) {
   do { i = Math.floor(Math.random() * NAGS.length); } while (st.nagRecent.indexOf(i) >= 0 && ++tries < 20);
   st.nagRecent = st.nagRecent.concat([i]).slice(-10); // no repeats among the last 10
   let text = esc(NAGS[i]).replace('{name}', b(who)) + '\n(' + openKinds(st).map(function (k) { return KINDS[k].title(st.cfg); }).join(', ') + ' чекають)';
-  const risk = atRisk(st, now), late = hourOf(now) >= st.cfg.dayEnd - 2; // in the last 2 hours: tag them
+  const risk = atRisk(st, now), late = hourOf(now) >= WARN_HOUR; // in the last 2 hours: tag them
   if (risk.length) text += '\n' + risk.map(function (id) {
     const left = st.people[id].norm - doneToday(st, id, now), n = streakOf(st, id, now);
     return '🔥 ' + (late ? mention(st, id) : b(nameOf(st, id))) + ', на кону стрік ' + n + ' ' + plural(n, ['день', 'дні', 'днів']) + '! Ще ' + Math.ceil(left) + ' грн до норми.';
@@ -1243,7 +1253,7 @@ function startRace(st, now) {
   st.race = { active: true, start: day, end: addDays(day, len - 1), scores: {} };
   const end = st.race.end;
   sayK(st, 'race', '🏁 ' + b('ПЕРЕГОНИ!') + ' 🏁\n\n' + len + ' ' + plural(len, ['день', 'дні', 'днів']) + ', фініш: ' +
-    DAY_NAMES[new Date(end + 'T00:00:00Z').getUTCDay()] + ' ' + shortDate(end) + ' о ' + st.cfg.dayEnd + ':00.\n' +
+    DAY_NAMES[new Date(end + 'T00:00:00Z').getUTCDay()] + ' ' + shortDate(end) + ' о 24:00.\n' +
     'Хто більше разів збере врожай, отримає ' + b('🎁 таємний приз') + '.\nЩо всередині, дізнаєтесь лише в кінці 😏\n' +
     '«Зібрано все!» на спільному нагадуванні = 2 збори.\n\nНа старт… увага… ЗБИРАЙ! 🚜');
 }
@@ -1257,7 +1267,7 @@ function maybeStartRace(st) {
 function raceStatus(st, now) {
   const R = st.race;
   if (!R || !R.active) return '🏁 Зараз перегонів немає. Перегони — це 🎪 сезон: коли він почнеться, бот скаже!';
-  return '🏁 ' + b('Перегони') + ', день ' + raceDayN(st, now) + ' з ' + raceLen(R) + ', фініш ' + DAY_NAMES[new Date(R.end + 'T00:00:00Z').getUTCDay()] + ' ' + shortDate(R.end) + ' о ' + st.cfg.dayEnd + ':00\n' +
+  return '🏁 ' + b('Перегони') + ', день ' + raceDayN(st, now) + ' з ' + raceLen(R) + ', фініш ' + DAY_NAMES[new Date(R.end + 'T00:00:00Z').getUTCDay()] + ' ' + shortDate(R.end) + ' о 24:00\n' +
     standings(st).map(function (x, i) { return (['🥇', '🥈', '🥉'][i] || '▫️') + ' ' + esc(nameOf(st, x.id)) + ' — ' + b(x.n) + ' ' + plural(x.n, ['збір', 'збори', 'зборів']); }).join('\n') +
     '\n🎁 Приз — таємниця до фінішу.';
 }
@@ -1832,7 +1842,7 @@ function seasonCard(st) {
     }).join('\n');
   }
   return '🎪 ' + b('СЕЗОН: ' + S.icon + ' ' + S.name) + ' · день ' + seasonDayN(st) + ' з ' + s.days +
-    '\n📅 ' + shortDate(s.start) + ' – ' + shortDate(s.end) + ', фініш о ' + st.cfg.dayEnd + ':00\n' + seasonWhat(st, s.type) + '\n\n' + body;
+    '\n📅 ' + shortDate(s.start) + ' – ' + shortDate(s.end) + ', фініш о 24:00\n' + seasonWhat(st, s.type) + '\n\n' + body;
 }
 function seasonLine(st) {
   const s = st.season; if (!s) return '';
@@ -3403,7 +3413,7 @@ function settingsText(st, page) {
       '\nЯкий бандл саджаємо:';
   }
   if (page === 'other') return PAGES.other + '\n  Курс: 1000g = ' + c.uahPer1000 + ' грн' +
-    '\n  «Зараз не можу»: ' + dur(c.snooze) + '\n  Нагадую з ' + c.dayStart + ':00 до ' + c.dayEnd + ':00';
+    '\n  «Зараз не можу»: ' + dur(c.snooze) + '\n  Нагадую з ' + c.dayStart + ':00 до ' + c.dayEnd + ':00 · день і стрік — до 24:00';
   return PAGES.main +
     '\n🌱 Грядки: ' + bedCrop(c).label + ' · 🪱 компостерів ' + (farmCalc(c).comps + farmCalc(c).neutral) + ' · 📦 бандлів ' + farmCalc(c).bundles + ' ' + bundleCrop(c).label +
     '\n💰 За збір людям: грядки ' + grn(KINDS.beds.reward(c)) + ', ' + plotType(c).label.toLowerCase() + ' ' + grn(KINDS.plots.reward(c)) + ' (з ділянок і цін), щоденні справи +' + c.taskGems.daily + ' ' + GEM + ' за персонажа' +
