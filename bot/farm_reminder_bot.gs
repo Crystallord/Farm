@@ -3722,7 +3722,7 @@ function appFarm(st, id, now) {
   return {
     now: now, week: week,
     crops: ['beds', 'plots'].map(function (k) { const t = st.timers[k];
-      return { id: k, name: k === 'beds' ? 'Грядки' : 'Хробаки', icon: k === 'beds' ? ({ narcissus: '🌼', clover: '🍀', corn: '🌽', mr: '🌿', tc: '🌵' }[st.cfg.bedCrop] || '🌱') : '🪱', crop: k === 'beds' ? bedCrop(st.cfg).label : '',
+      return { id: k, name: k === 'beds' ? 'Грядки' : 'Хробаки', icon: k === 'beds' ? ({ narcissus: '🌼', clover: '🍀', corn: '🌽', mr: '🌿', tc: '🌵' }[st.cfg.bedCrop] || '🌱') : '🪱', crop: k === 'beds' ? bedCrop(st.cfg).label : plotType(st.cfg).label,
         uah: rewardNow(st, k), gem: harvestGemFor(st, k, now), cycle: KINDS[k].cycle(st.cfg), due: t ? t.due : 0, ripe: (st.grown || {})[k] || 0 }; }),
     once: Object.keys(ONCE_CROPS).map(function (c) { const cf = Object.assign({}, st.cfg, { bedCrop: c });
       return { id: c, icon: ONCE_CROPS[c], name: { narcissus: 'Narcissus', clover: 'Clover', mr: 'Mint' }[c], uah: KINDS.beds.reward(cf), gem: KINDS.beds.cycle(cf) <= 60 ? g / 2 : g }; }),

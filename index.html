@@ -393,6 +393,13 @@ body.busy button:not(.pending),body.busy .tile,body.busy .ob{opacity:.6;transiti
 .pending>*{visibility:hidden}
 .pending::after{content:"";position:absolute;left:50%;top:50%;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;border:3px solid rgba(0,0,0,.15);border-top-color:#ff7a1a;animation:spin .7s linear infinite;visibility:visible}
 .tile.pending,.trc.pending,.race.pending,.ob.pending{color:inherit!important}.tile.pending>*,.trc.pending>*,.race.pending>*,.ob.pending>*{visibility:visible;opacity:.4}
+
+/* equal cards: every grid stretches its cards, the action sits at the bottom */
+.hv,.tiles,.items,.once,.cats,.recs,.trio,.ftot{align-items:stretch}
+.crop,.tile,.item,.itm,.ob,.cat{height:100%}
+.crop .btn,.item .buy,.itm .buy,.tile .go{margin-top:auto}
+.crop .rw.sub{margin-top:-6px;min-height:1.3em;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.tile{display:flex;flex-direction:column}.cat{justify-content:flex-start}
 </style></head><body>
 <header class="hdr" id="hdr"><span id="hava" class="tapme"></span><div class="hn"><b id="hname">…</b><span id="httl"></span><span id="hbst"></span></div>
   <div class="hb"><span class="hs"><span class="flame dim" id="flame">🔥</span><b id="hst">0</b></span><span class="hm"><b id="uah">0</b> ₴</span><span class="hg"><b id="gem">0</b> 💎</span></div></header>
@@ -559,7 +566,7 @@ function preview(uah){if(!S||!S.me.norm)return;previewing=uah?1:0;ghostSet(uah||
 function ghostSet(add){const g=$('ghost'),p=Math.min(1,(S.me.done+add)/S.me.norm);g.style.width=(p*100)+'%';const on=add>0&&S.me.done<S.me.norm;
  if(on!==g.classList.contains('pulse')){g.classList.toggle('pulse',on);g.style.animationDelay=-(Date.now()%1600)+'ms'}}
 function leftMs(c){const at=c.ripe||c.due;return at?Math.max(0,at-(Date.now()+OFF)):0} // ripe: real growth end; due: the reminder (may be moved to the morning)
-function renderCrops(){$('hv').innerHTML=S.farm.crops.map(c=>`<div class="card crop" id="c_${c.id}"><div class="t">${c.icon} ${c.name}</div>${c.crop?`<div class="rw" style="margin-top:-6px">${c.crop}</div>`:''}
+function renderCrops(){$('hv').innerHTML=S.farm.crops.map(c=>`<div class="card crop" id="c_${c.id}"><div class="t">${c.icon} ${c.name}</div><div class="rw sub">${c.crop||'&nbsp;'}</div>
  <div class="mini"><svg viewBox="0 0 86 86"><circle class="tr" cx="43" cy="43" r="37"/><circle class="pr" cx="43" cy="43" r="37"/></svg><div class="ic">${c.icon.split(/(?=[\uD800-\uDBFF])/)[0]}</div></div>
  <div class="rw">+${fmt(c.uah)} ₴ · +${fmt(c.gem)} 💎</div><button class="btn"></button></div>`).join('');
  for(const c of S.farm.crops){const el=$('c_'+c.id),b=el.querySelector('button');b.onclick=()=>harvest(c,el.querySelector('.mini'));
