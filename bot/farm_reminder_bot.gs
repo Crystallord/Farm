@@ -3599,6 +3599,22 @@ function appTrade(st, user, a, q) {
   if (['send', 'ok', 'no'].indexOf(op) >= 0) { q.message = { text: '' }; onTrade(st, user, ['tr', op, t.id], q, noop, true); return; }
   q.out.push('?');
 }
+// 📊 the whole farm: everyone side by side (a bit of competition)
+function appFarmStats(st, now) {
+  const day = dayKey(now, st.cfg), wk = 'w:' + weekKey(day), mo = 'm:' + monthKey(now);
+  const pick = function (key, u) { const r = (st.stats[key] || {})[u]; return { n: r ? r.n : 0, uah: r ? money(r.g !== undefined ? r.g : r.uah) : 0 }; };
+  const days = []; for (let i = 13; i >= 0; i--) days.push(dayKey(now - i * 86400000, st.cfg));
+  const people = Object.keys(st.people).map(function (u) {
+    const p = st.people[u], tasks = Object.keys(st.gemLog || {}).reduce(function (a, d) { const n = ((st.gemLog[d] || {})[u] || {}).n || {}; return a + Object.keys(n).reduce(function (b, k) { return b + n[k]; }, 0); }, 0);
+    return { id: u, norm: p.norm || 0, today: pick('d:' + day, u), week: pick(wk, u), month: pick(mo, u), all: { n: harvestsRaw(st, u), uah: money(earnedRaw(st, u)) },
+      streak: streakOf(st, u, now), best: bestStreak(st, u), bestDay: bestDay(st, u), ach: Object.keys(st.ach[u] || {}).length, tasks7: tasks,
+      normDays: days.filter(function (d) { const r = (st.stats['d:' + d] || {})[u]; return r && p.norm && (r.g !== undefined ? r.g : r.uah) >= p.norm; }).length,
+      land: money((st.cfg.iplots || []).reduce(function (a, pl) { return a + (pl.shares[u] || 0); }, 0)),
+      days: days.map(function (d) { return pick('d:' + d, u).uah; }) };
+  });
+  const tot = function (k) { return people.reduce(function (a, p) { return { n: a.n + p[k].n, uah: money(a.uah + p[k].uah) }; }, { n: 0, uah: 0 }); };
+  return { days: days, people: people, farm: { today: tot('today'), week: tot('week'), month: tot('month'), all: tot('all'), bank: money(st.bank || 0), plots: (st.cfg.iplots || []).length } };
+}
 function appMe(st, id, now) { // 👤 stats, records, the family this week, the next achievements, the inventory
   const day = dayKey(now, st.cfg), wk = 'w:' + weekKey(day), mo = 'm:' + monthKey(now);
   const pick = function (key, u) { const r = (st.stats[key] || {})[u || id]; return { n: r ? r.n : 0, uah: r ? money(r.g !== undefined ? r.g : r.uah) : 0 }; };
@@ -3652,7 +3668,7 @@ function appState(st, id) {
     inv: { food: x.food, ice: x.ice, vac: x.vac.length, cash: money(x.cash), freeze: x.freeze, gifts: x.gift.length,
       coupons: Object.keys(x.coupons).filter(function (k) { return x.coupons[k] > 0 && shopItem(k); }).map(function (k) { const it = shopItem(k); return { id: k, icon: it.icon, label: it.label, n: x.coupons[k] }; }) },
     gemUah: st.cfg.gemUah,
-    farm: appFarm(st, id, now), tasks: appTasks(st, id), invest: appInvest(st, id), my: appMe(st, id, now), people: appPeople(st), looks: appLooks(st, id), trades: appTrades(st, id),
+    farm: appFarm(st, id, now), tasks: appTasks(st, id), invest: appInvest(st, id), my: appMe(st, id, now), people: appPeople(st), looks: appLooks(st, id), trades: appTrades(st, id), fstats: appFarmStats(st, now),
   };
 }
 
