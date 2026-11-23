@@ -3619,6 +3619,7 @@ function appApi(e) {
       }
       else if (body.action === 'look') appLook(st, id, a, q);
       else if (body.action === 'tr') appTrade(st, user, a, q);
+      else if (body.action === 'pet') appPet(st, user, String(a.data || 'pet:card'), q);
       else if (body.action === 'boost') buyBoost(st, user, String(a.key), q);
       else if (body.action === 'prize') claimPrize(st, id, String(a.id || 'all'), q);
       else if (body.action === 'excl') buyExcl(st, id, String(a.key), q);
@@ -3671,9 +3672,20 @@ function appHarvest(st, user, k, crop, q, now) {
     '\n\n📊 Сьогодні:\n' + earnedLines(st, today(st, now)));
   checkAch(st, String(user.id));
   const ask = petAfterHarvest(st, String(user.id), [k], normHit, now);
-  if (ask) sayTo(st, user.id, ask.text, ask.kb, null);
+  if (ask) q.view = { text: ask.text, kb: ask.kb }; // asked right in the app
   q.out.push('+' + reward + ' грн' + (gems + hgem + early ? ' · +' + money(gems + hgem + early) + ' 💎' : '') + (normHit ? ' · 🎯 норму виконано!' : ''));
-  q.res = { uah: reward, gems: money(gems + hgem + early), norm: normHit };
+  q.res = { uah: reward, gems: money(gems + hgem + early), norm: normHit, view: q.view ? appView(q.view) : null };
+}
+// 🐾 a bot screen for the app: text + the buttons it has (the app sends pet:* buttons back as action 'pet')
+function appView(v) {
+  return { text: v.text, buttons: v.kb && v.kb.inline_keyboard ? v.kb.inline_keyboard.map(function (row) { return row.map(function (bt) { return { label: bt.text, data: bt.callback_data }; }); }) : [] };
+}
+function appPet(st, user, data, q) {
+  const parts = String(data).split(':');
+  if (parts[0] !== 'pet') { q.out.push('?'); return; }
+  let view = null;
+  onPetButton(st, user, parts, q, function (text, kb) { view = { text: text, kb: kb }; }, true);
+  if (view) q.res = { view: appView(view) };
 }
 function appFarm(st, id, now) {
   const g = st.cfg.harvestGem || 0, p = st.people[id], day = dayKey(now, st.cfg), week = [];
@@ -3884,9 +3896,11 @@ function appState(st, id) {
       gems: x.gems, balance: money(st.balance[id] || 0), streak: n, done: money(doneToday(st, id, now)), norm: p.norm || 0,
       invest: money(myShares(st, id).reduce(function (a, pl) { return a + offerDaily(st, pl) * shareOf(pl, id); }, 0) * 30),
       wallet: money((st.invWallet || {})[id] || 0) },
+    petStage: pet ? pet.stage || 'ok' : 'none',
     pet: ok ? { kind: pet.kind, icon: PET_KINDS[pet.kind].icon, name: pet.name, female: !!pet.female, level: petLevel(pet), xp: pet.xp,
       xpFrom: PET_XP[petLevel(pet) - 1] || 0, xpTo: PET_XP[petLevel(pet)] || null, fed: Math.round(pet.fed), min: P.min, help: petPct(st, pet),
-      trainedToday: pet.trainDay === dayKey(now, st.cfg), finds: pet.finds || 0, found: money(pet.found || 0),
+      trainedToday: pet.trainDay === dayKey(now, st.cfg), finds: pet.finds || 0, found: money(pet.found || 0), food: x.food, feedPct: P.feed,
+      find: pet.find ? money(pet.find.uah) : 0, ask: !!((st.petAsk || {})[id] && now - st.petAsk[id].at < 6 * 3600000), miss: !!pet.miss, face: petFace(pet),
       slots: PET_SLOTS.map(function (s) { return { id: s.id, title: s.title, lvl: s.lvl, open: petLevel(pet) >= s.lvl, wear: (pet.wear || {})[s.id] || null,
         items: s.items.map(function (it) { return { id: it[0], icon: it[1], label: it[2], own: ((pet.own || {})[s.id] || []).indexOf(it[0]) >= 0 }; }) }; }),
       cloth: priceOf(st, { price: P.cloth }) } : null,
@@ -4180,6 +4194,7 @@ function onButton(q) {
     postPetNews(st); toast(q, '📣 Надіслано'); edit('📣 Анонс надіслано в сімейний чат ✅'); return;
   }
   if (action === 'icebought') { toast(q, '😋'); edit(old + '\n✅ Куплено ' + hhmm(now)); if (st.group) sayK(st, 'ice', '🍦 ' + esc(nameOf(st, parts[1])) + ', морозиво вже чекає! 😋'); return; }
+  if (action === 'pet') { onPetButton(st, user, parts, q, edit, eph); saveState(st); return; } // the pet works in the private chat too
   if (String(chat) !== String(st.group)) { toast(q, 'Цей чат не прив\'язаний'); return; }
   if (/^g[wvjpx]$/.test(action)) { onGoalButton(st, user, parts, q, edit, eph); saveState(st); return; }
   const p = person(st, user);
