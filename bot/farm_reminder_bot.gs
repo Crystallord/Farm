@@ -291,6 +291,14 @@ function loadState() {
     st.cfg.norm = 40; st.cfg.normUah = true;
   }
   if (!st.cfg.daruAll) { st.cfg.chars.forEach(function (c) { c.daru = true; }); st.cfg.daruAll = true; } // 17.11: everyone has Daru
+  if (!st.fixBeds1123 && st.timers) { // 23.11: the seedbeds were switched to another crop while a Cactus timer ran
+    st.fixBeds1123 = true;
+    const g = (st.grown || {}).beds, cyc = KINDS.beds.cycle(st.cfg);
+    if (g && g - Date.now() > cyc * 60000 + 60000) {
+      const ripe = g - 120 * 60000 + cyc * 60000; st.grown.beds = ripe; st.grownMin = st.grownMin || {}; st.grownMin.beds = cyc;
+      if (st.timers.beds && !(st.open || {}).beds) { try { startTimerAt(st, 'beds', nextActive(Math.max(Date.now() + 60000, ripe), st.cfg)); } catch (e) { console.error(e); } }
+    }
+  }
   if (!st.fixDishes1123) { // 23.11: Maria used the dishes coupon before the "norm first" rule: give it back
     st.fixDishes1123 = true;
     Object.keys(st.people || {}).filter(function (u) { return String(u) !== String(st.owner) && /^Мар/.test(st.people[u].name || ''); }).forEach(function (u) {
@@ -881,7 +889,7 @@ function credit(st, user, kind, uahAmount, now) {
   }
   const cnt = st.count[day] = st.count[day] || {};
   if (harvest) cnt[kind] = (cnt[kind] || 0) + 1;
-  if (harvest) { st.grown = st.grown || {}; st.grown[kind] = now + KINDS[kind].cycle(st.cfg) * 60000; } // when it is really ripe (the reminder may wait for the morning)
+  if (harvest) { st.grown = st.grown || {}; st.grown[kind] = now + KINDS[kind].cycle(st.cfg) * 60000; st.grownMin = st.grownMin || {}; st.grownMin[kind] = KINDS[kind].cycle(st.cfg); } // when it is really ripe (the reminder may wait for the morning)
   Object.keys(st.count).sort().slice(0, -3).forEach(function (k) { delete st.count[k]; });
   const gross = uahAmount, counts = harvest || kind === 'pet'; // counts for the norm
   if (harvest) { const cut = goalsTake(st, String(user.id), uahAmount); uahAmount = money(uahAmount - cut); st._cut = money((st._cut || 0) + cut); }
@@ -3503,11 +3511,11 @@ function applySetting(st, parts) {
   if (what === 'page') return PAGES[parts[2]] ? parts[2] : 'main';
   if (applyPetSetting(st, parts)) return 'pets';
   if (what === 'bedCrop' && CROPS[parts[2]]) { // a running seedbed timer is moved to the new crop's time (from the last harvest)
-    const oldMin = KINDS.beds.cycle(c); c.bedCrop = parts[2]; const newMin = KINDS.beds.cycle(c);
+    const oldMin = (st.grownMin || {}).beds || KINDS.beds.cycle(c); c.bedCrop = parts[2]; const newMin = KINDS.beds.cycle(c);
     const g = (st.grown || {}).beds, t = st.timers.beds;
     if (g && g > Date.now() - newMin * 60000 && oldMin !== newMin) {
       const start = g - oldMin * 60000, ripe = start + newMin * 60000;
-      st.grown.beds = ripe;
+      st.grown.beds = ripe; st.grownMin = st.grownMin || {}; st.grownMin.beds = newMin;
       if (t && !(st.open || {}).beds) startTimerAt(st, 'beds', nextActive(Math.max(Date.now() + 60000, ripe), c));
     }
     return 'main';

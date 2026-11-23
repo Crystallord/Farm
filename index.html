@@ -566,7 +566,7 @@ function renderCrops(){$('hv').innerHTML=S.farm.crops.map(c=>`<div class="card c
   b.onpointerenter=()=>preview(c.uah);b.onpointerleave=()=>preview();b.ontouchstart=()=>preview(c.uah)}
  tickCrops()}
 function tickCrops(){if(!S)return;for(const c of S.farm.crops){const el=$('c_'+c.id);if(!el)continue;const pr=el.querySelector('.pr'),b=el.querySelector('button'),cc=2*Math.PI*37,l=leftMs(c);
- const night=l>c.cycle*60000+60000; // the bot moved the reminder to the morning: nothing is growing that long
+ const night=false; // the countdown always shows real ripening (ripe); the reminder time does not matter here
  pr.style.strokeDasharray=cc;pr.style.strokeDashoffset=night?0:cc*Math.min(1,l/(c.cycle*60000));
  if(!l!==el.classList.contains('ready')){el.classList.toggle('ready',!l);b.style.animationDelay=-(Date.now()%1600)+'ms'}const s=Math.ceil(l/1000);
  if(night){const d=new Date(c.due-OFF);b.textContent='🌙 нагадаю о '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');continue}
