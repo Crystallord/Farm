@@ -369,7 +369,7 @@ body{padding-bottom:96px}
   <button class="newtr" id="trnew">➕ Нова угода</button>
   <div class="sect"><b>🎒 Мої речі</b><small id="icount"></small></div>
   <div class="tiles" id="mitems"></div>
-  <div class="card gx" id="gx"></div>
+  <div id="gx" style="display:none"></div>
   <div class="sect"><b>📊 Останні 7 днів</b><small id="wtot"></small></div>
   <div class="card chart" id="chart"></div>
   <div class="sect"><b>👨‍👩‍👧 Родина цього тижня</b><small><a href="#" id="fsbtn" class="lnk">Уся статистика ›</a></small></div>
@@ -648,8 +648,9 @@ function renderTrades(){const T=S.trades||[];$('trn').textContent=T.length?T.len
   <span class="st ${x.mine?'my':''}">${!x.sent?'чернетка':x.mine?(x.theyAgreed?'прийми!':'твоя черга'):'чекаємо'}</span></div>`).join('');
  $('trades').querySelectorAll('.trc').forEach(el=>el.onclick=()=>tradeSheet(el.dataset.t));
  $('trnew').onclick=()=>{const others=(S.people||[]).filter(p=>p.id!==String(S.me.id));
-  sheet(`<h3>🔁 Нова угода</h3><p>З ким міняємось?</p><div class="pick">${others.map(p=>`<button data-u="${p.id}">${ava(p.look,52)}${p.name}</button>`).join('')}</div><button class="ghostb" onclick="unsheet()">Закрити</button>`);
-  $('sheet').querySelectorAll('.pick button').forEach(b=>b.onclick=async()=>{const r=await act('tr',{op:'new',to:b.dataset.u});if(r&&r.res)tradeSheet(r.res.tid)})}}
+  sheet(`<h3>🔁 Нова угода</h3><p>З ким міняємось?</p><div class="pick"><button id="trbank"><span class="ava bg-gold" style="--s:52px"><i>🏦</i></span>Бот<small style="color:var(--mute);font-size:11px">💎 → ₴</small></button>${others.map(p=>`<button data-u="${p.id}">${ava(p.look,52)}${p.name}</button>`).join('')}</div><button class="ghostb" onclick="unsheet()">Закрити</button>`);
+  $('trbank').onclick=bankSheet;
+  $('sheet').querySelectorAll('.pick button[data-u]').forEach(b=>b.onclick=async()=>{const r=await act('tr',{op:'new',to:b.dataset.u});if(r&&r.res)tradeSheet(r.res.tid)})}}
 function tradeSheet(tid){const x=(S.trades||[]).find(t=>t.id===tid);if(!x){unsheet();return}const me=S.me.id,o=x.other,can=x.mine;
  const side=(items,w,have)=>items.map(i=>{const h=(have.find(k=>k.key===i.key)||{}).n,st=(have.find(k=>k.key===i.key)||{}).step||1;
   return `<div class="ti2"><span class="nm">${i.icon} ${i.label}</span>${can?`<button data-w="${w}" data-k="${i.key}" data-n="${Math.max(0,+(i.n-st).toFixed(2))}">−</button>`:''}<span class="val">${i.pct!=null?i.pct+'%':fmt(i.n)+(i.unit==='шт'?'':' '+(i.unit==='грн'?'₴':i.unit))}</span>${can?`<button data-w="${w}" data-k="${i.key}" data-n="${Math.min(h||i.n,+(i.n+st).toFixed(2))}">+</button>`:''}</div>`}).join('')||'<div class="ti2"><span class="nm" style="color:var(--mute)">нічого</span></div>';
@@ -669,6 +670,13 @@ function tradeSheet(tid){const x=(S.trades||[]).find(t=>t.id===tid);if(!x){unshe
  if($('trsend'))$('trsend').onclick=async()=>{hap('heavy');const r=await act('tr',{op:'send',tid});if(r&&r.ok)unsheet()};
  if($('trok'))$('trok').onclick=async()=>{hap('heavy');const r=await act('tr',{op:'ok',tid});if(r&&r.ok){unsheet();confetti()}};
  $('trno').onclick=async()=>{if(!(await confirmTG(x.sent?'Відмовитись від угоди?':'Видалити чернетку?')))return;const r=await act('tr',{op:'no',tid});if(r&&r.ok)unsheet()}}
+function bankSheet(){const g=S.me.gems,r=S.my.gemUah,me=S.me.id;
+ sheet(`<div class="vs">${ava(P(me).look,52)}<span class="x">⇄</span><span class="ava bg-gold" style="--s:52px"><i>🏦</i></span></div><h3 style="text-align:center">Обмін із ботом</h3>
+ <p style="text-align:center">1 💎 = ${fmt(r)} ₴ · у тебе ${fmt(g)} 💎</p>
+ <div class="chips">${[10,20,50].map(v=>`<button data-n="${v}" ${g<v?'disabled':''}>${v} 💎<br>→ ${fmt(v*r)} ₴</button>`).join('')}<button data-n="all" ${g<1?'disabled':''}>Усі ${fmt(Math.floor(g))} 💎<br>→ ${fmt(Math.floor(g)*r)} ₴</button></div>
+ <button class="ghostb" onclick="unsheet()">Закрити</button>`);
+ $('sheet').querySelectorAll('.chips button').forEach(b=>b.onclick=async()=>{const k=b.dataset.n==='all'?Math.floor(S.me.gems):+b.dataset.n;
+  if(!(await confirmTG(`Обміняти ${k} 💎 на ${fmt(k*r)} ₴?`)))return;hap('heavy');fly(b,$('uah'),'₴',5);const res=await act('gemx',{n:String(b.dataset.n)});if(res&&res.ok)bankSheet()})}
 // ===================== 🎨 style studio
 let stab='av';
 function styleSheet(){const L=S.looks,mp=P(S.me.id),cur=mp.look,tabs=[['av','Аватар'],['bg','Фон'],['fr','Рамка'],['ti','Титул']];
@@ -696,8 +704,10 @@ function fullStats(){const F=S.fstats;if(!F)return;const pp=F.people,per=fsPer,m
  <div class="mc">${[['uah','💰 Заробіток'],['n','🚜 Збори']].map(([k,l])=>`<button data-m="${k}" class="${k===met?'on':''}">${l}</button>`).join('')}</div>
  <div class="pod">${pods}</div>
  <div class="lb">${rank.map((p,i)=>`<div class="fr ${p.id===String(S.me.id)?'me':''}"><span class="rk">${['🥇','🥈','🥉'][i]||i+1}</span><span class="nm">${who(p.id,28)}</span><span class="fb"><i style="width:${val(p)/mx*100}%"></i></span><span class="fv">${fmt(Math.round(val(p)))}${u}</span></div>`).join('')}</div>
- <div class="sect" style="margin:14px 2px 0"><b>🏆 Хто в чому найкращий</b></div>
- <div class="cats">${best(p=>p.streak,'🔥 Стрік зараз',v=>v+' дн.')}${best(p=>p.best,'🏅 Рекорд стріку',v=>v+' дн.')}${best(p=>p.normDays,'🎯 Норм за 14 днів',v=>v)}${best(p=>p.bestDay,'⚡ Зборів за день',v=>v)}
+ <div class="sect" style="margin:14px 2px 0"><b>🏆 Хто в чому найкращий</b><small>${{today:'сьогодні',week:'цього тижня',month:'цього місяця',all:'за весь час'}[per]}</small></div>
+ <div class="cats">${per!=='all'&&per!=='month'||true?'':''}${best(p=>p.fun[per].gin,'💎 Заробили кристалів',v=>fmt(v))}${best(p=>p.fun[per].gout,'🛍️ Витратили кристалів',v=>fmt(v))}
+  ${best(p=>p.fun[per].looks,'🎨 Куплено стилю',v=>v)}${best(p=>p.fun[per].xp,'🐾 Досвід улюбленця',v=>'+'+v)}${best(p=>p.fun[per].inv,'💼 Вкладено в землю',v=>fmt(v)+' ₴')}${per==='today'?best(p=>p.normPct,'🎯 Норма сьогодні',v=>v+'%'):''}
+  ${best(p=>p.streak,'🔥 Стрік зараз',v=>v+' дн.')}${best(p=>p.best,'🏅 Рекорд стріку',v=>v+' дн.')}${best(p=>p.normDays,'🎯 Норм за 14 днів',v=>v)}${best(p=>p.bestDay,'⚡ Зборів за день',v=>v)}
   ${best(p=>p.tasks7,'📋 Завдань за 7 днів',v=>v)}${best(p=>p.ach,'🏅 Досягнень',v=>v)}${best(p=>p.land,'🏡 Найбільший землевласник',v=>fmt(Math.round(v))+' ₴')}${best(p=>p.all.n,'🚜 Зборів за весь час',v=>fmt(v))}</div>
  <div class="sect" style="margin:6px 2px 6px"><b>📈 Останні 14 днів</b></div>
  <div class="gch">${F.days.map((d,k)=>{const m=Math.max(1,...pp.flatMap(p=>p.days));return `<div class="gd">${pp.map((p,j)=>`<i style="height:${p.days[k]/m*100}%;background:${PCOL[j%6]}"></i>`).join('')}${k%2?'':`<small>${+d.slice(8)}</small>`}</div>`}).join('')}</div>

@@ -309,7 +309,27 @@ function loadState() {
   }
   return st;
 }
+// 📒 what changed today per person, for the stats and the daily contests: crystals in / out, pet XP, money put into
+// fundraisings. Taken as the difference since the last save, so every way of earning or spending counts by itself.
+function dayTrack(st) {
+  if (!st.people) return;
+  const day = dayKey(Date.now(), st.cfg || DEFAULTS), snap = st.trackSnap = st.trackSnap || {}, log = st.dayLog = st.dayLog || {};
+  Object.keys(st.people).forEach(function (u) {
+    const x = (st.inv || {})[u], pet = (st.pets || {})[u];
+    const now = { g: x ? +x.gems || 0 : 0, xp: pet && pet.xp || 0, iv: (st.offers || []).reduce(function (a, o) { return a + (o.pledges[u] || 0); }, 0) };
+    const was = snap[u];
+    if (was) {
+      const r = (log[day] = log[day] || {})[u] = log[day][u] || { gin: 0, gout: 0, xp: 0, inv: 0 };
+      const dg = money(now.g - was.g); if (dg > 0) r.gin = money(r.gin + dg); else if (dg < 0) r.gout = money(r.gout - dg);
+      if (now.xp > was.xp) r.xp += now.xp - was.xp;
+      if (now.iv > was.iv + 0.004) r.inv = money(r.inv + now.iv - was.iv);
+    }
+    snap[u] = now;
+  });
+  Object.keys(log).sort().slice(0, -35).forEach(function (k) { delete log[k]; });
+}
 function saveState(st) {
+  dayTrack(st);
   const s = JSON.stringify(st), CH = 2500, out = {}; // 2500 chars ≤ 9 KB even if every char takes 3 bytes
   let n = 0; for (let i = 0; i < s.length; i += CH) out['STATE_' + n++] = s.slice(i, i + CH);
   out.STATE_N = String(n);
@@ -3610,6 +3630,16 @@ function appFarmStats(st, now) {
       streak: streakOf(st, u, now), best: bestStreak(st, u), bestDay: bestDay(st, u), ach: Object.keys(st.ach[u] || {}).length, tasks7: tasks,
       normDays: days.filter(function (d) { const r = (st.stats['d:' + d] || {})[u]; return r && p.norm && (r.g !== undefined ? r.g : r.uah) >= p.norm; }).length,
       land: money((st.cfg.iplots || []).reduce(function (a, pl) { return a + (pl.shares[u] || 0); }, 0)),
+      fun: (function () { // the kid-friendly numbers: crystals earned / spent, style items, pet XP, money invested
+        const sum = function (from, k) { return money(Object.keys(st.dayLog || {}).filter(function (d) { return d >= from; }).reduce(function (a, d) { return a + (((st.dayLog[d] || {})[u] || {})[k] || 0); }, 0)); };
+        const own = (st.lookOwn || {})[u] || {}, looks = function (from) { return Object.keys(own).filter(function (k) { return own[k] >= from; }).length; };
+        const w = weekKey(day), m = monthKey(now) + '-01';
+        return { today: { gin: sum(day, 'gin'), gout: sum(day, 'gout'), xp: sum(day, 'xp'), inv: sum(day, 'inv'), looks: looks(day) },
+          week: { gin: sum(w, 'gin'), gout: sum(w, 'gout'), xp: sum(w, 'xp'), inv: sum(w, 'inv'), looks: looks(w) },
+          month: { gin: sum(m, 'gin'), gout: sum(m, 'gout'), xp: sum(m, 'xp'), inv: sum(m, 'inv'), looks: looks(m) },
+          all: { gin: sum('', 'gin'), gout: sum('', 'gout'), xp: sum('', 'xp'), inv: sum('', 'inv'), looks: Object.keys(own).length } };
+      })(),
+      normPct: p.norm ? Math.round(pick('d:' + day, u).uah / p.norm * 100) : 0,
       days: days.map(function (d) { return pick('d:' + d, u).uah; }) };
   });
   const tot = function (k) { return people.reduce(function (a, p) { return { n: a.n + p[k].n, uah: money(a.uah + p[k].uah) }; }, { n: 0, uah: 0 }); };
