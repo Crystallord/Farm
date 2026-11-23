@@ -291,6 +291,13 @@ function loadState() {
     st.cfg.norm = 40; st.cfg.normUah = true;
   }
   if (!st.cfg.daruAll) { st.cfg.chars.forEach(function (c) { c.daru = true; }); st.cfg.daruAll = true; } // 17.11: everyone has Daru
+  if (!st.fixDishes1123) { // 23.11: Maria used the dishes coupon before the "norm first" rule: give it back
+    st.fixDishes1123 = true;
+    Object.keys(st.people || {}).filter(function (u) { return String(u) !== String(st.owner) && /^Мар/.test(st.people[u].name || ''); }).forEach(function (u) {
+      const cd = (st.choreDay || {})[u];
+      if (cd && cd.item === 'dishes' && cd.day === '2026-11-23') { delete st.choreDay[u]; const x = inv(st, u); x.coupons.dishes = (x.coupons.dishes || 0) + 1; }
+    });
+  }
   if (!st.petEco2) { Object.assign(st.cfg.pet, { food: 1, feed: 25, pack: 10, packN: 12, decay: 5, tickH: 6, run: 5 }); st.petEco2 = true; } // 21.11: cheaper food, slower hunger
   if (!st.petFix10) { // pets named before "found hungry" (17.11): never fed yet -> they come out of the bushes hungry too
     Object.keys(st.pets).forEach(function (id) { const pet = st.pets[id]; if (pet.stage === 'ok' && !pet.meals) { pet.fed = Math.min(pet.fed, 10); pet.fedAt = Date.now(); } });
