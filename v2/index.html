@@ -183,6 +183,7 @@ body{padding-bottom:96px}
 .tile .pie{position:absolute;right:10px;top:10px;width:38px;height:38px;border-radius:50%}
 .tile .pie span{position:absolute;inset:6px;border-radius:50%;background:#fff;display:grid;place-items:center;font-size:10px;font-weight:900}
 .tile .mo{font-size:22px;font-weight:900;color:#1d8a45;margin-top:4px;font-variant-numeric:tabular-nums}.tile .mo small{font-size:12px;color:var(--mute)}
+.stk{display:flex}.stk .ava{margin-right:-6px;box-shadow:0 0 0 2px #fff;border-radius:50%}
 .tile .dd{font-size:12px;font-weight:800;color:var(--mute)}
 .tile.raise .mo{color:#b35a00}
 .pbar{height:9px;border-radius:5px;background:#f3e9dc;overflow:hidden}.pbar i{display:block;height:100%;background:linear-gradient(90deg,#ffcf3a,#ff6a2b);border-radius:5px}
@@ -244,11 +245,54 @@ body{padding-bottom:96px}
 .sheet .kv{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}.sheet .kv div{background:#fff;border-radius:14px;padding:10px}
 .sheet .kv b{display:block;font-size:17px;font-weight:900}.sheet .kv small{font-size:11.5px;color:var(--mute);font-weight:800}
 .sheet .big{width:100%;margin-top:10px}.sheet .ghostb{width:100%;margin-top:10px;border:0;background:none;font:900 14px Nunito,sans-serif;color:var(--mute);padding:8px;cursor:pointer}
+
+/* avatars */
+.ava{--s:40px;position:relative;width:var(--s);height:var(--s);border-radius:50%;display:inline-grid;place-items:center;flex:none;vertical-align:middle}
+.ava::before{content:"";position:absolute;inset:0;border-radius:50%;background:var(--bgc,#f6e3c6);z-index:1}
+.ava i{font-style:normal;font-size:calc(var(--s)*.56);line-height:1;position:relative;z-index:2}
+.ava::after{content:"";position:absolute;inset:calc(var(--s)*-.09);border-radius:50%;z-index:0;background:var(--frc,transparent)}
+.bg-sand{--bgc:#f6e3c6}.bg-sky{--bgc:#cfe8ff}.bg-mint{--bgc:#c8f2dc}.bg-peach{--bgc:#ffd6bf}.bg-lavender{--bgc:#e3d6ff}.bg-rose{--bgc:#ffd0de}
+.bg-ocean{--bgc:linear-gradient(135deg,#7fd3ff,#2f7bd8)}.bg-sunset{--bgc:linear-gradient(135deg,#ffc16b,#ff5d8f)}
+.bg-galaxy{--bgc:radial-gradient(circle at 30% 30%,#9b7bff,#2a1a6a 60%,#120b33)}.bg-gold{--bgc:linear-gradient(135deg,#fff0a8,#ffb020)}
+.fr-silver{--frc:linear-gradient(135deg,#f4f6fa,#9aa3b5,#eef1f6)}.fr-gold{--frc:linear-gradient(135deg,#fff3b0,#e0a100,#fff3b0)}
+.fr-rainbow{--frc:conic-gradient(#ff5d5d,#ffb020,#ffe14a,#4ad66d,#3cb4ff,#7b5cff,#ff5d8f,#ff5d5d)}.fr-rainbow::after{animation:spin 3s linear infinite}
+.fr-fire{--frc:conic-gradient(#ff3b1f,#ffb020,#ff6a2b,#ffe14a,#ff3b1f)}.fr-fire::after{animation:spin 1.6s linear infinite;filter:blur(1px)}.fr-fire{filter:drop-shadow(0 0 6px rgba(255,100,30,.6))}
+.fr-stars{--frc:conic-gradient(#fff,#ffe58a,#7b5cff,#fff,#ffe58a,#3cb4ff,#fff)}.fr-stars::after{animation:spin 4s linear infinite}.fr-stars{filter:drop-shadow(0 0 7px rgba(255,230,120,.8))}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ttl{display:inline-block;font-size:10.5px;font-weight:900;padding:2px 8px;border-radius:9px;background:linear-gradient(90deg,#ffe58a,#ffb020);color:#6a3a00;margin-left:2px;vertical-align:middle}
+.who{display:inline-flex;align-items:center;gap:7px;font-weight:900}
+.top .streak{gap:12px}.top .sk b#tname{font-size:16px}.sline{font-weight:800;font-size:13px;color:var(--ink)}.sline b{font-size:15px}.top .flame{font-size:16px}
+.tapme{cursor:pointer}
+.pro{display:flex;align-items:center;gap:14px}.pro b{font-size:21px}
+.style{border:0;border-radius:14px;padding:10px;font:900 14px Nunito,sans-serif;color:#fff;background:linear-gradient(90deg,#ff8ac0,#9d85ff);box-shadow:0 3px 0 #7a5fe0;cursor:pointer}
+.newtr{border:2px dashed #e6d3b8;background:none;border-radius:16px;padding:11px;font:900 14px Nunito,sans-serif;color:#b35a00;cursor:pointer}
+.trc{display:flex;align-items:center;gap:12px;padding:12px;cursor:pointer}.trc .tx{flex:1;min-width:0}.trc b{font-weight:900}.trc small{display:block;color:var(--mute);font-weight:800;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.st{font-size:11.5px;font-weight:900;padding:4px 9px;border-radius:10px;background:#f3e9dc;color:var(--mute);white-space:nowrap}.st.my{background:#ffece4;color:#e2552b}
+.ach .cb{border:0;border-radius:12px;padding:9px 11px;font:900 13px Nunito,sans-serif;color:#fff;background:linear-gradient(#ffb020,#ff7a1a);box-shadow:0 3px 0 #d9620a;cursor:pointer;white-space:nowrap;animation:breathe2 1.6s infinite}
+.ach .got{color:#b35a00!important}.ach .got b{font-size:12px}
+.ach.cl{background:linear-gradient(135deg,#fffaf0,#fff1cc)}.ach .lv{font-size:10.5px;color:var(--mute);font-weight:900}
+.ach .rt{text-align:right}.ach .rt small{display:block;font-size:10.5px;color:var(--mute);font-weight:800;margin-top:2px}
+@keyframes breathe2{50%{box-shadow:0 3px 0 #d9620a,0 0 0 7px rgba(255,176,32,.3)}}
+.own{display:flex;align-items:center;gap:10px;padding:7px 0}.own+.own{border-top:1px solid #f3e9dc}.own .nm{flex:1;font-weight:900}.own .pc{font-weight:900;color:#1d8a45}
+.sides{display:grid;grid-template-columns:1fr;gap:10px;margin:8px 0}
+.sidec{background:#fff;border-radius:16px;padding:10px 12px}.sidec h5{margin:0 0 6px;font-size:13px;font-weight:900;display:flex;align-items:center;gap:8px}
+.ti2{display:flex;align-items:center;gap:8px;padding:6px 0}.ti2+.ti2{border-top:1px solid #f6efe5}.ti2 .nm{flex:1;font-weight:800;font-size:13.5px}
+.ti2 .val{font-weight:900;min-width:64px;text-align:center;font-variant-numeric:tabular-nums}
+.ti2 button,.add{border:0;border-radius:10px;min-width:34px;height:32px;font:900 13px Nunito,sans-serif;background:#f3e9dc;color:var(--ink);cursor:pointer}
+.add{width:100%;margin-top:6px;background:none;border:2px dashed #e6d3b8;color:#b35a00}
+.vs{display:flex;align-items:center;justify-content:center;gap:12px;margin:4px 0 2px}.vs .x{font-size:22px}
+.pick{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:10px 0}.pick button{border:0;background:#fff;border-radius:16px;padding:12px 6px;display:flex;flex-direction:column;align-items:center;gap:6px;font:900 13px Nunito,sans-serif;cursor:pointer}
+.stabs{display:flex;gap:6px;margin:10px 0}.stabs button{flex:1;border:0;border-radius:12px;padding:8px 4px;font:900 13px Nunito,sans-serif;background:#f3e9dc;color:var(--mute);cursor:pointer}.stabs button.on{background:#fff;color:var(--ink);box-shadow:0 2px 6px rgba(0,0,0,.08)}
+.sgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;max-height:46vh;overflow:auto;padding:4px}
+.sgrid button{border:0;background:#fff;border-radius:16px;padding:10px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:5px;font:900 11.5px Nunito,sans-serif;color:var(--ink);cursor:pointer;position:relative}
+.sgrid button.on{box-shadow:0 0 0 3px #9d85ff}.sgrid .pr{color:#5b3fd6}.sgrid .ok{color:#1d8a45}.sgrid .lk{opacity:.55}
+.sgrid.ti{grid-template-columns:1fr 1fr}
+.prev{display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:4px}
 </style></head><body>
 <div class="wrap view on" id="v_farm">
   <div class="card top">
-    <div class="streak"><div class="flame dim" id="flame">🔥</div>
-      <div class="sk"><b><span id="sd">0</span> <span id="sdw">днів</span> поспіль</b><small id="sw" class="warn"></small></div>
+    <div class="streak"><span id="tava" class="tapme"></span>
+      <div class="sk"><b id="tname">…</b><div class="sline"><span class="flame dim" id="flame">🔥</span> <b><span id="sd">0</span> <span id="sdw">днів</span></b> поспіль</div><small id="sw" class="warn"></small></div>
       <div class="bals"><div class="bv2"><span id="uah">0</span> ₴</div><div class="bv2 g"><span id="gem">0</span> 💎</div></div></div>
     <div class="days" id="days"></div>
   </div>
@@ -289,8 +333,11 @@ body{padding-bottom:96px}
   <div class="demo dm"></div>
 </div>
 <div class="wrap view" id="v_me">
-  <div class="card mehd"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><b id="mname">Я</b><small id="machs"></small></div><div class="bals"><div class="bv2"><span id="muah">0</span> ₴</div><div class="bv2 g" id="mgemw"><span id="mgem">0</span> 💎</div></div></div><div class="trio" id="trio"></div></div>
-  <div class="card claimc" id="claim" style="display:none"></div>
+  <div class="card mehd"><div class="pro"><span id="mava"></span><div><b id="mname">Я</b><div id="mtitle"></div><small id="machs"></small></div></div>
+    <button class="style" id="stylebtn">🎨 Мій стиль</button><div class="trio" id="trio"></div></div>
+  <div class="sect"><b>🔁 Торгівля</b><small id="trn"></small></div>
+  <div id="trades" style="display:flex;flex-direction:column;gap:10px"></div>
+  <button class="newtr" id="trnew">➕ Нова угода</button>
   <div class="sect"><b>🎒 Мої речі</b><small id="icount"></small></div>
   <div class="tiles" id="mitems"></div>
   <div class="card gx" id="gx"></div>
@@ -298,7 +345,7 @@ body{padding-bottom:96px}
   <div class="card chart" id="chart"></div>
   <div class="sect"><b>👨‍👩‍👧 Родина цього тижня</b></div>
   <div class="card" id="fam"></div>
-  <div class="sect"><b>🏅 Наступні досягнення</b><small id="achn"></small></div>
+  <div class="sect"><b>🏅 Досягнення</b><small id="achn"></small></div>
   <div id="achs" style="display:flex;flex-direction:column;gap:10px"></div>
   <button class="more" id="achmore">Показати всі</button>
   <div class="sect"><b>🏆 Рекорди</b></div>
@@ -323,6 +370,9 @@ const $=id=>document.getElementById(id), R=95, C=2*Math.PI*R;
 const fmt=v=>(+v).toLocaleString('uk-UA',{minimumFractionDigits:(+v)%1?2:0,maximumFractionDigits:2});
 const plural=(n,f)=>{n=Math.abs(n)%100;const b=n%10;return n>10&&n<20?f[2]:b===1?f[0]:b>=2&&b<=4?f[1]:f[2]};
 let S=null, OFF=0, busy=false, game='ar';
+const P=id=>(S&&S.people||[]).find(p=>p.id===String(id))||{id,name:'?',look:{av:'🙂',bg:'sand',fr:'none',ti:''}};
+const ava=(look,s)=>`<span class="ava bg-${look.bg} fr-${look.fr}" style="--s:${s||40}px"><i>${look.av}</i></span>`;
+const who=(id,s,title)=>{const p=P(id);return `<span class="who">${ava(p.look,s)}<span>${p.name}${title&&p.look.ti?` <span class="ttl">${p.look.ti}</span>`:''}</span></span>`};
 document.querySelectorAll('.dm').forEach(e=>e.textContent=DEMO?'демо-режим (відкрито не з Telegram)':'');
 // ===================== server
 async function call(action,args){
@@ -363,7 +413,8 @@ function confirmTG(text){return new Promise(res=>{try{TG.showConfirm(text,ok=>re
 // ===================== render: farm
 const WD=['Нд','Пн','Вт','Ср','Чт','Пт','Сб'];
 function render(){if(!S)return;renderTop();renderRing();renderCrops();renderOnce();renderTasks();renderShop();if(S.invest)renderInvest();renderMe();renderClaim();renderAppr()}
-function renderTop(){const me=S.me,w=S.farm.week,done=w[w.length-1].ok;
+function renderTop(){const me=S.me,w=S.farm.week,done=w[w.length-1].ok,mp=P(me.id);
+ $('tava').innerHTML=ava(mp.look,50);$('tname').innerHTML=me.name+(mp.look.ti?` <span class="ttl">${mp.look.ti}</span>`:'');$('tava').onclick=styleSheet;
  $('sd').textContent=me.streak;$('sdw').textContent=plural(me.streak,['день','дні','днів']);
  $('flame').classList.toggle('dim',!done);
  $('days').innerHTML=w.map((d,i)=>`<div class="d ${d.ok?'on':''} ${i===w.length-1?'today':''}"><i></i>${i===w.length-1?'Сьог.':WD[new Date(d.day+'T12:00:00').getDay()]}</div>`).join('');
@@ -464,7 +515,7 @@ function renderInvest(){const I=S.invest,mine=I.plots.filter(p=>p.share>0);
  $('icnt').textContent=mine.length?mine.length+' '+plural(mine.length,['ділянка','ділянки','ділянок']):'';
  $('tiles').innerHTML=mine.length?mine.map(p=>{const pc=Math.round(p.share*100);return `<div class="card tile">
   <div class="pie" style="background:conic-gradient(#2fb45c ${pc*3.6}deg,#e7f6ec 0)"><span>${pc}%</span></div>
-  <div class="tn">🏡 ${p.name}</div><div class="tt">${p.type}</div>
+  <div class="tn">🏡 ${p.name}</div><div class="tt">${p.type}</div><div class="stk">${(p.owners||[]).slice(0,4).map(o=>ava(P(o.id).look,24)).join('')}</div>
   <div class="mo">+${fmt(Math.round(p.day*30))} <small>₴/міс</small></div><div class="dd">+${fmt(+p.day.toFixed(2))} ₴ на день</div><div class="go">Деталі ›</div></div>`}).join('')
   :'<div class="card empty">Поки немає частки в жодній ділянці.<br>Вклади у збір нижче — і тут почне капати 🌱</div>';
  $('offs').innerHTML=I.offers.length?'<div class="sect"><b>Збір на нову ділянку</b><small>вкладай у боті</small></div><div class="tiles">'+I.offers.map(o=>{const k=Math.min(1,o.raised/o.price);
@@ -477,8 +528,9 @@ function tickInvest(){if(!S||!S.invest||!$('v_inv').classList.contains('on'))ret
  const v=S.invest.daily*sec/86400,s=v.toFixed(5).split('.');$('ti').textContent=(+s[0]).toLocaleString('uk-UA');$('td').textContent=','+s[1];requestAnimationFrame(tickInvest)}
 // ===================== me: stats + inventory
 let achAll=false;
-function renderMe(){const M=S.my;if(!M)return;
- $('mname').textContent=S.me.name;$('machs').textContent=`🏅 ${M.ach.got} з ${M.ach.total} досягнень · 🔥 ${S.me.streak} ${plural(S.me.streak,['день','дні','днів'])}`;
+function renderMe(){const M=S.my;if(!M)return;const mp=P(S.me.id);
+ $('mava').innerHTML=ava(mp.look,72);$('mtitle').innerHTML=mp.look.ti?`<span class="ttl">${mp.look.ti}</span>`:'';$('stylebtn').onclick=styleSheet;$('mava').onclick=styleSheet;
+ $('mname').textContent=S.me.name;renderTrades();$('machs').textContent=`🏅 ${M.ach.got} з ${M.ach.total} досягнень · 🔥 ${S.me.streak} ${plural(S.me.streak,['день','дні','днів'])}`;
  $('trio').innerHTML=[['Сьогодні',M.today],['Тиждень',M.week],['Місяць',M.month]].map(([l,x])=>`<div><b>${fmt(Math.round(x.uah))} ₴</b><small>${l} · ${x.n} ${plural(x.n,['збір','збори','зборів'])}</small></div>`).join('');
  // inventory
  const I=M.items||[],act=I.filter(i=>i.act);$('icount').textContent=I.length?'':'';
@@ -494,13 +546,17 @@ function renderMe(){const M=S.my;if(!M)return;
   <div class="b ${S.me.norm&&d.uah>=S.me.norm?'ok':''}" style="height:calc((100% - 44px) * ${d.uah/max})"></div><div class="l">${i===6?'Сьог.':WD[new Date(d.day+'T12:00:00').getDay()]}</div></div>`).join('');
  // family
  const F=M.family,fm=Math.max(...F.map(f=>f.uah),1);
- $('fam').innerHTML=F.map((f,i)=>`<div class="fr ${f.me?'me':''}"><span class="rk">${['🥇','🥈','🥉'][i]||i+1}</span><span class="nm">${f.color||''} ${f.name}</span><span class="fb"><i style="width:${f.uah/fm*100}%"></i></span><span class="fv">${fmt(Math.round(f.uah))} ₴</span></div>`).join('');
- // achievements: the closest first
- const A=M.ach.next.filter(a=>a.need).map(a=>Object.assign({k:Math.max(0,Math.min(1,(a.v-a.from)/(a.need-a.from)))},a)).sort((a,b)=>b.k-a.k);
- $('achn').textContent=A.length+' в процесі';
- $('achs').innerHTML=(achAll?A:A.slice(0,4)).map(a=>`<div class="card ach"><div class="e">${a.icon}</div><div class="tx"><b>${a.name}</b><small>${a.title}</small><div class="ab"><i style="width:${a.k*100}%"></i></div></div>
-  <span class="av">${fmt(Math.floor(a.v))} / ${fmt(a.need)}</span></div>`).join('');
- $('achmore').style.display=A.length>4?'':'none';$('achmore').textContent=achAll?'Згорнути':'Показати всі ('+A.length+')';
+ $('fam').innerHTML=F.map((f,i)=>`<div class="fr ${f.me?'me':''}"><span class="rk">${['🥇','🥈','🥉'][i]||i+1}</span><span class="nm">${who(f.id,30)}</span><span class="fb"><i style="width:${f.uah/fm*100}%"></i></span><span class="fv">${fmt(Math.round(f.uah))} ₴</span></div>`).join('');
+ // achievements: one card per kind; what can be taken is on the right of its card, then the closest ones
+ const A=M.ach.next.map(a=>Object.assign({k:a.need?Math.max(0,Math.min(1,(a.v-a.from)/(a.need-a.from))):1},a)).sort((a,b)=>(!!b.claim-!!a.claim)||(!!b.need-!!a.need)||b.k-a.k);
+ if(M.ach.first&&!M.ach.first.paid)A.unshift({title:'Особливий',claim:{key:'first',icon:'🌅',name:'З першого дня'},k:1,done:1,steps:1});
+ const cn=A.filter(a=>a.claim).length;$('achn').textContent=cn?`🎁 ${cn} ${plural(cn,['нагорода','нагороди','нагород'])} чекає`:`${M.ach.got} з ${M.ach.total}`;
+ $('achs').innerHTML=(achAll?A:A.slice(0,Math.max(4,cn))).map(a=>`<div class="card ach ${a.claim?'cl':''}"><div class="e">${a.claim?a.claim.icon:a.icon}</div>
+  <div class="tx">${a.claim?`<small class="got">🎉 Отримано: <b>${a.claim.name}</b></small>`:''}<b>${a.need?a.name:a.claim?'':'Усе зібрано!'}</b><small>${a.title}${a.steps>1?' · '+a.done+'/'+a.steps:''}${a.need?` · ще ${fmt(Math.ceil(a.need-a.v))} ${plural(Math.ceil(a.need-a.v),a.unit)}`:''}</small>
+  ${a.need?`<div class="ab"><i style="width:${a.k*100}%"></i></div>`:''}</div>
+  ${a.claim?`<button class="cb" data-k="${a.claim.key}">+${M.achGem} 💎</button>`:`<div class="rt"><span class="av">${a.need?fmt(Math.floor(a.v))+' / '+fmt(a.need):'✓'}</span></div>`}</div>`).join('');
+ $('achs').querySelectorAll('.cb').forEach(b=>b.onclick=()=>claim(b.dataset.k,b));
+ $('achmore').style.display=A.length>Math.max(4,cn)?'':'none';$('achmore').textContent=achAll?'Згорнути':'Показати всі ('+A.length+')';
  const R=M.rec;$('recs').innerHTML=`<div><b>🔥 ${R.bestStreak}</b><small>найдовший стрік</small></div><div><b>⚡ ${R.bestDay}</b><small>зборів за день</small></div>
   <div><b>🚜 ${fmt(R.harvests)}</b><small>зборів усього</small></div><div><b>💰 ${fmt(Math.round(R.earned))} ₴</b><small>зароблено</small></div>`}
 $('achmore').onclick=()=>{achAll=!achAll;renderMe()};
@@ -510,22 +566,21 @@ function sheet(html){$('sheet').innerHTML=html;$('shade').classList.add('on')}
 function unsheet(){$('shade').classList.remove('on')}
 $('shade').onclick=e=>{if(e.target.id==='shade')unsheet()};
 // ===================== claim achievements, exchange
-function renderClaim(){const M=S.my,C=M.claim||[],el=$('claim');
- $('muah').textContent=fmt(S.me.balance);$('mgem').textContent=fmt(S.me.gems);
- if(!C.length){el.style.display='none';}else{el.style.display='';
+function renderClaim(){const M=S.my,C=M.claim||[],el={style:{},querySelectorAll:()=>[]};
+ if(true){}else{
  el.innerHTML=`<h4>🎁 Нагороди за досягнення</h4>`+C.slice(0,6).map(c=>`<div class="cl"><span class="e">${c.icon}</span><b>${c.name}</b><button data-k="${c.key}">+${M.achGem} 💎</button></div>`).join('')+
   (C.length>6?`<div class="cl"><b style="text-align:center;color:#7a4a00">…і ще ${C.length-6}</b></div>`:'')+`<button class="claimall" id="clall">Забрати все · +${C.length*M.achGem} 💎</button>`;
- el.querySelectorAll('.cl button').forEach(b=>b.onclick=()=>claim(b.dataset.k,b));$('clall').onclick=()=>claim('all',$('clall'))}
- const md=$('mdot'),n=C.length+(M.items||[]).filter(i=>i.act).length;md.textContent=n;md.style.display=n?'grid':'none';
+ }
+ const md=$('mdot'),n=C.length+(M.items||[]).filter(i=>i.act).length+(S.trades||[]).filter(x=>x.mine&&x.sent).length;md.textContent=n;md.style.display=n?'grid':'none';
  const g=S.me.gems,r=M.gemUah;
- $('gx').innerHTML=`<div class="h"><b>💱 Обміняти кристали</b><small>1 💎 = ${fmt(r)} ₴</small></div><div class="chips">${[10,50].map(v=>`<button data-n="${v}" ${g<v?'disabled':''}>${v} 💎 → ${fmt(v*r)} ₴</button>`).join('')}<button data-n="all" ${g<1?'disabled':''}>Усі ${fmt(Math.floor(g))}</button></div>`;
+ $('gx').innerHTML=`<div class="h"><b>💱 Кристали → ₴</b><small id="mgemw">є ${fmt(g)} 💎 · 1 💎 = ${fmt(r)} ₴</small></div><div class="chips">${[10,50].map(v=>`<button data-n="${v}" ${g<v?'disabled':''}>${v} 💎 → ${fmt(v*r)} ₴</button>`).join('')}<button data-n="all" ${g<1?'disabled':''}>Усі ${fmt(Math.floor(g))}</button></div>`;
  $('gx').querySelectorAll('button').forEach(b=>b.onclick=()=>exchange(b.dataset.n,b))}
-async function claim(key,btn){if(busy)return;hap('heavy');fly(btn,$('mgemw'),'💎',key==='all'?10:3);const r=await act('claim',{key});if(r&&r.ok){hap('ok');bump($('mgemw'));if(key==='all')confetti()}}
+async function claim(key,btn){if(busy)return;hap('heavy');plus(btn,'+💎','#6a48f0');fly(btn,$('mava'),'💎',4);const r=await act('claim',{key});if(r&&r.ok){hap('ok');confetti()}}
 async function exchange(n,btn){if(busy)return;const k=n==='all'?Math.floor(S.me.gems):+n;
- if(!(await confirmTG(`Обміняти ${k} 💎 на ${fmt(k*S.my.gemUah)} ₴?`)))return;hap('heavy');fly(btn,$('muah'),'₴',5);await act('gemx',{n:String(n)})}
+ if(!(await confirmTG(`Обміняти ${k} 💎 на ${fmt(k*S.my.gemUah)} ₴?`)))return;hap('heavy');fly(btn,$('mava'),'₴',5);await act('gemx',{n:String(n)})}
 // ===================== owner approvals
 function renderAppr(){const A=S.tasks.approve,el=$('appr');if(!A||!A.length){el.style.display='none';return}el.style.display='';
- el.innerHTML=`<h4>✅ На перевірку · ${A.length}</h4>`+A.map(x=>`<div class="ap"><div class="tx">${x.icon} ${x.who}: ${x.label}<small>+${x.gems} 💎 · ${x.at}</small></div><button data-ok="1" data-id="${x.id}">✅</button><button class="no" data-ok="" data-id="${x.id}">❌</button></div>`).join('')+
+ el.innerHTML=`<h4>✅ На перевірку · ${A.length}</h4>`+A.map(x=>`<div class="ap">${ava(P(x.uid).look,30)}<div class="tx">${x.icon} ${x.who}: ${x.label}<small>+${x.gems} 💎 · ${x.at}</small></div><button data-ok="1" data-id="${x.id}">✅</button><button class="no" data-ok="" data-id="${x.id}">❌</button></div>`).join('')+
   (A.length>1?`<button class="buy" style="margin-top:8px" data-ok="1" data-id="all">✅ Підтвердити всі (${A.length})</button>`:'');
  el.querySelectorAll('button').forEach(b=>b.onclick=async()=>{hap('medium');await act('decide',{ok:!!b.dataset.ok,which:b.dataset.id})})}
 // ===================== invest actions
@@ -533,6 +588,7 @@ function plotSheet(p){const I=S.invest,pc=Math.round(p.share*100);
  sheet(`<h3>🏡 ${p.name}</h3><p>${p.type} · твоя частка ${pc}% (${fmt(p.my)} ₴)</p>
  <div class="kv"><div><b>+${fmt(Math.round(p.day*30))} ₴</b><small>на місяць тобі</small></div><div><b>+${fmt(+p.day.toFixed(2))} ₴</b><small>на день тобі</small></div>
  <div><b>${fmt(p.got)} ₴</b><small>уже отримано</small></div><div><b>+${fmt(Math.round(p.dayAll*30))} ₴</b><small>ділянка всім/міс</small></div></div>
+ <div class="sidec" style="margin-bottom:10px"><h5>👥 Власники</h5>${(p.owners||[]).map(o=>`<div class="own"><span class="nm">${who(o.id,32,true)}</span><span class="pc">${Math.round(o.share*1000)/10}%</span></div>`).join('')}</div>
  ${p.canSell?`<button class="buy big" id="sell" style="background:linear-gradient(#ff8a6a,#e2552b);box-shadow:0 4px 0 #b3402b">↩️ Продати частку за ${fmt(p.my)} ₴</button>`:(p.my&&!p.canSell&&p.sellFrom?`<p>Продати частку можна з ${p.sellFrom.slice(8)}.${p.sellFrom.slice(5,7)} 🌱</p>`:'')}
  <button class="ghostb" onclick="unsheet()">Закрити</button>`);
  if($('sell'))$('sell').onclick=async()=>{if(!(await confirmTG(`Продати частку «${p.name}» за ${fmt(p.my)} ₴? Дохід з неї припиниться.`)))return;const r=await act('sell',{pid:p.id});if(r&&r.ok)unsheet()}}
@@ -542,25 +598,72 @@ function offerSheet(o){const I=S.invest,left=Math.max(0,o.price-o.raised),bal=I.
  <div class="pbar" style="height:14px;margin-bottom:12px"><i style="width:${k*100}%"></i></div>
  <div class="kv"><div><b>${fmt(bal)} ₴</b><small>у тебе на балансі</small></div><div><b>${fmt(o.my)} ₴</b><small>твій внесок</small></div>
  <div><b>+${fmt(Math.round(o.dayAll*30))} ₴</b><small>ділянка власникам/міс</small></div><div><b>${fmt(left)} ₴</b><small>лишилось зібрати</small></div></div>
+ ${(o.who||[]).length?`<div class="sidec" style="margin-bottom:10px"><h5>👥 Уже вклали</h5>${o.who.map(w=>`<div class="own"><span class="nm">${who(w.id,30,true)}</span><span class="pc">${fmt(w.uah)} ₴</span></div>`).join('')}</div>`:''}
  <div class="chips uah">${amts.map(a=>`<button data-a="${a}" ${bal<a?'disabled':''}>+${a} ₴</button>`).join('')}<button data-a="all" ${bal<Math.min(I.min,left)?'disabled':''}>Усе</button></div>
  ${o.my?`<button class="ghostb" id="back" style="color:#e2552b">↩️ Забрати свій внесок (${fmt(o.my)} ₴)</button>`:''}
  <button class="ghostb" onclick="unsheet()">Закрити</button>`);
  $('sheet').querySelectorAll('.chips button').forEach(b=>b.onclick=async()=>{hap('heavy');const r=await act('pledge',{oid:o.id,amt:b.dataset.a});if(r&&r.ok){confetti();const n=S.invest.offers.find(x=>x.id===o.id);if(n)offerSheet(n);else unsheet()}});
  if($('back'))$('back').onclick=async()=>{if(!(await confirmTG(`Повернути ${fmt(o.my)} ₴ на баланс?`)))return;const r=await act('pledge',{oid:o.id,amt:'back'});if(r&&r.ok)unsheet()}}
 async function ivtake(){if(busy)return;hap('heavy');fly($('itake'),$('itake'),'₴',5);const r=await act('ivtake');if(r&&r.ok)confetti()}
+// ===================== 🔁 trades
+function trLine(items){return items.length?items.map(i=>`${i.icon} ${i.pct!=null?i.pct+'%':fmt(i.n)}${i.unit==='грн'?' ₴':i.unit==='💎'?' 💎':''}`).join(' + '):'нічого'}
+function renderTrades(){const T=S.trades||[];$('trn').textContent=T.length?T.length+' '+plural(T.length,['угода','угоди','угод']):'';
+ $('trades').innerHTML=T.map(x=>`<div class="card trc" data-t="${x.id}">${ava(P(x.other).look,40)}<div class="tx"><b>${P(x.other).name}</b><small>📤 ${trLine(x.give)} · 📥 ${trLine(x.get)}</small></div>
+  <span class="st ${x.mine?'my':''}">${!x.sent?'чернетка':x.mine?(x.theyAgreed?'прийми!':'твоя черга'):'чекаємо'}</span></div>`).join('');
+ $('trades').querySelectorAll('.trc').forEach(el=>el.onclick=()=>tradeSheet(el.dataset.t));
+ $('trnew').onclick=()=>{const others=(S.people||[]).filter(p=>p.id!==String(S.me.id));
+  sheet(`<h3>🔁 Нова угода</h3><p>З ким міняємось?</p><div class="pick">${others.map(p=>`<button data-u="${p.id}">${ava(p.look,52)}${p.name}</button>`).join('')}</div><button class="ghostb" onclick="unsheet()">Закрити</button>`);
+  $('sheet').querySelectorAll('.pick button').forEach(b=>b.onclick=async()=>{const r=await act('tr',{op:'new',to:b.dataset.u});if(r&&r.res)tradeSheet(r.res.tid)})}}
+function tradeSheet(tid){const x=(S.trades||[]).find(t=>t.id===tid);if(!x){unsheet();return}const me=S.me.id,o=x.other,can=x.mine;
+ const side=(items,w,have)=>items.map(i=>{const h=(have.find(k=>k.key===i.key)||{}).n,st=(have.find(k=>k.key===i.key)||{}).step||1;
+  return `<div class="ti2"><span class="nm">${i.icon} ${i.label}</span>${can?`<button data-w="${w}" data-k="${i.key}" data-n="${Math.max(0,+(i.n-st).toFixed(2))}">−</button>`:''}<span class="val">${i.pct!=null?i.pct+'%':fmt(i.n)+(i.unit==='шт'?'':' '+(i.unit==='грн'?'₴':i.unit))}</span>${can?`<button data-w="${w}" data-k="${i.key}" data-n="${Math.min(h||i.n,+(i.n+st).toFixed(2))}">+</button>`:''}</div>`}).join('')||'<div class="ti2"><span class="nm" style="color:var(--mute)">нічого</span></div>';
+ const st=!x.sent?'Чернетка: додай, що віддаєш і що хочеш отримати, і надішли.':x.mine?(x.theyAgreed?`${P(o).name} згоджується. Приймеш — і все переміститься одразу.`:'Ти змінила угоду — надішли назад.'):`⏳ Чекаємо відповідь ${P(o).name}.`;
+ sheet(`<div class="vs">${ava(P(me).look,52)}<span class="x">⇄</span>${ava(P(o).look,52)}</div><h3 style="text-align:center">Угода з ${P(o).name}</h3><p style="text-align:center">${st}</p>
+ <div class="sides"><div class="sidec"><h5>📤 Ти віддаєш</h5>${side(x.give,'m',x.myHave)}${can?`<button class="add" data-add="m">+ Додати своє</button>`:''}</div>
+ <div class="sidec"><h5>📥 Ти отримуєш від ${who(o,22)}</h5>${side(x.get,'o',x.theirHave)}${can?`<button class="add" data-add="o">+ Попросити</button>`:''}</div></div>
+ ${can?(x.sent&&x.theyAgreed?`<button class="buy big" id="trok" style="background:linear-gradient(#53d97f,#2fb45c);box-shadow:0 4px 0 #23914a">🤝 Прийняти угоду</button>`:`<button class="buy big" id="trsend">📨 Надіслати ${P(o).name}</button>`):''}
+ <button class="ghostb" id="trno" style="color:#e2552b">${x.sent?'❌ Відмовитись від угоди':'🗑 Видалити чернетку'}</button><button class="ghostb" onclick="unsheet()">Закрити</button>`);
+ const set=async(w,k,n)=>{hap('light');const r=await act('tr',{op:'set',tid,who:w,key:k,n});if(r)tradeSheet(tid)};
+ $('sheet').querySelectorAll('.ti2 button').forEach(b=>b.onclick=()=>set(b.dataset.w,b.dataset.k,+b.dataset.n));
+ $('sheet').querySelectorAll('.add').forEach(b=>b.onclick=()=>{const w=b.dataset.add,have=w==='m'?x.myHave:x.theirHave;
+  sheet(`<h3>${w==='m'?'📤 Що віддаєш?':'📥 Що хочеш від '+P(o).name+'?'}</h3><p>${have.length?'Обери, потім налаштуєш кількість':'Поки нічого немає для обміну'}</p>
+  ${have.map(h=>`<div class="ti2"><span class="nm">${h.icon} ${h.label}</span><span class="val">${h.pct!=null?h.pct+'%':fmt(h.n)}</span><button data-k="${h.key}" data-n="${h.step}">Додати</button></div>`).join('')}
+  <button class="ghostb" id="trback">⬅️ До угоди</button>`);
+  $('trback').onclick=()=>tradeSheet(tid);$('sheet').querySelectorAll('.ti2 button').forEach(b=>b.onclick=()=>set(w,b.dataset.k,Math.min(+b.dataset.n,(have.find(h=>h.key===b.dataset.k)||{}).n)))});
+ if($('trsend'))$('trsend').onclick=async()=>{hap('heavy');const r=await act('tr',{op:'send',tid});if(r&&r.ok)unsheet()};
+ if($('trok'))$('trok').onclick=async()=>{hap('heavy');const r=await act('tr',{op:'ok',tid});if(r&&r.ok){unsheet();confetti()}};
+ $('trno').onclick=async()=>{if(!(await confirmTG(x.sent?'Відмовитись від угоди?':'Видалити чернетку?')))return;const r=await act('tr',{op:'no',tid});if(r&&r.ok)unsheet()}}
+// ===================== 🎨 style studio
+let stab='av';
+function styleSheet(){const L=S.looks,mp=P(S.me.id),cur=mp.look,tabs=[['av','Аватар'],['bg','Фон'],['fr','Рамка'],['ti','Титул']];
+ const wornKey={av:cur.av,bg:cur.bg,fr:cur.fr,ti:((S.looks.ti.find(x=>x.label===cur.ti)||{}).key)||''};
+ const prev=k=>Object.assign({},cur,{[stab]:k});
+ sheet(`<div class="prev">${ava(cur,96)}<b style="font-size:19px">${S.me.name}</b>${cur.ti?`<span class="ttl">${cur.ti}</span>`:''}<small style="color:var(--mute);font-weight:800">у тебе ${fmt(S.me.gems)} 💎</small></div>
+ <div class="stabs">${tabs.map(([k,l])=>`<button data-t="${k}" class="${k===stab?'on':''}">${l}</button>`).join('')}</div>
+ <div class="sgrid ${stab==='ti'?'ti':''}">${L[stab].map(o=>{const on=wornKey[stab]===o.key,pv=stab==='av'?ava(Object.assign({},cur,{av:o.key}),46):stab==='bg'?ava(Object.assign({},cur,{bg:o.key}),46):stab==='fr'?ava(Object.assign({},cur,{fr:o.key}),46):`<span class="ttl" style="font-size:12px">${o.label||'—'}</span>`;
+  return `<button data-k="${o.key}" class="${on?'on':''}">${pv}${stab!=='av'&&stab!=='ti'?`<span>${o.label}</span>`:''}<span class="${on?'ok':o.own?'ok':'pr'}">${on?'✓ вдягнуто':o.own?'є':o.price+' 💎'}</span></button>`}).join('')}</div>
+ <button class="ghostb" onclick="unsheet()">Готово</button>`);
+ $('sheet').querySelectorAll('.stabs button').forEach(b=>b.onclick=()=>{stab=b.dataset.t;styleSheet()});
+ $('sheet').querySelectorAll('.sgrid button').forEach(b=>b.onclick=async()=>{const o=L[stab].find(x=>x.key===b.dataset.k);
+  if(!o.own){if(S.me.gems<o.price){toast(`Потрібно ще ${Math.ceil(o.price-S.me.gems)} 💎 — заробляй у Завданнях!`);hap('err');return}
+   if(!(await confirmTG(`Купити за ${o.price} 💎?`)))return}
+  hap('heavy');const r=await act('look',{kind:stab,key:o.key});if(r&&r.ok){if(!o.own)confetti();styleSheet()}})}
 // ===================== tabs
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{hap('light');document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===b));
  document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id==='v_'+b.dataset.v));scrollTo(0,0);if(b.dataset.v==='inv')tickInvest()});
 // ===================== demo (outside Telegram)
 let D=null;
-function demoState(){const now=Date.now();return{me:{name:'Марія',gems:67,balance:533,streak:9,done:21,norm:30},
+function demoState(){const now=Date.now();return{me:{id:'2',name:'Марія',gems:67,balance:533,streak:9,done:21,norm:30},
  farm:{now,week:[...Array(7)].map((_,i)=>({day:new Date(now-(6-i)*864e5).toISOString().slice(0,10),ok:i<6&&i!==1})),
   crops:[{id:'beds',name:'Грядки',icon:'🌱',uah:14,gem:1,cycle:120,due:0},{id:'plots',name:'Хробаки',icon:'🪱',uah:13,gem:1,cycle:90,due:now+25*60000}],
   once:[{id:'narcissus',icon:'🌼',name:'Narcissus',uah:6,gem:.5},{id:'clover',icon:'🍀',name:'Clover',uah:6,gem:.5},{id:'mr',icon:'🌿',name:'Mint',uah:16,gem:1}]},
  tasks:{ar:[{id:'alt',icon:'🧑‍🌾',label:'Прокачати альта й поставити пугало',per:'за альта',gems:50,today:0,wait:0},{id:'restock',icon:'📦',label:'Поповнити запаси ферми',per:'за раз',gems:10,today:0,wait:0},{id:'daily',icon:'☀️',label:'Щоденні справи',per:'за персонажа',gems:5,today:1,wait:1,list:['📅 Нагорода в календарі','🫘 Боб з ринку']},{id:'gift',icon:'🎁',label:'Забрати подарунок',per:'за персонажа',gems:1,today:0,wait:0}],
   wow:[{id:'wd_dm',icon:'🏰',label:'The Deadmines',lvl:'18-23',gems:30,done:0,wait:0},{id:'wd_wc',icon:'🏰',label:'Wailing Caverns',lvl:'17-25',gems:20,done:1,wait:0}],waitGems:5,waitN:1,maxLvl:35},
  shop:{season:null,rise:30,resting:4,items:[{id:'ice',icon:'🍦',label:'Морозиво',open:true,price:40,times:0},{id:'cart',icon:'🎬',label:'Мультик +30 хв',open:true,price:33,times:1},{id:'toy',icon:'🧸',label:'Нова іграшка',open:true,price:90,times:0},{id:null,open:false,need:12,price:60},{id:null,open:false,need:14,price:80}],food:{price:1,pack:10,packN:12}},
- inv:{food:4},my:{today:{n:2,uah:21},week:{n:9,uah:112},month:{n:41,uah:533},days:[...Array(7)].map((_,i)=>({day:new Date(Date.now()-(6-i)*864e5).toISOString().slice(0,10),uah:[34,12,31,45,0,30,21][i],n:3})),rec:{bestStreak:12,bestDay:7,harvests:241,earned:3120},family:[{name:'Тато',color:'🟩',uah:140},{name:'Марія',color:'🟨',uah:112,me:true}],claim:[{key:'first',icon:'🌅',name:'З першого дня'},{key:'0.0',icon:'🌱',name:'Перший урожай'},{key:'0.1',icon:'🧺',name:'Десять кошиків'}],achGem:1,gemUah:.5,ach:{got:7,total:64,next:[{title:'🚜 Збори',v:41,need:50,icon:'🚜',name:'Справжня фермерка',from:10},{title:'🔥 Стрік',v:9,need:14,icon:'🔥',name:'Два тижні',from:7},{title:'💰 Заробіток',v:533,need:1000,icon:'💎',name:'Тисячниця',from:500},{title:'⚡ Рекорд за день',v:4,need:6,icon:'⚡',name:'Робочий день',from:0},{title:'🏁 Перегони',v:1,need:3,icon:'🏁',name:'Чемпіонка',from:1}]},items:[{what:'prize',icon:'🎁',label:'Невідкритий приз',n:1,act:'Відкрити'},{what:'ice',icon:'🍦',label:'Морозиво',n:2,act:'Хочу!'},{what:'cpn_x',icon:'🍽️',label:'Мий за мною посуд',n:1,act:'Використати'},{what:'',icon:'❄️',label:'Заморозка стріку',n:1,note:'спрацює сама'}]},invest:{min:20,balance:533,daily:3.42,wallet:12.5,plots:[{id:'p1',name:'Сонячна',type:'16×16 з будинком',share:.31,my:930,got:12,canSell:true,day:1.14,dayAll:3.68},{id:'p2',name:'Лісова',type:'24×24 з будинком',share:.2,day:2.28,dayAll:11.4}],offers:[{id:'o1',name:'Річкова',type:'16×16 з будинком',price:3000,raised:1860,my:500,dayAll:3.68}]}}}
+ people:[{id:'2',name:'Марія',look:{av:'🦄',bg:'rose',fr:'rainbow',ti:'Королева грядок'}},{id:'1',name:'Тато',look:{av:'🐻',bg:'sky',fr:'gold',ti:''},owner:true}],
+ looks:{av:['🙂','🐱','🐶','🦄','🧚','🐲','👑','🔮'].map((k,i)=>({key:k,price:i<3?0:15+i*5,own:i<4})),bg:['sand','sky','mint','rose','ocean','sunset','galaxy','gold'].map((k,i)=>({key:k,label:k,price:i<2?0:15+i*8,own:i<2||k==='rose'})),fr:['none','silver','gold','rainbow','fire','stars'].map((k,i)=>({key:k,label:k,price:[0,30,60,120,150,200][i],own:i===0||k==='rainbow'})),ti:[['','Без титулу'],['farmer','Фермерка'],['queen','Королева грядок'],['legend','Легенда ферми']].map((x,i)=>({key:x[0],label:x[1],price:[0,0,50,150][i],own:i<3}))},
+ trades:[{id:'t1',other:'1',sent:true,mine:true,theyAgreed:true,give:[{key:'gem',n:5,icon:'💎',label:'Кристали',unit:'💎',pct:null}],get:[{key:'uah',n:10,icon:'💰',label:'Гривні',unit:'грн',pct:null}],myHave:[{key:'gem',n:67,icon:'💎',label:'Кристали',unit:'💎',step:1},{key:'uah',n:533,icon:'💰',label:'Гривні',unit:'грн',step:1}],theirHave:[{key:'uah',n:900,icon:'💰',label:'Гривні',unit:'грн',step:1}]}],
+ inv:{food:4},my:{today:{n:2,uah:21},week:{n:9,uah:112},month:{n:41,uah:533},days:[...Array(7)].map((_,i)=>({day:new Date(Date.now()-(6-i)*864e5).toISOString().slice(0,10),uah:[34,12,31,45,0,30,21][i],n:3})),rec:{bestStreak:12,bestDay:7,harvests:241,earned:3120},family:[{id:'1',name:'Тато',uah:140},{id:'2',name:'Марія',uah:112,me:true}],claim:[{key:'first',icon:'🌅',name:'З першого дня'},{key:'0.0',icon:'🌱',name:'Перший урожай'},{key:'0.1',icon:'🧺',name:'Десять кошиків'}],achGem:1,gemUah:.5,ach:{got:7,total:64,first:{key:'first',paid:false},next:[{title:'🚜 Збори',v:41,need:50,icon:'🚜',name:'Справжня фермерка',from:10,unit:['збір','збори','зборів'],done:2,steps:5,claim:{key:'0.1',icon:'🧺',name:'Десять кошиків'}},{title:'🔥 Стрік',v:9,need:14,icon:'🔥',name:'Два тижні',from:7,unit:['день','дні','днів'],done:2,steps:6},{title:'💰 Заробіток',v:533,need:1000,icon:'💎',name:'Тисячниця',from:500,unit:['гривня','гривні','гривень'],done:3,steps:6},{title:'⚡ Рекорд за день',v:4,need:6,icon:'⚡',name:'Робочий день',from:0,unit:['збір','збори','зборів'],done:0,steps:3},{title:'🏁 Перегони',v:1,need:3,icon:'🏁',name:'Чемпіонка',from:1,unit:['перемога','перемоги','перемог'],done:1,steps:4}]},items:[{what:'prize',icon:'🎁',label:'Невідкритий приз',n:1,act:'Відкрити'},{what:'ice',icon:'🍦',label:'Морозиво',n:2,act:'Хочу!'},{what:'cpn_x',icon:'🍽️',label:'Мий за мною посуд',n:1,act:'Використати'},{what:'',icon:'❄️',label:'Заморозка стріку',n:1,note:'спрацює сама'}]},invest:{min:20,balance:533,daily:3.42,wallet:12.5,plots:[{id:'p1',name:'Сонячна',type:'16×16 з будинком',owners:[{id:'1',share:.69},{id:'2',share:.31}],share:.31,my:930,got:12,canSell:true,day:1.14,dayAll:3.68},{id:'p2',name:'Лісова',type:'24×24 з будинком',share:.2,day:2.28,dayAll:11.4}],offers:[{id:'o1',who:[{id:'1',uah:1360},{id:'2',uah:500}],name:'Річкова',type:'16×16 з будинком',price:3000,raised:1860,my:500,dayAll:3.68}]}}}
 function demoCall(a,x){D=D||demoState();let t='',res=null;const now=Date.now();
  if(a==='harvest'){const c=x.crop?D.farm.once.find(o=>o.id===x.crop):D.farm.crops.find(c=>c.id===x.kind);const k=D.farm.crops.find(c=>c.id===x.kind);
   D.me.done+=c.uah;D.me.balance+=c.uah;D.me.gems+=c.gem;k.due=now+k.cycle*60000;D.farm.now=now;if(D.me.done>=D.me.norm&&!D.farm.week[6].ok){D.farm.week[6].ok=true;D.me.streak++}t='+'+c.uah+' грн · +'+c.gem+' 💎'}

@@ -3417,6 +3417,8 @@ function appApi(e) {
         else if (/^(ice|vac|cash|cpn_[\w-]+)$/.test(w)) useItem(st, user, w, id, q, noop);
         else q.out.push('Такого предмета немає');
       }
+      else if (body.action === 'look') appLook(st, id, a, q);
+      else if (body.action === 'tr') appTrade(st, user, a, q);
       else if (body.action === 'claim') appClaim(st, id, String(a.key || 'all'), q);
       else if (body.action === 'pledge') pledge(st, user, String(a.oid), String(a.amt), q);
       else if (body.action === 'ivtake') {
@@ -3497,7 +3499,7 @@ function appTasks(st, id) {
       .map(function (t) { return { id: t.id, icon: t.icon, label: t.label, per: t.per, note: t.note || '', list: t.list ? DAILY : null, gems: st.cfg.taskGems[t.id], today: n[t.id] || 0, wait: waitOf(t.id) }; }),
     wow: wowList(st).map(function (d) { return { id: 'wd_' + d[0], icon: '🏰', label: d[1], lvl: d[2], gems: wowGems(st, id, d[0]), done: wowDone(st, id, d[0]), wait: waitOf('wd_' + d[0]) }; }),
     waitGems: pend.reduce(function (a, x) { return a + x.gems; }, 0), waitN: pend.length,
-    approve: String(id) === String(st.owner) ? (st.pend || []).map(function (x) { const t = taskDef(x.task) || { icon: '?', label: x.task }; return { id: x.id, who: nameOf(st, x.uid), icon: t.icon, label: t.label, gems: x.gems, at: hhmm(x.at) }; }) : null,
+    approve: String(id) === String(st.owner) ? (st.pend || []).map(function (x) { const t = taskDef(x.task) || { icon: '?', label: x.task }; return { id: x.id, uid: String(x.uid), who: nameOf(st, x.uid), icon: t.icon, label: t.label, gems: x.gems, at: hhmm(x.at) }; }) : null,
     todayGems: Object.keys(lg.tasks || {}).reduce(function (a, k) { return a + lg.tasks[k]; }, 0), game: (st.earnGame || {})[id] || 'ar', maxLvl: st.cfg.wowMaxLvl,
   };
 }
@@ -3505,8 +3507,8 @@ function appInvest(st, id) {
   const mine = function (p) { return shareOf(p, id); };
   const today = dayKey(Date.now(), st.cfg);
   const plots = (st.cfg.iplots || []).map(function (p) { const d = offerDaily(st, p), k = mine(p);
-    return { sellFrom: addDays(p.since, SELL_AFTER), canSell: !!p.shares[id] && String(id) !== String(st.owner) && today >= addDays(p.since, SELL_AFTER), got: money((p.got || {})[id] || 0), id: p.id, name: p.name, type: typeLabel(p.type), share: k, my: money(p.shares[id] || 0), price: p.price, dayAll: money(d), day: d * k, owners: Object.keys(p.shares).filter(function (u) { return p.shares[u] > 0; }).length }; });
-  const offers = (st.offers || []).map(function (o) { return { id: o.id, name: o.name, type: typeLabel(o.type), price: o.price, raised: money(offerSum(o)), my: money(o.pledges[id] || 0), dayAll: money(offerDaily(st, o)) }; });
+    return { owners: Object.keys(p.shares).filter(function (u) { return p.shares[u] > 0; }).map(function (u) { return { id: u, share: shareOf(p, u), uah: money(p.shares[u]) }; }).sort(function (x, y) { return y.share - x.share; }), sellFrom: addDays(p.since, SELL_AFTER), canSell: !!p.shares[id] && String(id) !== String(st.owner) && today >= addDays(p.since, SELL_AFTER), got: money((p.got || {})[id] || 0), id: p.id, name: p.name, type: typeLabel(p.type), share: k, my: money(p.shares[id] || 0), price: p.price, dayAll: money(d), day: d * k, owners: Object.keys(p.shares).filter(function (u) { return p.shares[u] > 0; }).length }; });
+  const offers = (st.offers || []).map(function (o) { return { who: Object.keys(o.pledges).filter(function (u) { return o.pledges[u] > 0; }).map(function (u) { return { id: u, uah: money(o.pledges[u]) }; }).sort(function (x, y) { return y.uah - x.uah; }), id: o.id, name: o.name, type: typeLabel(o.type), price: o.price, raised: money(offerSum(o)), my: money(o.pledges[id] || 0), dayAll: money(offerDaily(st, o)) }; });
   return { min: INV_MIN, balance: money(st.balance[id] || 0), daily: plots.reduce(function (a, p) { return a + p.day; }, 0), wallet: money((st.invWallet || {})[id] || 0), plots: plots, offers: offers };
 }
 // 🏅 +1 💎 for every achievement, taken by hand in the app (old ones too): st.achPaid[uid] = { achKey: day }
@@ -3529,6 +3531,74 @@ function appClaim(st, id, key, q) {
   q.out.push('🏅 +' + list.length * per + ' 💎 за ' + list.length + ' ' + plural(list.length, ['досягнення', 'досягнення', 'досягнень']));
   q.res = { gems: list.length * per };
 }
+// ---------------------------------------------------------------- 🎨 looks: avatar, colour, frame, title (for crystals)
+// st.look[uid] = { av, bg, fr, ti } what is worn; st.lookOwn[uid] = { 'av:🦄': day } what is bought. price 0 = free for everyone.
+const LOOKS = {
+  av: [['🙂', 0], ['🐱', 0], ['🐶', 0], ['🐰', 0], ['🦊', 0], ['🐻', 0], ['🐼', 0], ['🐸', 0], ['🐥', 0], ['🐹', 0],
+    ['🦋', 15], ['🦄', 15], ['🌸', 15], ['🧚', 20], ['🌈', 20], ['🐲', 25], ['🦖', 25], ['🐙', 25], ['🧜‍♀️', 30], ['👸', 30], ['🤴', 30], ['🐉', 35], ['🦁', 35], ['👑', 40], ['🪐', 45], ['🔮', 50]],
+  bg: [['sand', 0, 'Пісок'], ['sky', 0, 'Небо'], ['mint', 15, 'М’ята'], ['peach', 15, 'Персик'], ['lavender', 20, 'Лаванда'], ['rose', 20, 'Троянда'],
+    ['ocean', 30, 'Океан'], ['sunset', 40, 'Захід сонця'], ['galaxy', 60, 'Галактика'], ['gold', 80, 'Золото']],
+  fr: [['none', 0, 'Без рамки'], ['silver', 30, 'Срібна'], ['gold', 60, 'Золота'], ['rainbow', 120, 'Веселка ✨'], ['fire', 150, 'Вогняна 🔥'], ['stars', 200, 'Зоряна ⭐']],
+  ti: [['', 0, 'Без титулу'], ['farmer', 0, 'Фермерка', 'Фермер'], ['worm', 40, 'Майстриня хробаків', 'Майстер хробаків'], ['queen', 50, 'Королева грядок', 'Король грядок'],
+    ['gem', 80, 'Кристальна принцеса', 'Кристальний принц'], ['tycoon', 100, 'Магнатка землі', 'Магнат землі'], ['legend', 150, 'Легенда ферми', 'Легенда ферми']],
+};
+function lookOf(st, id) {
+  const l = (st.look || {})[id] || {}, p = st.people[id] || {}, t = LOOKS.ti.filter(function (x) { return x[0] === (l.ti || ''); })[0];
+  return { av: l.av || '🙂', bg: l.bg || 'sand', fr: l.fr || 'none', ti: t && t[0] ? (p.female === false && t[3] ? t[3] : t[2]) : '' };
+}
+function lookOwns(st, id, kind, key) { const L = LOOKS[kind].filter(function (x) { return x[0] === key; })[0]; return !!L && (L[1] === 0 || !!(((st.lookOwn || {})[id] || {})[kind + ':' + key])); }
+function appLook(st, id, a, q) {
+  const kind = String(a.kind), key = String(a.key === undefined ? '' : a.key), L = LOOKS[kind] && LOOKS[kind].filter(function (x) { return x[0] === key; })[0];
+  if (!L) { q.out.push('Такого немає'); return; }
+  st.look = st.look || {}; st.look[id] = st.look[id] || {};
+  if (!lookOwns(st, id, kind, key)) {
+    const x = inv(st, id);
+    if (x.gems < L[1]) { q.out.push('Не вистачає ' + money(L[1] - x.gems) + ' 💎'); return; }
+    x.gems = money(x.gems - L[1]);
+    st.lookOwn = st.lookOwn || {}; st.lookOwn[id] = st.lookOwn[id] || {}; st.lookOwn[id][kind + ':' + key] = dayKey(Date.now(), st.cfg);
+    q.out.push('✨ Куплено за ' + L[1] + ' 💎 і вдягнуто!');
+    const pe = st.people[id]; if (pe && L[1] >= 30) sayK(st, 'look:' + id, '✨ ' + esc(pe.name) + ' ' + verb(pe, 'оновив', 'оновила') + ' свій стиль: ' + (kind === 'av' ? key : (L[2] || '')) + ' 💅');
+  } else q.out.push('👌 Вдягнуто');
+  st.look[id][kind] = key;
+}
+function appPeople(st) { return Object.keys(st.people).map(function (u) { return { id: u, name: nameOf(st, u), look: lookOf(st, u), owner: String(u) === String(st.owner) }; }); }
+function appLooks(st, id) {
+  const p = st.people[id] || {};
+  return Object.keys(LOOKS).reduce(function (o, k) { o[k] = LOOKS[k].map(function (x) { return { key: x[0], price: x[1], label: k === 'ti' && p.female === false && x[3] ? x[3] : x[2] || '', own: lookOwns(st, id, k, x[0]) }; }); return o; }, {});
+}
+// 🔁 trades for the app: the same deals as in the bot (st.trades)
+function trUnit(key) { return key === 'uah' || key === 'cash' ? 'грн' : key === 'gem' ? '💎' : key.indexOf('s_') === 0 ? 'грн частки' : 'шт'; }
+function trIcon(st, key) { const it = key.indexOf('c_') === 0 ? shopItem(key.slice(2)) : null; return { uah: '💰', gem: '💎', ice: '🍦', vac: '🏖', cash: '💵', frz: '❄️', food: '🍖' }[key] || (it ? it.icon : '🏡'); }
+function trItem(st, key, n) { return { key: key, n: n, icon: trIcon(st, key), label: trName(st, key).replace(/^\S+\s/, ''), unit: trUnit(key), pct: trPlot(st, key) ? money(n / trPlot(st, key).price * 100) : null }; }
+function appTrades(st, id) {
+  const has = function (u) { return trKeys(st, u).map(function (k) { return Object.assign(trItem(st, k, trHave(st, u, k)), { step: trSteps(st, k).filter(function (x) { return x[0] > 0; })[0][0] }); }); };
+  return (st.trades || []).filter(function (t) { return String(t.a) === id || String(t.b) === id; }).map(function (t) {
+    const o = trOther(t, id), side = function (u) { const g = t.give[u] || {}; return Object.keys(g).filter(function (k) { return g[k] > 0; }).map(function (k) { return trItem(st, k, g[k]); }); };
+    return { id: t.id, other: o, sent: !!t.sent, mine: String(t.turn) === id, theyAgreed: !!(t.agreed || {})[o], give: side(id), get: side(o), myHave: has(id), theirHave: has(o) };
+  });
+}
+function appTrade(st, user, a, q) {
+  const id = String(user.id), op = String(a.op), noop = function () {};
+  if (op === 'new') {
+    const to = String(a.to);
+    if (!st.people[to] || to === id) { q.out.push('Немає такої людини'); return; }
+    if (st.trades.filter(function (t) { return String(t.a) === id; }).length >= TRADE_MAX) { q.out.push('Забагато відкритих угод'); return; }
+    st.tradeSeq = (st.tradeSeq || 0) + 1;
+    const t = { id: 't' + st.tradeSeq, a: id, b: to, give: {}, turn: id, agreed: {}, sent: false, at: Date.now() };
+    t.give[t.a] = {}; t.give[t.b] = {}; st.trades.push(t); q.res = { tid: t.id }; return;
+  }
+  const t = trById(st, String(a.tid));
+  if (!t || (String(t.a) !== id && String(t.b) !== id)) { q.out.push('Цієї угоди вже немає'); return; }
+  if (op === 'set') {
+    if (String(t.turn) !== id) { q.out.push('Зараз черга ' + nameOf(st, trOther(t, id))); return; }
+    const u = a.who === 'm' ? id : trOther(t, id), key = String(a.key), h = trHave(st, u, key), n = money(Math.max(0, Math.min(h, +a.n || 0)));
+    if (trKeys(st, u).indexOf(key) < 0 && !(t.give[u] || {})[key]) { q.out.push('Цього немає'); return; }
+    t.give[u] = t.give[u] || {}; if (n > 0) t.give[u][key] = n; else delete t.give[u][key];
+    t.agreed = {}; return;
+  }
+  if (['send', 'ok', 'no'].indexOf(op) >= 0) { q.message = { text: '' }; onTrade(st, user, ['tr', op, t.id], q, noop, true); return; }
+  q.out.push('?');
+}
 function appMe(st, id, now) { // 👤 stats, records, the family this week, the next achievements, the inventory
   const day = dayKey(now, st.cfg), wk = 'w:' + weekKey(day), mo = 'm:' + monthKey(now);
   const pick = function (key, u) { const r = (st.stats[key] || {})[u || id]; return { n: r ? r.n : 0, uah: r ? money(r.g !== undefined ? r.g : r.uah) : 0 }; };
@@ -3538,12 +3608,16 @@ function appMe(st, id, now) { // 👤 stats, records, the family this week, the 
     claim: achUnpaid(st, id).map(function (k) { return Object.assign({ key: k }, achLabel(st, id, k)); }), achGem: st.cfg.achGem || 1, gemUah: st.cfg.gemUah,
     today: pick('d:' + day), week: pick(wk), month: pick(mo), days: days,
     rec: { bestStreak: bestStreak(st, id), bestDay: bestDay(st, id), harvests: harvestsRaw(st, id), earned: money(earnedRaw(st, id)) },
-    family: Object.keys(st.people).map(function (u) { const w = pick(wk, u); return { name: nameOf(st, u), color: colorOf(st, u), uah: w.uah, n: w.n, me: u === String(id) }; })
+    family: Object.keys(st.people).map(function (u) { const w = pick(wk, u); return { id: u, name: nameOf(st, u), color: colorOf(st, u), uah: w.uah, n: w.n, me: u === String(id) }; })
       .sort(function (a, b) { return b.uah - a.uah; }),
     ach: { got: Object.keys(mine).length, total: ACH_GROUPS.reduce(function (a, g) { return a + g.steps.length; }, 0) + 1,
       next: ACH_GROUPS.map(function (g) { const v = g.of(st, id), i = g.steps.findIndex(function (s, k) { return !mine[achId(g, k)]; });
-        const last = g.steps.filter(function (s, k) { return mine[achId(g, k)]; }).pop();
-        return { title: g.title, v: money(v), need: i >= 0 ? g.steps[i][0] : null, icon: i >= 0 ? g.steps[i][1] : (last ? last[1] : '🏅'), name: i >= 0 ? achName(st, id, g.steps[i]) : 'Усе зібрано!', from: i > 0 ? g.steps[i - 1][0] : 0 }; }) },
+        const last = g.steps.filter(function (s, k) { return mine[achId(g, k)]; }).pop(), paid = (st.achPaid || {})[id] || {};
+        const ci = g.steps.findIndex(function (s, k) { return mine[achId(g, k)] && !paid[achId(g, k)]; });
+        return { title: g.title, v: money(v), unit: g.unit, need: i >= 0 ? g.steps[i][0] : null, icon: i >= 0 ? g.steps[i][1] : (last ? last[1] : '🏅'), name: i >= 0 ? achName(st, id, g.steps[i]) : 'Усе зібрано!', from: i > 0 ? g.steps[i - 1][0] : 0,
+          done: g.steps.filter(function (s, k) { return mine[achId(g, k)]; }).length, steps: g.steps.length,
+          claim: ci >= 0 ? { key: achId(g, ci), icon: g.steps[ci][1], name: achName(st, id, g.steps[ci]) } : null }; }),
+      first: mine.first ? { key: 'first', paid: !!(((st.achPaid || {})[id] || {}).first) } : null },
     items: [].concat(
       x.gift.length ? [{ what: 'prize', icon: '🎁', label: 'Невідкритий приз', n: x.gift.length, act: 'Відкрити' }] : [],
       x.ice ? [{ what: 'ice', icon: '🍦', label: 'Морозиво', n: x.ice, act: 'Хочу!' }] : [],
@@ -3578,7 +3652,7 @@ function appState(st, id) {
     inv: { food: x.food, ice: x.ice, vac: x.vac.length, cash: money(x.cash), freeze: x.freeze, gifts: x.gift.length,
       coupons: Object.keys(x.coupons).filter(function (k) { return x.coupons[k] > 0 && shopItem(k); }).map(function (k) { const it = shopItem(k); return { id: k, icon: it.icon, label: it.label, n: x.coupons[k] }; }) },
     gemUah: st.cfg.gemUah,
-    farm: appFarm(st, id, now), tasks: appTasks(st, id), invest: appInvest(st, id), my: appMe(st, id, now),
+    farm: appFarm(st, id, now), tasks: appTasks(st, id), invest: appInvest(st, id), my: appMe(st, id, now), people: appPeople(st), looks: appLooks(st, id), trades: appTrades(st, id),
   };
 }
 
