@@ -364,6 +364,11 @@ body{padding-bottom:96px}
 .rbox.tb{background:linear-gradient(135deg,#fff3c4,#ffe08a);color:#3b2a1a;display:flex;flex-direction:column;gap:6px}.rbox.tb small{font-weight:800;color:#7a4a00}
 .rbox.small{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 12px;font-size:12.5px;font-weight:800;background:#fff;color:var(--ink)}.rbox.small .win{display:flex;align-items:center;gap:4px;font-weight:900;white-space:nowrap}
 .bst .old{text-decoration:line-through;opacity:.6;font-size:12px;margin-right:4px}.bst .sale{display:inline-block;background:#ff5d5d;color:#fff;border-radius:8px;padding:1px 6px;font-size:11px;font-weight:900;margin-left:6px}
+
+.pzp{display:inline-flex;align-items:center;gap:4px}.pzp .ava{margin:-4px 0}
+.pprev{display:flex;align-items:center;gap:14px;background:rgba(255,255,255,.12);border-radius:14px;padding:12px;margin:8px 0}
+.pprev b{display:block;font-weight:900;font-size:14px}.pprev small{font-size:12px;opacity:.85;font-weight:800}
+.pprev.light{background:#fff;color:var(--ink)}.pprev.light small{color:var(--mute)}
 </style></head><body>
 <header class="hdr" id="hdr"><span id="hava" class="tapme"></span><div class="hn"><b id="hname">…</b><span id="httl"></span><span id="hbst"></span></div>
   <div class="hb"><span class="hs"><span class="flame dim" id="flame">🔥</span><b id="hst">0</b></span><span class="hm"><b id="uah">0</b> ₴</span><span class="hg"><b id="gem">0</b> 💎</span></div></header>
@@ -752,18 +757,19 @@ function styleSheet(){const L=S.looks,mp=P(S.me.id),cur=mp.look,tabs=[['av','А�
 // ===================== 📊 full farm stats
 let fsPer='week',fsMet='uah';
 const PCOL=['#ff8a2b','#7b5cff','#2fb45c','#2b9bff','#ff5d8f','#c9a227'];
-function fullStats(){const F=S.fstats;if(!F)return;const pp=F.people,per=fsPer,met=fsMet,val=p=>p[per][met];
- const rank=[...pp].sort((a,b)=>val(b)-val(a)),mx=Math.max(1,...pp.map(val)),u=met==='uah'?' ₴':'';
+function fullStats(){const F=S.fstats;if(!F)return;const pp=F.people,per=fsPer,met=fsMet,val=p=>met==='gin'?(p.fun[per]||{}).gin||0:(p[per]||{}).uah||0;
+ const rank=[...pp].sort((a,b)=>val(b)-val(a)),mx=Math.max(1,...pp.map(val)),u=met==='uah'?' ₴':' 💎';
  const pods=[rank[1],rank[0],rank[2]].map((p,i)=>p?`<div class="pc p${[2,1,3][i]}">${ava(P(p.id).look,[46,60,40][i])}<b>${P(p.id).name}</b><small>${fmt(Math.round(val(p)))}${u}</small><div class="pl">${[2,1,3][i]}</div></div>`:'').join('');
  const best=(f,lab,fmtv)=>{const w=[...pp].sort((a,b)=>f(b)-f(a))[0];return w&&f(w)>0?`<div class="cat"><small>${lab}</small><div class="w">${ava(P(w.id).look,24)}${P(w.id).name}<span>${fmtv(f(w))}</span></div></div>`:''};
  sheet(`<h3>📊 Статистика ферми</h3><p>Хто сьогодні король урожаю? 👑</p>
- <div class="mc">${[['today','Сьогодні'],['week','Тиждень'],['month','Місяць'],['all','Весь час']].map(([k,l])=>`<button data-p="${k}" class="${k===per?'on':''}">${l}</button>`).join('')}</div>
- <div class="mc">${[['uah','💰 Заробіток'],['n','🚜 Збори']].map(([k,l])=>`<button data-m="${k}" class="${k===met?'on':''}">${l}</button>`).join('')}</div>
- <div class="pod">${pods}</div>
+ <div class="mc">${[['today','Сьогодні'],['yday','Вчора'],['week','Тиждень'],['lweek','Мин. тиждень']].map(([k,l])=>`<button data-p="${k}" class="${k===per?'on':''}">${l}</button>`).join('')}</div>
+ <div class="mc">${[['month','Місяць'],['all','Весь час']].map(([k,l])=>`<button data-p="${k}" class="${k===per?'on':''}">${l}</button>`).join('')}</div>
+ <div class="mc">${[['uah','💰 Гривні'],['gin','💎 Кристали']].map(([k,l])=>`<button data-m="${k}" class="${k===met?'on':''}">${l}</button>`).join('')}</div>
+ ${pp.every(p=>!val(p))?'<div class="rbox small"><span>За цей період ще немає даних 🌱</span></div>':`<div class="pod">${pods}</div>`}
  <div class="lb">${rank.map((p,i)=>`<div class="fr ${p.id===String(S.me.id)?'me':''}"><span class="rk">${['🥇','🥈','🥉'][i]||i+1}</span><span class="nm">${who(p.id,28)}</span><span class="fb"><i style="width:${val(p)/mx*100}%"></i></span><span class="fv">${fmt(Math.round(val(p)))}${u}</span></div>`).join('')}</div>
- <div class="sect" style="margin:14px 2px 0"><b>🏆 Хто в чому найкращий</b><small>${{today:'сьогодні',week:'цього тижня',month:'цього місяця',all:'за весь час'}[per]}</small></div>
+ <div class="sect" style="margin:14px 2px 0"><b>🏆 Хто в чому найкращий</b><small>${{today:'сьогодні',yday:'вчора',week:'цього тижня',lweek:'минулого тижня',month:'цього місяця',all:'за весь час'}[per]}</small></div>
  <div class="cats">${per!=='all'&&per!=='month'||true?'':''}${best(p=>p.fun[per].gin,'💎 Заробили кристалів',v=>fmt(v))}${best(p=>p.fun[per].gout,'🛍️ Витратили кристалів',v=>fmt(v))}
-  ${best(p=>p.fun[per].looks,'🎨 Куплено стилю',v=>v)}${best(p=>p.fun[per].xp,'🐾 Досвід улюбленця',v=>'+'+v)}${best(p=>p.fun[per].inv,'💼 Вкладено в землю',v=>fmt(v)+' ₴')}${per==='today'?best(p=>p.normPct,'🎯 Норма сьогодні',v=>v+'%'):''}
+  ${best(p=>p.fun[per].looks,'🎨 Куплено стилю',v=>v)}${best(p=>p.fun[per].xp,'🐾 Досвід улюбленця',v=>'+'+v)}${best(p=>p.fun[per].inv,'💼 Вкладено в землю',v=>fmt(v)+' ₴')}${per==='today'?best(p=>p.normPct,'🎯 Норма сьогодні',v=>v+'%'):per==='yday'?best(p=>p.normPctY,'🎯 Норма вчора',v=>v+'%'):''}
   ${best(p=>p.streak,'🔥 Стрік зараз',v=>v+' дн.')}${best(p=>p.best,'🏅 Рекорд стріку',v=>v+' дн.')}${best(p=>p.normDays,'🎯 Норм за 14 днів',v=>v)}${best(p=>p.bestDay,'⚡ Зборів за день',v=>v)}
   ${best(p=>p.tasks7,'📋 Завдань за 7 днів',v=>v)}${best(p=>p.ach,'🏅 Досягнень',v=>v)}${best(p=>p.land,'🏡 Найбільший землевласник',v=>fmt(Math.round(v))+' ₴')}${best(p=>p.all.n,'🚜 Зборів за весь час',v=>fmt(v))}</div>
  <div class="sect" style="margin:6px 2px 6px"><b>📈 Останні 14 днів</b></div>
@@ -784,19 +790,30 @@ function lanes(c,big){const mx=Math.max(0,...c.board.map(x=>x.v)),me=String(S.me
 function renderContest(){const C=S.contest,el=$('cont');if(!C){el.style.display='none';return}el.style.display='';el.className='card race';
  el.innerHTML=`<div class="rh"><b>🏁 Гонка дня</b><span class="cdp">⏱ <span class="cdn">${cdn()}</span></span></div>`+
  C.prizes.map(z=>`<div class="cz"><span style="font-size:24px">${z.icon}</span><div class="tx"><b>${z.text}</b>${z.label}</div><button data-z="${z.id}">Забрати</button></div>`).join('')+
- C.list.map(c=>`<div class="rc"><div class="rt2"><span>${c.icon} ${c.label}</span><span class="pzp">🎁 ${c.prize}</span></div>${lanes(c)}</div>`).join('')+
+ C.list.map(c=>`<div class="rc"><div class="rt2"><span>${c.icon} ${c.label}</span><span class="pzp">${pzPrev(c.pz,22)||'🎁'} ${c.prize}</span></div>${lanes(c)}</div>`).join('')+
  `<div class="rf"><span>🏆 Тиждень: ${C.week.map(w=>`${ava(P(w.id).look,20)} <b>${w.wins}</b>`).join(' · ')}</span><span class="more2">Деталі ›</span></div>`;
  el.querySelectorAll('.cz button').forEach(b=>b.onclick=async e=>{e.stopPropagation();hap('heavy');plus(b,'🎁');const r=await act('prize',{id:b.dataset.z});if(r&&r.ok){hap('ok');confetti()}});
  el.onclick=e=>{if(e.target.closest('.cz'))return;raceSheet()};runRace(el)}
 function runRace(root){requestAnimationFrame(()=>setTimeout(()=>root.querySelectorAll('.runner').forEach(r=>{const w=r.dataset.pos;if(r.style.left!==w+'%')r.style.left=w+'%'}),60))}
+function pzPrev(pz,s){if(!pz)return'';const me=P(S.me.id).look;
+ if(pz.t==='aura')return ava(Object.assign({},me,{aura:true}),s);if(pz.t==='crown')return ava(Object.assign({},me,{crown:true}),s);
+ if(pz.t==='rainbow')return `<b class="rbn">${S.me.name}</b>`;return ''}
+function prizeBox(c){const pz=c.pz||{};const me=P(S.me.id).look;
+ const look=pz.t==='aura'?`<div class="pprev">${ava(Object.assign({},me,{aura:true}),64)}<div><b>Ось так сяятимеш ти ✨</b><small>Аура світиться навколо аватара всюди: у хедері, гонці, статистиці, торгівлі — 3 дні</small></div></div>`
+  :pz.t==='crown'?`<div class="pprev">${ava(Object.assign({},me,{crown:true}),64)}<div><b>Корона над тобою 👑</b><small>Усі бачитимуть її 7 днів</small></div></div>`
+  :pz.t==='food'?`<div class="pprev"><span style="font-size:46px">🍖</span><div><b>${pz.n} порцій корму</b><small>Годуй улюбленця скільки хочеш</small></div></div>`
+  :pz.t==='gem'?`<div class="pprev"><span style="font-size:46px">💎</span><div><b>+${pz.n} кристалів</b><small>Одразу на баланс</small></div></div>`
+  :pz.t==='cash'?`<div class="pprev"><span style="font-size:46px">💸</span><div><b>Кешбек ${pz.pct}%</b><small>Повернемо ${pz.pct}% витраченого сьогодні, до ${pz.max} 💎</small></div></div>`:'';
+ return look}
 function goTo(v){unsheet();if(v==='style'){styleSheet();return}const b=document.querySelector('.tab[data-v="'+v+'"]');if(b)b.click()}
 function raceSheet(){const C=S.contest;if(!C)return;const wk=[...C.week].sort((a,b)=>b.wins-a.wins);
  const turbo=(S.boosts||[]).find(b=>b.key==='turbo');
  sheet(`<div class="rsh"><h3>🏁 Гонка дня</h3><div class="bigcd">⏱ <span class="cdn">${cdn()}</span></div><p>до фінішу · переможець отримує приз, нічия — приз обом</p></div>
- ${C.list.map(c=>`<div class="rbox"><div class="rt2"><b>${c.icon} ${c.label}</b></div><div class="pzbig">🎁 Приз: ${c.prize}</div>${lanes(c,true)}
+ ${C.list.map(c=>`<div class="rbox"><div class="rt2"><b>${c.icon} ${c.label}</b></div><div class="pzbig">🎁 Приз: ${c.prize}</div>${prizeBox(c)}${lanes(c,true)}
   <div class="hint">💡 ${c.hint}</div><button class="gob" data-go="${c.go}">Піти ›</button></div>`).join('')}
  ${turbo&&!C.turbo?`<div class="rbox tb"><b>⚡ Хочеш обігнати?</b><small>Турбо: усе, що зробиш далі сьогодні, рахується ×1,5</small><button class="buy" id="rturbo">⚡ Турбо · ${turbo.price} 💎</button></div>`:C.turbo?`<div class="rbox tb"><b>⚡ Турбо увімкнено!</b><small>Усе, що робиш зараз, рахується ×1,5</small></div>`:''}
  <div class="sect" style="margin:14px 2px 6px"><b>🏆 Перемоги тижня</b><small>у неділю чемпіон отримує 👑 корону і 🍦</small></div>
+ <div class="pprev light">${ava(Object.assign({},P(S.me.id).look,{crown:true}),64)}<div><b>Так виглядатиме чемпіон 👑</b><small>Корона над аватаром 7 днів — у хедері й скрізь, де тебе видно</small></div></div>
  ${wk.every(w=>!w.wins)?'<div class="rbox small"><span>Цього тижня ще ніхто не виграв — будь першою! 🏁</span></div>':''}<div class="pod" style="${wk.every(w=>!w.wins)?'display:none':''}">${[wk[1],wk[0],wk[2]].map((w,i)=>w?`<div class="pc p${[2,1,3][i]}">${ava(P(w.id).look,[46,60,40][i])}<b>${nm(P(w.id))}</b><small>${w.wins} ${plural(w.wins,['перемога','перемоги','перемог'])}</small><div class="pl">${[2,1,3][i]}</div></div>`:'').join('')}</div>
  ${C.last?`<div class="sect" style="margin:14px 2px 6px"><b>📜 Вчора</b><small>${C.last.day.slice(8)}.${C.last.day.slice(5,7)}</small></div>${C.last.list.map(c=>{const w=c.board[0]&&c.board[0].v>0?c.board.filter(x=>x.v===c.board[0].v):[];
   return `<div class="rbox small"><span>${c.icon} ${c.label}</span><span class="win">${w.length?w.map(x=>ava(P(x.id).look,26)+' '+P(x.id).name).join(', ')+' · '+fmt(w[0].v):'ніхто 😴'}</span></div>`}).join('')}`:''}

@@ -484,7 +484,7 @@ function appContest(st, id, now) {
   return { ends: nextHour(st.cfg.dayEnd), done: !!(st.contestDone || {})[day],
     last: (function () { const ks = Object.keys(st.contestLog || {}).filter(function (k) { return k < day; }).sort(); return ks.length ? { day: ks[ks.length - 1], list: st.contestLog[ks[ks.length - 1]] } : null; })(),
     turbo: !!(((st.boosts || {})[id] || {}).turbo && st.boosts[id].turbo.day === day),
-    list: contestsOf(day).map(function (c) { return { id: c.id, hint: c.hint, go: c.go, icon: c.icon, label: c.label, unit: c.unit, prize: cPrizeText(c.prize),
+    list: contestsOf(day).map(function (c) { return { pz: c.prize, id: c.id, hint: c.hint, go: c.go, icon: c.icon, label: c.label, unit: c.unit, prize: cPrizeText(c.prize),
       board: Object.keys(st.people).map(function (u) { return { id: u, v: contestVal(st, c.id, u, day) }; }).sort(function (a, b) { return b.v - a.v; }) }; }),
     prizes: (st.prizes || []).filter(function (z) { return String(z.uid) === String(id); }).map(function (z) { return { id: z.id, icon: z.icon, label: z.label, text: cPrizeText(z.prize), day: z.day }; }),
     week: Object.keys(st.people).map(function (u) { return { id: u, wins: w[u] || 0 }; }).sort(function (a, b) { return b.wins - a.wins; }) };
@@ -3789,25 +3789,26 @@ function appTrade(st, user, a, q) {
 }
 // 📊 the whole farm: everyone side by side (a bit of competition)
 function appFarmStats(st, now) {
-  const day = dayKey(now, st.cfg), wk = 'w:' + weekKey(day), mo = 'm:' + monthKey(now);
+  const day = dayKey(now, st.cfg), wk = 'w:' + weekKey(day), mo = 'm:' + monthKey(now), yd = addDays(day, -1), lw = addDays(weekKey(day), -7);
   const pick = function (key, u) { const r = (st.stats[key] || {})[u]; return { n: r ? r.n : 0, uah: r ? money(r.g !== undefined ? r.g : r.uah) : 0 }; };
   const days = []; for (let i = 13; i >= 0; i--) days.push(dayKey(now - i * 86400000, st.cfg));
   const people = Object.keys(st.people).map(function (u) {
     const p = st.people[u], tasks = Object.keys(st.gemLog || {}).reduce(function (a, d) { const n = ((st.gemLog[d] || {})[u] || {}).n || {}; return a + Object.keys(n).reduce(function (b, k) { return b + n[k]; }, 0); }, 0);
-    return { id: u, norm: p.norm || 0, today: pick('d:' + day, u), week: pick(wk, u), month: pick(mo, u), all: { n: harvestsRaw(st, u), uah: money(earnedRaw(st, u)) },
+    return { id: u, norm: p.norm || 0, today: pick('d:' + day, u), yday: pick('d:' + yd, u), week: pick(wk, u), lweek: pick('w:' + lw, u), month: pick(mo, u), all: { n: harvestsRaw(st, u), uah: money(earnedRaw(st, u)) },
       streak: streakOf(st, u, now), best: bestStreak(st, u), bestDay: bestDay(st, u), ach: Object.keys(st.ach[u] || {}).length, tasks7: tasks,
       normDays: days.filter(function (d) { const r = (st.stats['d:' + d] || {})[u]; return r && p.norm && (r.g !== undefined ? r.g : r.uah) >= p.norm; }).length,
       land: money((st.cfg.iplots || []).reduce(function (a, pl) { return a + (pl.shares[u] || 0); }, 0)),
       fun: (function () { // the kid-friendly numbers: crystals earned / spent, style items, pet XP, money invested
-        const sum = function (from, k) { return money(Object.keys(st.dayLog || {}).filter(function (d) { return d >= from; }).reduce(function (a, d) { return a + (((st.dayLog[d] || {})[u] || {})[k] || 0); }, 0)); };
-        const own = (st.lookOwn || {})[u] || {}, looks = function (from) { return Object.keys(own).filter(function (k) { return own[k] >= from; }).length; };
+        const sum = function (from, k, to) { return money(Object.keys(st.dayLog || {}).filter(function (d) { return d >= from && (!to || d <= to); }).reduce(function (a, d) { return a + (((st.dayLog[d] || {})[u] || {})[k] || 0); }, 0)); };
+        const own = (st.lookOwn || {})[u] || {}, looks = function (from, to) { return Object.keys(own).filter(function (k) { return own[k] >= from && (!to || own[k] <= to); }).length; };
+        const rng = function (from, to) { return { gin: sum(from, 'gin', to), gout: sum(from, 'gout', to), xp: sum(from, 'xp', to), inv: sum(from, 'inv', to), looks: looks(from, to) }; };
         const w = weekKey(day), m = monthKey(now) + '-01';
-        return { today: { gin: sum(day, 'gin'), gout: sum(day, 'gout'), xp: sum(day, 'xp'), inv: sum(day, 'inv'), looks: looks(day) },
+        return { yday: rng(yd, yd), lweek: rng(lw, addDays(lw, 6)), today: { gin: sum(day, 'gin'), gout: sum(day, 'gout'), xp: sum(day, 'xp'), inv: sum(day, 'inv'), looks: looks(day) },
           week: { gin: sum(w, 'gin'), gout: sum(w, 'gout'), xp: sum(w, 'xp'), inv: sum(w, 'inv'), looks: looks(w) },
           month: { gin: sum(m, 'gin'), gout: sum(m, 'gout'), xp: sum(m, 'xp'), inv: sum(m, 'inv'), looks: looks(m) },
           all: { gin: sum('', 'gin'), gout: sum('', 'gout'), xp: sum('', 'xp'), inv: sum('', 'inv'), looks: Object.keys(own).length } };
       })(),
-      normPct: p.norm ? Math.round(pick('d:' + day, u).uah / p.norm * 100) : 0,
+      normPct: p.norm ? Math.round(pick('d:' + day, u).uah / p.norm * 100) : 0, normPctY: p.norm ? Math.round(pick('d:' + yd, u).uah / p.norm * 100) : 0,
       days: days.map(function (d) { return pick('d:' + d, u).uah; }) };
   });
   const tot = function (k) { return people.reduce(function (a, p) { return { n: a.n + p[k].n, uah: money(a.uah + p[k].uah) }; }, { n: 0, uah: 0 }); };
