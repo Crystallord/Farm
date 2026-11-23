@@ -291,7 +291,7 @@ body{padding-bottom:96px}
 .sgrid.ti{grid-template-columns:1fr 1fr}
 .prev{display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:4px}
 
-.hdr{position:sticky;top:0;z-index:45;display:flex;align-items:center;gap:10px;padding:10px 14px;background:#fff3e2;border-bottom:1px solid #f0dcc0;margin:-14px -14px 12px;box-shadow:0 4px 14px rgba(160,110,50,.08)}
+.hdr{position:sticky;top:0;z-index:45;display:flex;align-items:center;gap:10px;padding:16px 14px 10px;background:#fff3e2;border-bottom:1px solid #f0dcc0;margin:-14px -14px 12px;box-shadow:0 4px 14px rgba(160,110,50,.08)}
 .hn{flex:1;min-width:0;line-height:1.15}.hn b{display:block;font-size:16px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.hn .ttl{margin:2px 0 0}
 .hb{display:flex;gap:6px;align-items:center}
 .hb>span{background:#fff;border-radius:12px;padding:5px 8px;font-size:13px;font-weight:900;white-space:nowrap;box-shadow:0 2px 0 #f0dcc0;font-variant-numeric:tabular-nums}
@@ -316,6 +316,27 @@ body{padding-bottom:96px}
 .gch .gd small{position:absolute;bottom:-16px;left:0;right:0;text-align:center;font-size:9px;font-weight:900;color:var(--mute)}
 .lg{display:flex;gap:12px;flex-wrap:wrap;margin:22px 0 6px;font-weight:900;font-size:12.5px}.lg span{display:flex;align-items:center;gap:5px}.lg i{width:12px;height:12px;border-radius:4px;display:inline-block}
 .ftot{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0}.ftot div{background:#fff;border-radius:14px;padding:10px 4px;text-align:center}.ftot b{display:block;font-size:16px;font-weight:900}.ftot small{font-size:11px;font-weight:800;color:var(--mute)}
+
+.ava.aura{animation:auraP 2.2s ease-in-out infinite}@keyframes auraP{0%,100%{filter:drop-shadow(0 0 3px #ffe27a) drop-shadow(0 0 6px #ff9ad5)}50%{filter:drop-shadow(0 0 8px #ffe27a) drop-shadow(0 0 14px #ff9ad5)}}
+.ava.sparkle::before{background:linear-gradient(120deg,#fff6c9,#ffd34d,#fffdf0,#ffb020,#fff6c9);background-size:300% 300%;animation:shine 3s linear infinite}
+@keyframes shine{0%{background-position:0% 50%}100%{background-position:300% 50%}}
+.ava .crw{position:absolute;top:calc(var(--s)*-.36);left:50%;transform:translateX(-50%) rotate(-10deg);font-size:calc(var(--s)*.42);z-index:3;line-height:1}
+.rbn{background:linear-gradient(90deg,#ff5d5d,#ffb020,#4ad66d,#3cb4ff,#b26bff,#ff5d5d);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 4s linear infinite}
+.cont{padding:12px 14px;background:linear-gradient(160deg,#fffaf0,#fff)}
+.cont .ch{display:flex;justify-content:space-between;align-items:baseline}.cont .ch b{font-size:16px;font-weight:900}.cont .ch small{font-size:12px;font-weight:900;color:#b35a00;font-variant-numeric:tabular-nums}
+.cz{display:flex;align-items:center;gap:8px;background:linear-gradient(135deg,#fff3c4,#ffe08a);border-radius:14px;padding:8px 10px;margin-top:8px}
+.cz .tx{flex:1;font-size:12.5px;font-weight:800}.cz .tx b{display:block;font-size:14px}
+.cz button{border:0;border-radius:12px;padding:8px 11px;font:900 13px Nunito,sans-serif;color:#fff;background:linear-gradient(#ffb020,#ff7a1a);box-shadow:0 3px 0 #d9620a;cursor:pointer;animation:breathe2 1.6s infinite}
+.cr{margin-top:10px;padding-top:10px;border-top:1px dashed #f0dcc0}
+.cr .ct{display:flex;align-items:center;gap:8px}.cr .tg{font-size:10.5px;font-weight:900;padding:3px 7px;border-radius:8px;white-space:nowrap}
+.tg.earn{background:#e3f7e9;color:#1d8a45}.tg.spend{background:#f1ecff;color:#5b3fd6}
+.cr .lb2{flex:1;font-weight:900;font-size:13.5px;line-height:1.2}.cr .pz{font-size:11.5px;font-weight:900;color:#b35a00;white-space:nowrap}
+.brd{display:flex;gap:10px;margin-top:8px;flex-wrap:wrap}.brd span{display:flex;align-items:center;gap:5px;font-weight:900;font-size:13px;padding:3px 8px 3px 3px;border-radius:20px;background:#f7efe3}
+.brd span.lead{background:linear-gradient(90deg,#ffe08a,#fff3c4)}
+.cw{margin-top:10px;font-size:12px;font-weight:800;color:var(--mute);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.exl{display:flex;flex-direction:column;gap:10px;margin:6px 0}.exr{display:flex;align-items:center;gap:12px;background:#fff;border-radius:16px;padding:10px 12px}
+.exr .tx{flex:1}.exr b{font-weight:900}.exr small{display:block;font-size:12px;color:var(--mute);font-weight:800}
+.exr .buy{width:auto;padding:9px 12px;font-size:13.5px}
 </style></head><body>
 <header class="hdr" id="hdr"><span id="hava" class="tapme"></span><div class="hn"><b id="hname">…</b><span id="httl"></span></div>
   <div class="hb"><span class="hs"><span class="flame dim" id="flame">🔥</span><b id="hst">0</b></span><span class="hm"><b id="uah">0</b> ₴</span><span class="hg"><b id="gem">0</b> 💎</span></div></header>
@@ -331,6 +352,7 @@ body{padding-bottom:96px}
     <div class="nf"><span class="left" id="left">…</span><span class="nx" id="ms"></span></div>
   </div>
   <div class="hv" id="hv"></div>
+  <div class="card cont" id="cont"></div>
   <div class="sect" style="margin-top:22px"><b>Посадила щось інше?</b><small>разовий збір</small></div>
   <div class="once" id="once"></div>
   <div class="demo dm"></div>
@@ -401,8 +423,9 @@ const fmt=v=>(+v).toLocaleString('uk-UA',{minimumFractionDigits:(+v)%1?2:0,maxim
 const plural=(n,f)=>{n=Math.abs(n)%100;const b=n%10;return n>10&&n<20?f[2]:b===1?f[0]:b>=2&&b<=4?f[1]:f[2]};
 let S=null, OFF=0, busy=false, game='ar';
 const P=id=>(S&&S.people||[]).find(p=>p.id===String(id))||{id,name:'?',look:{av:'🙂',bg:'sand',fr:'none',ti:''}};
-const ava=(look,s)=>`<span class="ava bg-${look.bg} fr-${look.fr}" style="--s:${s||40}px"><i>${look.av}</i></span>`;
-const who=(id,s,title)=>{const p=P(id);return `<span class="who">${ava(p.look,s)}<span>${p.name}${title&&p.look.ti?` <span class="ttl">${p.look.ti}</span>`:''}</span></span>`};
+const ava=(look,s)=>`<span class="ava bg-${look.bg} fr-${look.fr}${look.aura?' aura':''}${look.sparkle?' sparkle':''}" style="--s:${s||40}px"><i>${look.av}</i>${look.crown?'<b class="crw">👑</b>':''}</span>`;
+const nm=p=>p.look&&p.look.rainbow?`<span class="rbn">${p.name}</span>`:p.name;
+const who=(id,s,title)=>{const p=P(id);return `<span class="who">${ava(p.look,s)}<span>${nm(p)}${title&&p.look.ti?` <span class="ttl">${p.look.ti}</span>`:''}</span></span>`};
 document.querySelectorAll('.dm').forEach(e=>e.textContent=DEMO?'демо-режим (відкрито не з Telegram)':'');
 // ===================== server
 async function call(action,args){
@@ -443,9 +466,9 @@ function confirmTG(text){return new Promise(res=>{try{TG.showConfirm(text,ok=>re
 // ===================== render: farm
 const WD=['Нд','Пн','Вт','Ср','Чт','Пт','Сб'];
 function safe(f){try{f()}catch(e){console.error(e);toast('⚠️ '+(e&&e.message||e))}}
-function render(){if(!S)return;safe(()=>{renderTop()});safe(()=>{renderRing()});safe(()=>{renderCrops()});safe(()=>{renderOnce()});safe(()=>{renderTasks()});safe(()=>{renderShop()});safe(()=>{if(S.invest)renderInvest()});safe(()=>{renderMe()});safe(()=>{renderClaim()});safe(()=>{renderAppr()});}
+function render(){if(!S)return;safe(()=>{renderTop()});safe(()=>{renderRing()});safe(()=>{renderCrops()});safe(()=>{renderOnce()});safe(()=>{renderTasks()});safe(()=>{renderShop()});safe(()=>{if(S.invest)renderInvest()});safe(()=>{renderMe()});safe(()=>{renderClaim()});safe(()=>{renderAppr()});safe(()=>{renderContest()});}
 function renderTop(){const me=S.me,w=S.farm.week,done=w[w.length-1].ok,mp=P(me.id);
- $('hava').innerHTML=ava(mp.look,40);$('hname').textContent=me.name;$('httl').innerHTML=mp.look.ti?`<span class="ttl">${mp.look.ti}</span>`:'';$('hava').onclick=styleSheet;$('hst').textContent=me.streak;
+ $('hava').innerHTML=ava(mp.look,40);$('hname').innerHTML=nm(mp);$('httl').innerHTML=mp.look.ti?`<span class="ttl">${mp.look.ti}</span>`:'';$('hava').onclick=styleSheet;$('hst').textContent=me.streak;
  $('flame2').classList.toggle('dim',!done);
  $('sd').textContent=me.streak;$('sdw').textContent=plural(me.streak,['день','дні','днів']);
  $('flame').classList.toggle('dim',!done);
@@ -566,7 +589,7 @@ function tickInvest(){if(!S||!S.invest||!$('v_inv').classList.contains('on'))ret
 let achAll=false;
 function renderMe(){const M=S.my;if(!M)return;const mp=P(S.me.id);
  $('mava').innerHTML=ava(mp.look,72);$('mtitle').innerHTML=mp.look.ti?`<span class="ttl">${mp.look.ti}</span>`:'';$('stylebtn').onclick=styleSheet;$('mava').onclick=styleSheet;
- $('mname').textContent=S.me.name;renderTrades();$('machs').textContent=`🏅 ${M.ach.got} з ${M.ach.total} досягнень · 🔥 ${S.me.streak} ${plural(S.me.streak,['день','дні','днів'])}`;
+ $('mname').innerHTML=nm(P(S.me.id));renderTrades();$('machs').textContent=`🏅 ${M.ach.got} з ${M.ach.total} досягнень · 🔥 ${S.me.streak} ${plural(S.me.streak,['день','дні','днів'])}`;
  $('trio').innerHTML=[['Сьогодні',M.today],['Тиждень',M.week],['Місяць',M.month]].map(([l,x])=>`<div><b>${fmt(Math.round(x.uah))} ₴</b><small>${l} · ${x.n} ${plural(x.n,['збір','збори','зборів'])}</small></div>`).join('');
  // inventory
  const I=M.items||[],act=I.filter(i=>i.act);$('icount').textContent=I.length?'':'';
@@ -679,15 +702,19 @@ function bankSheet(){const g=S.me.gems,r=S.my.gemUah,me=S.me.id;
   if(!(await confirmTG(`Обміняти ${k} 💎 на ${fmt(k*r)} ₴?`)))return;hap('heavy');fly(b,$('uah'),'₴',5);const res=await act('gemx',{n:String(b.dataset.n)});if(res&&res.ok)bankSheet()})}
 // ===================== 🎨 style studio
 let stab='av';
-function styleSheet(){const L=S.looks,mp=P(S.me.id),cur=mp.look,tabs=[['av','Аватар'],['bg','Фон'],['fr','Рамка'],['ti','Титул']];
+function styleSheet(){const L=S.looks,mp=P(S.me.id),cur=mp.look,tabs=[['av','Аватар'],['bg','Фон'],['fr','Рамка'],['ti','Титул'],['ex','✨ Екскл.']];
  const wornKey={av:cur.av,bg:cur.bg,fr:cur.fr,ti:((S.looks.ti.find(x=>x.label===cur.ti)||{}).key)||''};
  const prev=k=>Object.assign({},cur,{[stab]:k});
  sheet(`<div class="prev">${ava(cur,96)}<b style="font-size:19px">${S.me.name}</b>${cur.ti?`<span class="ttl">${cur.ti}</span>`:''}<small style="color:var(--mute);font-weight:800">у тебе ${fmt(S.me.gems)} 💎</small></div>
  <div class="stabs">${tabs.map(([k,l])=>`<button data-t="${k}" class="${k===stab?'on':''}">${l}</button>`).join('')}</div>
- <div class="sgrid ${stab==='ti'?'ti':''}">${L[stab].map(o=>{const on=wornKey[stab]===o.key,pv=stab==='av'?ava(Object.assign({},cur,{av:o.key}),46):stab==='bg'?ava(Object.assign({},cur,{bg:o.key}),46):stab==='fr'?ava(Object.assign({},cur,{fr:o.key}),46):`<span class="ttl" style="font-size:12px">${o.label||'—'}</span>`;
-  return `<button data-k="${o.key}" class="${on?'on':''}">${pv}${stab!=='av'&&stab!=='ti'?`<span>${o.label}</span>`:''}<span class="${on?'ok':o.own?'ok':'pr'}">${on?'✓ вдягнуто':o.own?'є':o.price+' 💎'}</span></button>`}).join('')}</div>
+ ${stab==='ex'?`<p>Тиждень лише в однієї людини на всю родину. Купиш — і в інших такого не буде 7 днів.</p><div class="exl">${(S.excl||[]).map(e=>{const mine=e.holder===String(S.me.id),busy2=e.holder&&!mine,d=new Date(e.until);const dd=String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0');
+  const pv=e.key==='crown'?ava(Object.assign({},cur,{crown:true}),46):e.key==='sparkle'?ava(Object.assign({},cur,{sparkle:true}),46):`<b class="rbn" style="font-size:17px">${S.me.name}</b>`;
+  return `<div class="exr">${pv}<div class="tx"><b>${e.icon} ${e.label}</b><small>${mine?'твоє до '+dd:busy2?'зайнято: '+P(e.holder).name+' до '+dd:'вільне · 7 днів'}</small></div>${busy2?'':`<button class="buy" data-x="${e.key}">${mine?'+7 днів · ':''}${e.price} 💎</button>`}</div>`}).join('')}</div>`:`<div class="sgrid ${stab==='ti'?'ti':''}">${L[stab].map(o=>{const on=wornKey[stab]===o.key,pv=stab==='av'?ava(Object.assign({},cur,{av:o.key}),46):stab==='bg'?ava(Object.assign({},cur,{bg:o.key}),46):stab==='fr'?ava(Object.assign({},cur,{fr:o.key}),46):`<span class="ttl" style="font-size:12px">${o.label||'—'}</span>`;
+  return `<button data-k="${o.key}" class="${on?'on':''}">${pv}${stab!=='av'&&stab!=='ti'?`<span>${o.label}</span>`:''}<span class="${on?'ok':o.own?'ok':'pr'}">${on?'✓ вдягнуто':o.own?'є':o.price+' 💎'}</span></button>`}).join('')}</div>`}
  <button class="ghostb" onclick="unsheet()">Готово</button>`);
  $('sheet').querySelectorAll('.stabs button').forEach(b=>b.onclick=()=>{stab=b.dataset.t;styleSheet()});
+ $('sheet').querySelectorAll('.exr .buy').forEach(b=>b.onclick=async()=>{const e=S.excl.find(x=>x.key===b.dataset.x);if(S.me.gems<e.price){toast(`Потрібно ще ${Math.ceil(e.price-S.me.gems)} 💎`);hap('err');return}
+  if(!(await confirmTG(`${e.icon} ${e.label} на 7 днів за ${e.price} 💎?`)))return;hap('heavy');const r=await act('excl',{key:e.key});if(r&&r.ok){confetti();styleSheet()}});
  $('sheet').querySelectorAll('.sgrid button').forEach(b=>b.onclick=async()=>{const o=L[stab].find(x=>x.key===b.dataset.k);
   if(!o.own){if(S.me.gems<o.price){toast(`Потрібно ще ${Math.ceil(o.price-S.me.gems)} 💎 — заробляй у Завданнях!`);hap('err');return}
    if(!(await confirmTG(`Купити за ${o.price} 💎?`)))return}
@@ -719,6 +746,16 @@ function fullStats(){const F=S.fstats;if(!F)return;const pp=F.people,per=fsPer,m
  $('sheet').querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{fsPer=b.dataset.p;hap('light');fullStats()});
  $('sheet').querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{fsMet=b.dataset.m;hap('light');fullStats()})}
 $('fsbtn').onclick=e=>{e.preventDefault();fullStats()};$('fsbtn2').onclick=fullStats;
+// ===================== 🏆 contests
+function renderContest(){const C=S.contest,el=$('cont');if(!C){el.style.display='none';return}el.style.display='';
+ const left=Math.max(0,C.ends-(Date.now()+OFF)),h=Math.floor(left/3600000),m=Math.floor(left%3600000/60000);
+ el.innerHTML=`<div class="ch"><b>🏆 Змагання дня</b><small>${C.done?'підсумки підбито':'до кінця '+h+' год '+m+' хв'}</small></div>`+
+ C.prizes.map(z=>`<div class="cz"><span style="font-size:24px">${z.icon}</span><div class="tx"><b>${z.text}</b>${z.label}</div><button data-z="${z.id}">Забрати</button></div>`).join('')+
+ C.list.map(c=>{const top=c.board[0]&&c.board[0].v>0?c.board[0].v:null;return `<div class="cr"><div class="ct"><span class="tg ${c.type}">${c.type==='earn'?'🟢 Заробіток':'🟣 Витрати'}</span><span class="lb2">${c.icon} ${c.label}</span></div>
+  <div class="ct" style="margin-top:4px"><span class="pz">🎁 Приз: ${c.prize}</span></div>
+  <div class="brd">${c.board.map(x=>`<span class="${top!==null&&x.v===top?'lead':''}">${ava(P(x.id).look,26)}${fmt(x.v)}${top!==null&&x.v===top?' 👑':''}</span>`).join('')}</div></div>`}).join('')+
+ `<div class="cw">Перемоги цього тижня: ${C.week.map(w=>`${ava(P(w.id).look,20)} ${w.wins}`).join(' · ')} · у неділю чемпіон отримує 👑</div>`;
+ el.querySelectorAll('.cz button').forEach(b=>b.onclick=async()=>{hap('heavy');plus(b,'🎁');const r=await act('prize',{id:b.dataset.z});if(r&&r.ok){hap('ok');confetti()}})}
 // ===================== tabs
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{hap('light');document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===b));
  document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id==='v_'+b.dataset.v));scrollTo(0,0);if(b.dataset.v==='inv')tickInvest()});

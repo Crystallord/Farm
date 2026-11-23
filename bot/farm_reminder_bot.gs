@@ -328,6 +328,122 @@ function dayTrack(st) {
   });
   Object.keys(log).sort().slice(0, -35).forEach(function (k) { delete log[k]; });
 }
+function dayAdd(st, u, k, n) {
+  const day = dayKey(Date.now(), st.cfg), log = st.dayLog = st.dayLog || {}, d = log[day] = log[day] || {};
+  const r = d[u] = d[u] || { gin: 0, gout: 0, xp: 0, inv: 0 }; r[k] = money((r[k] || 0) + n);
+}
+// ---------------------------------------------------------------- 🏆 daily contests
+// Every day two: one about earning, one about spending (rotating). Settled with the evening summary; prizes wait in the app.
+// Prizes ≈ 10–12 💎 of value a win (Maria earns ~50–70 💎 a day): small enough not to inflate the shop.
+const CONTESTS = {
+  earn: [
+    { id: 'gin', icon: '💎', label: 'Хто заробить більше кристалів', unit: '💎' },
+    { id: 'tasks', icon: '📋', label: 'Хто виконає більше завдань', unit: 'завд.' },
+    { id: 'xp', icon: '🐾', label: 'Чий улюбленець набере більше досвіду', unit: 'XP' },
+    { id: 'ach', icon: '🏅', label: 'Хто отримає більше досягнень', unit: 'шт' },
+  ],
+  spend: [
+    { id: 'style', icon: '🎨', label: 'Хто витратить більше 💎 на стиль', unit: '💎' },
+    { id: 'shop', icon: '🛍️', label: 'Хто витратить більше 💎 у крамниці', unit: '💎' },
+  ],
+};
+const PRIZES = {
+  earn: [{ t: 'gem', n: 12 }, { t: 'food', n: 10 }, { t: 'aura', days: 3 }],
+  spend: [{ t: 'cash', pct: 30, max: 15 }, { t: 'aura', days: 3 }],
+};
+function dayIdx(day) { return Math.floor(Date.parse(day + 'T12:00:00Z') / 86400000); }
+function contestsOf(day) {
+  const i = dayIdx(day);
+  return ['earn', 'spend'].map(function (k) { const c = CONTESTS[k][i % CONTESTS[k].length], pz = PRIZES[k][i % PRIZES[k].length]; return Object.assign({ type: k, prize: pz }, c); });
+}
+function cPrizeText(pz, val) {
+  if (pz.t === 'gem') return '+' + pz.n + ' 💎';
+  if (pz.t === 'food') return '🍖 ' + pz.n + ' кормів';
+  if (pz.t === 'aura') return '✨ Аура на ' + pz.days + ' дні';
+  if (pz.t === 'cash') return '💸 кешбек ' + pz.pct + '%' + (val !== undefined ? ' (+' + Math.min(pz.max, Math.round(val * pz.pct / 100)) + ' 💎)' : ' (до ' + pz.max + ' 💎)');
+  if (pz.t === 'crown') return '👑 Корона на ' + pz.days + ' днів';
+  if (pz.t === 'ice') return '🍦 морозиво';
+  return '';
+}
+function contestVal(st, cid, u, day) {
+  const r = ((st.dayLog || {})[day] || {})[u] || {};
+  if (cid === 'gin') return money(r.gin || 0);
+  if (cid === 'xp') return r.xp || 0;
+  if (cid === 'style') return money(r.style || 0);
+  if (cid === 'shop') return money(r.shop || 0);
+  if (cid === 'ach') { const a = st.ach[u] || {}; return Object.keys(a).filter(function (k) { return a[k] === day; }).length; }
+  if (cid === 'tasks') { const n = (((st.gemLog || {})[day] || {})[u] || {}).n || {};
+    return Object.keys(n).reduce(function (a, k) { return a + n[k]; }, 0) + (st.pend || []).filter(function (x) { return String(x.uid) === String(u) && x.day === day; }).length; }
+  return 0;
+}
+function settleContests(st, at) {
+  const day = dayKey(at, st.cfg); st.contestDone = st.contestDone || {};
+  if (st.contestDone[day]) return '';
+  st.contestDone[day] = 1; Object.keys(st.contestDone).sort().slice(0, -10).forEach(function (k) { delete st.contestDone[k]; });
+  const wk = weekKey(day), lines = [];
+  st.prizes = st.prizes || []; st.cwins = st.cwins || {}; st.cwins[wk] = st.cwins[wk] || {};
+  contestsOf(day).forEach(function (c) {
+    const vals = Object.keys(st.people).map(function (u) { return { u: u, v: contestVal(st, c.id, u, day) }; }), max = Math.max.apply(null, vals.map(function (x) { return x.v; }).concat([0]));
+    if (max <= 0) { lines.push(c.icon + ' ' + c.label + ': ніхто не взяв участь 😴'); return; }
+    vals.filter(function (x) { return x.v === max; }).forEach(function (x) {
+      const pz = Object.assign({}, c.prize); if (pz.t === 'cash') { pz.t = 'gem'; pz.n = Math.max(1, Math.min(c.prize.max, Math.round(x.v * c.prize.pct / 100))); }
+      st.prizeSeq = (st.prizeSeq || 0) + 1;
+      st.prizes.push({ id: 'z' + st.prizeSeq, uid: x.u, day: day, icon: c.icon, label: c.label, prize: pz });
+      st.cwins[wk][x.u] = (st.cwins[wk][x.u] || 0) + 1;
+      lines.push('🏆 ' + c.icon + ' ' + c.label + ': ' + b(nameOf(st, x.u)) + ' (' + x.v + ' ' + c.unit + ') → ' + cPrizeText(pz));
+    });
+  });
+  if (new Date(day + 'T12:00:00Z').getUTCDay() === 0) { // Sunday: the week's champion
+    const w = st.cwins[wk], best = Math.max.apply(null, Object.keys(w).map(function (u) { return w[u]; }).concat([0]));
+    Object.keys(w).filter(function (u) { return best > 0 && w[u] === best; }).forEach(function (u) {
+      [{ t: 'crown', days: 7 }, { t: 'ice', n: 1 }].forEach(function (pz) { st.prizeSeq++; st.prizes.push({ id: 'z' + st.prizeSeq, uid: u, day: day, icon: '👑', label: 'Чемпіон тижня (' + best + ' ' + plural(best, ['перемога', 'перемоги', 'перемог']) + ')', prize: pz }); });
+      lines.push('👑 ' + b('Чемпіон тижня: ' + esc(nameOf(st, u))) + ' — ' + best + ' ' + plural(best, ['перемога', 'перемоги', 'перемог']) + '! Корона на 7 днів і 🍦');
+    });
+    Object.keys(st.cwins).sort().slice(0, -4).forEach(function (k) { delete st.cwins[k]; });
+  }
+  st.prizes = st.prizes.filter(function (z) { return z.day >= addDays(day, -14); }); // unclaimed for 2 weeks: gone
+  return lines.length ? '🏆 ' + b('Змагання дня') + '\n' + lines.join('\n') + '\n🎁 Нагороди — забирай у 📱 застосунку' : '';
+}
+// ✨ temporary looks: st.temp[uid] = { aura: until }; exclusives (one holder for the whole family): st.excl[key] = { uid, until }
+const EXCL = { crown: { icon: '👑', label: 'Корона', price: 100 }, sparkle: { icon: '🌟', label: 'Сяючий фон', price: 60 }, rainbow: { icon: '🌈', label: 'Веселкове ім’я', price: 80 } };
+function exclHolder(st, k) { const e = (st.excl || {})[k]; return e && e.until > Date.now() ? e : null; }
+function giveExcl(st, u, k, days) {
+  const e = exclHolder(st, k); if (e && String(e.uid) !== String(u)) return false;
+  st.excl = st.excl || {}; st.excl[k] = { uid: String(u), until: Math.max(Date.now(), e ? e.until : 0) + days * 86400000 }; return true;
+}
+function claimPrize(st, id, key, q) {
+  const list = (st.prizes || []).filter(function (z) { return String(z.uid) === String(id) && (key === 'all' || z.id === key); });
+  if (!list.length) { q.out.push('Уже забрано'); return; }
+  const x = inv(st, id), got = [];
+  list.forEach(function (z) {
+    const pz = z.prize;
+    if (pz.t === 'gem') x.gems = money(x.gems + pz.n);
+    else if (pz.t === 'food') x.food += pz.n;
+    else if (pz.t === 'ice') x.ice += pz.n || 1;
+    else if (pz.t === 'aura') { st.temp = st.temp || {}; const t = st.temp[id] = st.temp[id] || {}; t.aura = Math.max(Date.now(), t.aura || 0) + pz.days * 86400000; }
+    else if (pz.t === 'crown' && !giveExcl(st, id, 'crown', pz.days)) { x.gems = money(x.gems + 15); got.push('корона зайнята — замість неї +15 💎'); return; }
+    got.push(cPrizeText(pz));
+  });
+  st.prizes = st.prizes.filter(function (z) { return list.indexOf(z) < 0; });
+  q.out.push('🎁 ' + got.join(' · '));
+}
+function buyExcl(st, id, k, q) {
+  const E = EXCL[k]; if (!E) { q.out.push('Такого немає'); return; }
+  const e = exclHolder(st, k);
+  if (e && String(e.uid) !== String(id)) { q.out.push('Зараз це в ' + nameOf(st, e.uid) + ' до ' + Utilities.formatDate(new Date(e.until), tz(), 'dd.MM')); return; }
+  const x = inv(st, id); if (x.gems < E.price) { q.out.push('Не вистачає ' + money(E.price - x.gems) + ' 💎'); return; }
+  x.gems = money(x.gems - E.price); dayAdd(st, id, 'style', E.price); giveExcl(st, id, k, 7);
+  q.out.push(E.icon + ' ' + E.label + ' твоя на 7 днів!');
+  const pe = st.people[id]; if (pe) sayK(st, 'excl:' + k, E.icon + ' ' + esc(pe.name) + ' ' + verb(pe, 'забрав', 'забрала') + ' ексклюзив «' + E.label + '» на тиждень! Поки що ні в кого іншого такого не буде 😎');
+}
+function appContest(st, id, now) {
+  const day = dayKey(now, st.cfg), wk = weekKey(day), w = (st.cwins || {})[wk] || {};
+  return { ends: nextHour(st.cfg.dayEnd), done: !!(st.contestDone || {})[day],
+    list: contestsOf(day).map(function (c) { return { type: c.type, icon: c.icon, label: c.label, unit: c.unit, prize: cPrizeText(c.prize),
+      board: Object.keys(st.people).map(function (u) { return { id: u, v: contestVal(st, c.id, u, day) }; }).sort(function (a, b) { return b.v - a.v; }) }; }),
+    prizes: (st.prizes || []).filter(function (z) { return String(z.uid) === String(id); }).map(function (z) { return { id: z.id, icon: z.icon, label: z.label, text: cPrizeText(z.prize), day: z.day }; }),
+    week: Object.keys(st.people).map(function (u) { return { id: u, wins: w[u] || 0 }; }).sort(function (a, b) { return b.wins - a.wins; }) };
+}
 function saveState(st) {
   dayTrack(st);
   const s = JSON.stringify(st), CH = 2500, out = {}; // 2500 chars ≤ 9 KB even if every char takes 3 bytes
@@ -611,8 +727,8 @@ function fire(kind, e) {
       startTimerAt(st, 'evening', nextHour(st.cfg.dayEnd));
       if (!st.timers.warn) startTimerAt(st, 'warn', nextHour(Math.max(st.cfg.dayStart, st.cfg.dayEnd - 2)));
       const at = hourOf(Date.now()) < st.cfg.dayStart ? Date.now() - (hourOf(Date.now()) + 1) * 3600000 : Date.now(); // the summary at 24:00 belongs to the day that just ended
-      const streaks = settleStreaks(st, at), divs = payDividends(st, at);
-      saveState(st); postEvening(st, streaks, divs); checkAchAll(st); updateTags(st); maybeFinishRace(st); seasonEvening(st); saveState(st); return;
+      const streaks = settleStreaks(st, at), divs = payDividends(st, at), contest = settleContests(st, at);
+      saveState(st); postEvening(st, streaks, divs); if (contest) sayK(st, 'contest', contest); checkAchAll(st); updateTags(st); maybeFinishRace(st); seasonEvening(st); saveState(st); return;
     }
     if (kind === 'warn') { startTimerAt(st, 'warn', nextHour(Math.max(st.cfg.dayStart, st.cfg.dayEnd - 2))); saveState(st); postStreakWarn(st); saveState(st); return; }
     if (kind === 'nag') { postNag(st); saveState(st); return; }
@@ -1214,6 +1330,7 @@ const SHOP = [
   { id: 'game', icon: '🎮', label: 'Пограти зі мною в будь-яку гру 1 годину', price: 35 },
   { id: 'lesson', icon: '📚', label: 'Зроби за мене один урок', price: 40, kid: true },
   { id: 'massage', icon: '💆', label: 'Масаж (мінімум 10 хвилин)', price: 45 },
+  { id: 'watch', icon: '🎬', label: 'Я вибираю, що дивимось разом (до 30 хв)', price: 30 },
   { id: 'clean', icon: '🧹', label: 'Пропилососити та помити квартиру за мене 1 раз', price: 80, kid: true },
 ];
 function shopFor(st, id) { // this person's items, the day of streak each one opens on
@@ -1511,7 +1628,7 @@ function buyFood(st, user, what, q, edit) {
   if (pack && !seasonOn(st, 'gems')) { toast(q, 'Набір буває лише в 💎 кристальний сезон'); return; }
   const price = pack ? P.pack : priceOf(st, { price: P.food }), n = pack ? P.packN : 1;
   if (x.gems < price) { toast(q, 'Не вистачає ' + (price - x.gems) + ' ' + GEM); return; }
-  x.gems -= price; x.food += n;
+  x.gems -= price; x.food += n; dayAdd(st, String(user.id), 'shop', price);
   toast(q, '🍖 +' + n + ' корму');
   if (pack) sayK(st, 'buy', '🛒 ' + esc(p.name) + ' ' + verb(p, 'купив', 'купила') + ' 🍖 ' + b(n + ' корму') + ' за ' + price + ' ' + GEM + ' (сезонна пропозиція 💎)');
   edit(shopText(st, user.id), shopKeyboard(st, user.id));
@@ -1533,7 +1650,7 @@ function buy(st, user, itemId, owner, q, edit) {
   if (shopToday(st, user.id).indexOf(it.id) < 0) { toast(q, '🌙 Сьогодні цього товару немає — завтра будуть інші'); edit(shopText(st, user.id), shopKeyboard(st, user.id)); return; }
   const price = priceOf(st, it);
   if (x.gems < price) { toast(q, 'Не вистачає ' + (price - x.gems) + ' ' + GEM); return; }
-  x.gems -= price; x.bought = (x.bought || 0) + 1;
+  x.gems -= price; x.bought = (x.bought || 0) + 1; dayAdd(st, String(user.id), 'shop', price);
   const w = weekKey(dayKey(Date.now(), st.cfg)); st.shopWeek = st.shopWeek || {};
   if (!st.shopWeek[user.id] || st.shopWeek[user.id].w !== w) st.shopWeek[user.id] = { w: w };
   st.shopWeek[user.id][it.id] = (st.shopWeek[user.id][it.id] || 0) + 1;
@@ -3439,6 +3556,8 @@ function appApi(e) {
       }
       else if (body.action === 'look') appLook(st, id, a, q);
       else if (body.action === 'tr') appTrade(st, user, a, q);
+      else if (body.action === 'prize') claimPrize(st, id, String(a.id || 'all'), q);
+      else if (body.action === 'excl') buyExcl(st, id, String(a.key), q);
       else if (body.action === 'claim') appClaim(st, id, String(a.key || 'all'), q);
       else if (body.action === 'pledge') pledge(st, user, String(a.oid), String(a.amt), q);
       else if (body.action === 'ivtake') {
@@ -3564,7 +3683,9 @@ const LOOKS = { // free: only the plain start; everything else is for crystals
 };
 function lookOf(st, id) {
   const l = (st.look || {})[id] || {}, p = st.people[id] || {}, t = LOOKS.ti.filter(function (x) { return x[0] === (l.ti || ''); })[0];
-  return { av: l.av || '🙂', bg: l.bg || 'sand', fr: l.fr || 'none', ti: t && t[0] ? (p.female === false && t[3] ? t[3] : t[2]) : '' };
+  const mine = function (k) { const e = exclHolder(st, k); return !!e && String(e.uid) === String(id); }, tmp = (st.temp || {})[id] || {};
+  return { av: l.av || '🙂', bg: l.bg || 'sand', fr: l.fr || 'none', ti: t && t[0] ? (p.female === false && t[3] ? t[3] : t[2]) : '',
+    crown: mine('crown'), sparkle: mine('sparkle'), rainbow: mine('rainbow'), aura: (tmp.aura || 0) > Date.now() };
 }
 function lookOwns(st, id, kind, key) { const L = LOOKS[kind].filter(function (x) { return x[0] === key; })[0]; return !!L && (L[1] === 0 || !!(((st.lookOwn || {})[id] || {})[kind + ':' + key])); }
 function appLook(st, id, a, q) {
@@ -3574,7 +3695,7 @@ function appLook(st, id, a, q) {
   if (!lookOwns(st, id, kind, key)) {
     const x = inv(st, id);
     if (x.gems < L[1]) { q.out.push('Не вистачає ' + money(L[1] - x.gems) + ' 💎'); return; }
-    x.gems = money(x.gems - L[1]);
+    x.gems = money(x.gems - L[1]); dayAdd(st, id, 'style', L[1]);
     st.lookOwn = st.lookOwn || {}; st.lookOwn[id] = st.lookOwn[id] || {}; st.lookOwn[id][kind + ':' + key] = dayKey(Date.now(), st.cfg);
     q.out.push('✨ Куплено за ' + L[1] + ' 💎 і вдягнуто!');
     const pe = st.people[id]; if (pe && L[1] >= 30) sayK(st, 'look:' + id, '✨ ' + esc(pe.name) + ' ' + verb(pe, 'оновив', 'оновила') + ' свій стиль: ' + (kind === 'av' ? key : (L[2] || '')) + ' 💅');
@@ -3698,7 +3819,7 @@ function appState(st, id) {
     inv: { food: x.food, ice: x.ice, vac: x.vac.length, cash: money(x.cash), freeze: x.freeze, gifts: x.gift.length,
       coupons: Object.keys(x.coupons).filter(function (k) { return x.coupons[k] > 0 && shopItem(k); }).map(function (k) { const it = shopItem(k); return { id: k, icon: it.icon, label: it.label, n: x.coupons[k] }; }) },
     gemUah: st.cfg.gemUah,
-    farm: appFarm(st, id, now), tasks: appTasks(st, id), invest: appInvest(st, id), my: appMe(st, id, now), people: appPeople(st), looks: appLooks(st, id), trades: appTrades(st, id), fstats: appFarmStats(st, now),
+    farm: appFarm(st, id, now), tasks: appTasks(st, id), invest: appInvest(st, id), my: appMe(st, id, now), people: appPeople(st), looks: appLooks(st, id), trades: appTrades(st, id), fstats: appFarmStats(st, now), contest: appContest(st, id, now), excl: Object.keys(EXCL).map(function (k) { const e = exclHolder(st, k); return { key: k, icon: EXCL[k].icon, label: EXCL[k].label, price: EXCL[k].price, holder: e ? e.uid : null, until: e ? e.until : 0 }; }),
   };
 }
 
