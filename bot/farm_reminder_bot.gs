@@ -1714,9 +1714,17 @@ function buy(st, user, itemId, owner, q, edit) {
   edit(shopText(st, user.id), shopKeyboard(st, user.id));
   checkAch(st, String(user.id));
 }
+// 🧹 chores bought in the shop: only one of them a day per person (games and treats — any number)
+const CHORES = ['dishes', 'dogwash', 'dogday', 'lesson', 'clean'];
 function useCoupon(st, user, itemId, q) {
-  const it = shopItem(itemId), x = inv(st, user.id), p = person(st, user);
+  const it = shopItem(itemId), x = inv(st, user.id), p = person(st, user), day = dayKey(Date.now(), st.cfg), uid = String(user.id);
   if (!it || !x.coupons[itemId]) { toast(q, 'Цього вже немає'); return false; }
+  if (CHORES.indexOf(itemId) >= 0) {
+    st.choreDay = st.choreDay || {};
+    const used = st.choreDay[uid];
+    if (used && used.day === day) { const u = shopItem(used.item); toast(q, 'Сьогодні вже використано ' + (u ? u.icon + ' ' + u.label : 'одну справу') + '. Одна справа на день — це завтра 🌙'); return false; }
+    st.choreDay[uid] = { day: day, item: itemId };
+  }
   x.coupons[itemId] -= 1; if (!x.coupons[itemId]) delete x.coupons[itemId];
   toast(q, it.icon);
   sayK(st, 'coupon', '🎟 ' + mention(st, user.id) + ' ' + verb(p, 'використав', 'використала') + ' купон: ' + it.icon + ' ' + b(it.label) + '!\n' +
@@ -3766,7 +3774,8 @@ function appLooks(st, id) {
 // 🔁 trades for the app: the same deals as in the bot (st.trades)
 function trUnit(key) { return key === 'uah' || key === 'cash' ? 'грн' : key === 'gem' ? '💎' : key.indexOf('s_') === 0 ? 'грн частки' : 'шт'; }
 function trIcon(st, key) { const it = key.indexOf('c_') === 0 ? shopItem(key.slice(2)) : null; return { uah: '💰', gem: '💎', ice: '🍦', vac: '🏖', cash: '💵', frz: '❄️', food: '🍖' }[key] || (it ? it.icon : '🏡'); }
-function trItem(st, key, n) { return { key: key, n: n, icon: trIcon(st, key), label: trName(st, key).replace(/^\S+\s/, ''), unit: trUnit(key), pct: trPlot(st, key) ? money(n / trPlot(st, key).price * 100) : null }; }
+function trItem(st, key, n) { const pl = trPlot(st, key); return { key: key, n: n, icon: trIcon(st, key), label: trName(st, key).replace(/^\S+\s/, ''), unit: trUnit(key), pct: pl ? money(n / pl.price * 100) : null,
+  worth: pl ? money(n) : null, month: pl ? Math.round(n / pl.price * offerDaily(st, pl) * 30) : null }; }
 function appTrades(st, id) {
   const has = function (u) { return trKeys(st, u).map(function (k) { return Object.assign(trItem(st, k, trHave(st, u, k)), { step: trSteps(st, k).filter(function (x) { return x[0] > 0; })[0][0] }); }); };
   return (st.trades || []).filter(function (t) { return String(t.a) === id || String(t.b) === id; }).map(function (t) {
@@ -3860,7 +3869,8 @@ function appMe(st, id, now) { // 👤 stats, records, the family this week, the 
       x.ice ? [{ what: 'ice', icon: '🍦', label: 'Морозиво', n: x.ice, act: 'Хочу!' }] : [],
       x.vac.length ? [{ what: 'vac', icon: '🏖', label: 'Відпустка (' + money(x.vac[0]) + ' грн)', n: x.vac.length, act: 'Сьогодні' }] : [],
       x.cash ? [{ what: 'cash', icon: '💰', label: 'Грошовий приз', n: money(x.cash), unit: 'грн', act: 'Забрати' }] : [],
-      Object.keys(x.coupons).filter(function (k) { return x.coupons[k] > 0 && shopItem(k); }).map(function (k) { const it = shopItem(k); return { what: 'cpn_' + k, icon: it.icon, label: it.label, n: x.coupons[k], act: 'Використати' }; }),
+      Object.keys(x.coupons).filter(function (k) { return x.coupons[k] > 0 && shopItem(k); }).map(function (k) { const it = shopItem(k), cd = (st.choreDay || {})[id], blocked = CHORES.indexOf(k) >= 0 && cd && cd.day === dayKey(now, st.cfg);
+        return { what: 'cpn_' + k, icon: it.icon, label: it.label, n: x.coupons[k], act: blocked ? '' : 'Використати', note: blocked ? '🌙 завтра (1 справа на день)' : '', chore: CHORES.indexOf(k) >= 0 }; }),
       x.freeze ? [{ what: '', icon: '❄️', label: 'Заморозка стріку', n: x.freeze, note: 'спрацює сама' }] : [],
       x.food ? [{ what: '', icon: '🍖', label: 'Корм', n: x.food, note: 'для улюбленця' }] : []),
   };
