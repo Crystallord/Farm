@@ -337,14 +337,14 @@ function dayAdd(st, u, k, n) {
 // Prizes ≈ 10–12 💎 of value a win (Maria earns ~50–70 💎 a day): small enough not to inflate the shop.
 const CONTESTS = {
   earn: [
-    { id: 'gin', icon: '💎', label: 'Хто заробить більше кристалів', unit: '💎' },
-    { id: 'tasks', icon: '📋', label: 'Хто виконає більше завдань', unit: 'завд.' },
-    { id: 'xp', icon: '🐾', label: 'Чий улюбленець набере більше досвіду', unit: 'XP' },
-    { id: 'ach', icon: '🏅', label: 'Хто отримає більше досягнень', unit: 'шт' },
+    { id: 'gin', icon: '💎', label: 'Хто заробить більше кристалів', unit: '💎', hint: 'Збирай урожай, роби завдання, забирай нагороди', go: 'tasks' },
+    { id: 'tasks', icon: '📋', label: 'Хто виконає більше завдань', unit: 'завд.', hint: 'Тисни «Зроблено» в Завданнях — рахується одразу', go: 'tasks' },
+    { id: 'xp', icon: '🐾', label: 'Чий улюбленець набере більше досвіду', unit: 'XP', hint: 'Годуй улюбленця й бери його з собою на збір', go: 'farm' },
+    { id: 'ach', icon: '🏅', label: 'Хто отримає більше досягнень', unit: 'шт', hint: 'Глянь у «Я», яке досягнення найближче', go: 'me' },
   ],
   spend: [
-    { id: 'style', icon: '🎨', label: 'Хто витратить більше 💎 на стиль', unit: '💎' },
-    { id: 'shop', icon: '🛍️', label: 'Хто витратить більше 💎 у крамниці', unit: '💎' },
+    { id: 'style', icon: '🎨', label: 'Хто витратить більше 💎 на стиль', unit: '💎', hint: 'Аватари, рамки, титули й ексклюзиви — у «Мій стиль»', go: 'style' },
+    { id: 'shop', icon: '🛍️', label: 'Хто витратить більше 💎 у крамниці', unit: '💎', hint: 'Товари дня, корм і бусти — усе рахується', go: 'shop' },
   ],
 };
 const PRIZES = {
@@ -375,11 +375,17 @@ const BOOSTS = {
   easy: { icon: '🛡', label: 'Легка норма', price: 25, desc: 'сьогоднішня норма менша на 1 збір' },
   petxp: { icon: '🐾', label: 'Бонус улюбленцю', price: 15, desc: '+30% досвіду улюбленцю на 24 години' },
 };
+// 💸 dynamic prices: every day nobody buys a boost it gets 1 💎 cheaper (down to half); a purchase puts it back to normal
+function boostPrice(st, k, now) {
+  const B = BOOSTS[k], last = (st.boostLast || {})[k], day = dayKey(now || Date.now(), st.cfg);
+  if (!last) { st.boostLast = st.boostLast || {}; st.boostLast[k] = day; return B.price; }
+  return Math.max(Math.ceil(B.price / 2), B.price - Math.max(0, dayIdx(day) - dayIdx(last)));
+}
 function boostState(st, id, now) {
   const b = (st.boosts || {})[id] || {}, day = dayKey(now, st.cfg), easyUah = money(Math.max(rewardNow(st, 'beds'), rewardNow(st, 'plots')));
   return Object.keys(BOOSTS).map(function (k) {
     const B = BOOSTS[k], on = k === 'petxp' ? (b.petxp && b.petxp.until > now ? b.petxp.until : 0) : (b[k] && b[k].day === day ? nextHour(0) : 0);
-    return { key: k, icon: B.icon, label: B.label, price: B.price, desc: k === 'easy' ? 'сьогоднішня норма менша на 1 збір (−' + easyUah + ' ₴)' : B.desc, until: on, canBuy: k === 'petxp' || !on };
+    return { key: k, icon: B.icon, label: B.label, price: boostPrice(st, k, now), base: B.price, desc: k === 'easy' ? 'сьогоднішня норма менша на 1 збір (−' + easyUah + ' ₴)' : B.desc, until: on, canBuy: k === 'petxp' || !on };
   });
 }
 function buyBoost(st, user, k, q) {
@@ -388,9 +394,10 @@ function buyBoost(st, user, k, q) {
   st.boosts = st.boosts || {}; const b = st.boosts[id] = st.boosts[id] || {};
   if (k !== 'petxp' && b[k] && b[k].day === day) { q.out.push('Сьогодні вже діє 👌'); return; }
   if (k === 'petxp' && !petOk(petOf(st, id))) { q.out.push('Улюбленця ще немає'); return; }
-  const x = inv(st, id); if (x.gems < B.price) { q.out.push('Не вистачає ' + money(B.price - x.gems) + ' 💎'); return; }
+  const price = boostPrice(st, k, now), x = inv(st, id); if (x.gems < price) { q.out.push('Не вистачає ' + money(price - x.gems) + ' 💎'); return; }
   const before = doneToday(st, id, now), p = st.people[id];
-  x.gems = money(x.gems - B.price); dayAdd(st, id, 'shop', B.price);
+  x.gems = money(x.gems - price); dayAdd(st, id, 'shop', price); st.boostLast[k] = day; // bought: the price is back to normal from tomorrow
+  if (price < B.price) q.out.push('💸 зі знижкою −' + (B.price - price) + ' 💎');
   if (k === 'turbo') { const base = {}; contestsOf(day).forEach(function (c) { base[c.id] = contestRaw(st, c.id, id, day); }); b.turbo = { day: day, base: base }; }
   if (k === 'easy') b.easy = { day: day, uah: money(Math.max(rewardNow(st, 'beds'), rewardNow(st, 'plots'))) };
   if (k === 'petxp') b.petxp = { until: Math.max(now, (b.petxp || {}).until || 0) + 86400000 };
@@ -414,6 +421,10 @@ function settleContests(st, at) {
   st.contestDone[day] = 1; Object.keys(st.contestDone).sort().slice(0, -10).forEach(function (k) { delete st.contestDone[k]; });
   const wk = weekKey(day), lines = [];
   st.prizes = st.prizes || []; st.cwins = st.cwins || {}; st.cwins[wk] = st.cwins[wk] || {};
+  st.contestLog = st.contestLog || {};
+  st.contestLog[day] = contestsOf(day).map(function (c) { return { icon: c.icon, label: c.label, unit: c.unit, prize: cPrizeText(c.prize),
+    board: Object.keys(st.people).map(function (u) { return { id: u, v: contestVal(st, c.id, u, day) }; }).sort(function (a, b) { return b.v - a.v; }) }; });
+  Object.keys(st.contestLog).sort().slice(0, -7).forEach(function (k) { delete st.contestLog[k]; });
   contestsOf(day).forEach(function (c) {
     const vals = Object.keys(st.people).map(function (u) { return { u: u, v: contestVal(st, c.id, u, day) }; }), max = Math.max.apply(null, vals.map(function (x) { return x.v; }).concat([0]));
     if (max <= 0) { lines.push(c.icon + ' ' + c.label + ': ніхто не взяв участь 😴'); return; }
@@ -471,7 +482,9 @@ function buyExcl(st, id, k, q) {
 function appContest(st, id, now) {
   const day = dayKey(now, st.cfg), wk = weekKey(day), w = (st.cwins || {})[wk] || {};
   return { ends: nextHour(st.cfg.dayEnd), done: !!(st.contestDone || {})[day],
-    list: contestsOf(day).map(function (c) { return { type: c.type, icon: c.icon, label: c.label, unit: c.unit, prize: cPrizeText(c.prize),
+    last: (function () { const ks = Object.keys(st.contestLog || {}).filter(function (k) { return k < day; }).sort(); return ks.length ? { day: ks[ks.length - 1], list: st.contestLog[ks[ks.length - 1]] } : null; })(),
+    turbo: !!(((st.boosts || {})[id] || {}).turbo && st.boosts[id].turbo.day === day),
+    list: contestsOf(day).map(function (c) { return { id: c.id, hint: c.hint, go: c.go, icon: c.icon, label: c.label, unit: c.unit, prize: cPrizeText(c.prize),
       board: Object.keys(st.people).map(function (u) { return { id: u, v: contestVal(st, c.id, u, day) }; }).sort(function (a, b) { return b.v - a.v; }) }; }),
     prizes: (st.prizes || []).filter(function (z) { return String(z.uid) === String(id); }).map(function (z) { return { id: z.id, icon: z.icon, label: z.label, text: cPrizeText(z.prize), day: z.day }; }),
     week: Object.keys(st.people).map(function (u) { return { id: u, wins: w[u] || 0 }; }).sort(function (a, b) { return b.wins - a.wins; }) };

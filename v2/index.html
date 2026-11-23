@@ -342,6 +342,28 @@ body{padding-bottom:96px}
 @keyframes bpulse{50%{box-shadow:0 0 0 3px rgba(255,176,32,.35)}}
 .bst{display:flex;align-items:center;gap:12px;padding:12px 14px}.bst .e{font-size:30px}.bst .tx{flex:1}.bst b{font-weight:900;font-size:15px}.bst small{display:block;font-size:12px;color:var(--mute);font-weight:800;line-height:1.3}
 .bst .buy{width:auto;padding:10px 14px;font-size:14px}.bst.on{background:linear-gradient(135deg,#fff8e1,#ffeab0)}.bst .act{font-size:12px;font-weight:900;color:#b35a00;white-space:nowrap;text-align:right}
+
+.race{background:linear-gradient(160deg,#2a1c63,#5b3fd6 70%,#7b5cff);color:#fff;padding:14px;cursor:pointer;box-shadow:0 10px 26px rgba(91,63,214,.35)}
+.race .rh{display:flex;justify-content:space-between;align-items:center}.race .rh b{font-size:18px;font-weight:900}
+.cdp{background:rgba(255,255,255,.16);border-radius:12px;padding:5px 10px;font-weight:900;font-size:13.5px;font-variant-numeric:tabular-nums}
+.rc{margin-top:12px}.rt2{display:flex;justify-content:space-between;align-items:center;gap:8px;font-weight:900;font-size:13.5px}
+.pzp{background:#ffd84a;color:#5a3a00;border-radius:10px;padding:3px 8px;font-size:12px;white-space:nowrap}
+.lane{position:relative;height:38px;margin:6px 0;border-radius:19px;background:rgba(255,255,255,.1);overflow:visible}
+.lane::before{content:"";position:absolute;left:12px;right:36px;top:50%;border-top:2px dashed rgba(255,255,255,.28)}
+.lane.lead{background:rgba(255,216,74,.22);box-shadow:inset 0 0 0 2px rgba(255,216,74,.6)}
+.lane.me .runner b{background:#fff;color:#5b3fd6}
+.runner{position:absolute;top:50%;transform:translateY(-50%);display:flex;align-items:center;gap:5px;transition:left 1.2s cubic-bezier(.2,.9,.25,1.1);z-index:2}
+.runner b{font-size:12px;font-weight:900;background:rgba(0,0,0,.25);border-radius:9px;padding:2px 6px;white-space:nowrap}
+.fin{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:18px}
+.race .cz{color:#3b2a1a}
+.rf{display:flex;justify-content:space-between;align-items:center;margin-top:12px;font-size:12.5px;font-weight:800;gap:8px}.rf b{font-weight:900}.more2{font-weight:900;color:#ffd84a;white-space:nowrap}
+.rsh{text-align:center}.bigcd{font-size:34px;font-weight:900;font-variant-numeric:tabular-nums;color:#5b3fd6;margin:4px 0}
+.rbox{background:linear-gradient(160deg,#2a1c63,#5b3fd6);color:#fff;border-radius:18px;padding:12px;margin:10px 0}
+.rbox .lane{height:48px}.pzbig{display:inline-block;margin:6px 0 2px;background:#ffd84a;color:#5a3a00;border-radius:10px;padding:4px 10px;font-weight:900;font-size:13px}
+.hint{font-size:12.5px;font-weight:800;opacity:.85;margin-top:6px}.gob{margin-top:8px;width:100%;border:0;border-radius:12px;padding:10px;font:900 14px Nunito,sans-serif;background:#fff;color:#5b3fd6;cursor:pointer}
+.rbox.tb{background:linear-gradient(135deg,#fff3c4,#ffe08a);color:#3b2a1a;display:flex;flex-direction:column;gap:6px}.rbox.tb small{font-weight:800;color:#7a4a00}
+.rbox.small{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 12px;font-size:12.5px;font-weight:800;background:#fff;color:var(--ink)}.rbox.small .win{display:flex;align-items:center;gap:4px;font-weight:900;white-space:nowrap}
+.bst .old{text-decoration:line-through;opacity:.6;font-size:12px;margin-right:4px}.bst .sale{display:inline-block;background:#ff5d5d;color:#fff;border-radius:8px;padding:1px 6px;font-size:11px;font-weight:900;margin-left:6px}
 </style></head><body>
 <header class="hdr" id="hdr"><span id="hava" class="tapme"></span><div class="hn"><b id="hname">…</b><span id="httl"></span><span id="hbst"></span></div>
   <div class="hb"><span class="hs"><span class="flame dim" id="flame">🔥</span><b id="hst">0</b></span><span class="hm"><b id="uah">0</b> ₴</span><span class="hg"><b id="gem">0</b> 💎</span></div></header>
@@ -512,7 +534,7 @@ function tickCrops(){if(!S)return;for(const c of S.farm.crops){const el=$('c_'+c
  if(!l!==el.classList.contains('ready')){el.classList.toggle('ready',!l);b.style.animationDelay=-(Date.now()%1600)+'ms'}const s=Math.ceil(l/1000);
  if(night){const d=new Date(c.due-OFF);b.textContent='🌙 нагадаю о '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');continue}
  b.textContent=!l?'Зібрав(ла) ✓':'⏳ '+(s>=3600?Math.floor(s/3600)+':'+String(Math.floor(s%3600/60)).padStart(2,'0')+':':Math.floor(s/60)+':')+String(s%60).padStart(2,'0')}}
-setInterval(()=>{tickCrops();streakWarn();if(S&&S.me.norm&&!previewing)ghostSet(readyUah())},1000);
+setInterval(()=>{document.querySelectorAll('.cdn').forEach(e=>e.textContent=cdn());tickCrops();streakWarn();if(S&&S.me.norm&&!previewing)ghostSet(readyUah())},1000);
 function renderOnce(){const beds=S.farm.crops.find(c=>c.id==='beds');
  $('once').innerHTML=S.farm.once.map(o=>`<button class="ob" id="o_${o.id}"><span class="e">${o.icon}</span><span class="n">${o.name}</span><span class="r">+${fmt(o.uah)} ₴ · +${fmt(o.gem)} 💎</span><span class="x">↺ таймер «Грядки»</span></button>`).join('');
  for(const o of S.farm.once){const el=$('o_'+o.id);el.onclick=()=>harvest(Object.assign({},o,{kind:'beds',crop:o.id}),el,true);
@@ -754,21 +776,38 @@ function fullStats(){const F=S.fstats;if(!F)return;const pp=F.people,per=fsPer,m
  $('sheet').querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{fsPer=b.dataset.p;hap('light');fullStats()});
  $('sheet').querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{fsMet=b.dataset.m;hap('light');fullStats()})}
 $('fsbtn').onclick=e=>{e.preventDefault();fullStats()};$('fsbtn2').onclick=fullStats;
-// ===================== 🏆 contests
-function renderContest(){const C=S.contest,el=$('cont');if(!C){el.style.display='none';return}el.style.display='';
- const left=Math.max(0,C.ends-(Date.now()+OFF)),h=Math.floor(left/3600000),m=Math.floor(left%3600000/60000);
- el.innerHTML=`<div class="ch"><b>🏆 Змагання дня</b><small>${C.done?'підсумки підбито':'до кінця '+h+' год '+m+' хв'}</small></div>`+
+// ===================== 🏁 race of the day
+function cdn(){if(!S||!S.contest)return '';const l=Math.max(0,S.contest.ends-(Date.now()+OFF));return [l/3600000|0,(l%3600000)/60000|0,(l%60000)/1000|0].map(x=>String(x).padStart(2,'0')).join(':')}
+function lanes(c,big){const mx=Math.max(0,...c.board.map(x=>x.v)),me=String(S.me.id);
+ return c.board.map((x,i)=>{const pos=mx>0?3+(big?66:58)*x.v/mx:3,lead=mx>0&&x.v===mx;
+  return `<div class="lane ${big?'big':''} ${lead?'lead':''} ${x.id===me?'me':''}"><span class="runner" data-pos="${pos}" style="left:3%">${ava(P(x.id).look,big?40:30)}<b>${fmt(x.v)}${lead?' 🥇':''}</b></span><span class="fin">🏁</span></div>`}).join('')}
+function renderContest(){const C=S.contest,el=$('cont');if(!C){el.style.display='none';return}el.style.display='';el.className='card race';
+ el.innerHTML=`<div class="rh"><b>🏁 Гонка дня</b><span class="cdp">⏱ <span class="cdn">${cdn()}</span></span></div>`+
  C.prizes.map(z=>`<div class="cz"><span style="font-size:24px">${z.icon}</span><div class="tx"><b>${z.text}</b>${z.label}</div><button data-z="${z.id}">Забрати</button></div>`).join('')+
- C.list.map(c=>{const top=c.board[0]&&c.board[0].v>0?c.board[0].v:null;return `<div class="cr"><div class="ct"><span class="tg ${c.type}">${c.type==='earn'?'🟢 Заробіток':'🟣 Витрати'}</span><span class="lb2">${c.icon} ${c.label}</span></div>
-  <div class="ct" style="margin-top:4px"><span class="pz">🎁 Приз: ${c.prize}</span></div>
-  <div class="brd">${c.board.map(x=>`<span class="${top!==null&&x.v===top?'lead':''}">${ava(P(x.id).look,26)}${fmt(x.v)}${top!==null&&x.v===top?' 👑':''}</span>`).join('')}</div></div>`}).join('')+
- `<div class="cw">Перемоги цього тижня: ${C.week.map(w=>`${ava(P(w.id).look,20)} ${w.wins}`).join(' · ')} · у неділю чемпіон отримує 👑</div>`;
- el.querySelectorAll('.cz button').forEach(b=>b.onclick=async()=>{hap('heavy');plus(b,'🎁');const r=await act('prize',{id:b.dataset.z});if(r&&r.ok){hap('ok');confetti()}})}
+ C.list.map(c=>`<div class="rc"><div class="rt2"><span>${c.icon} ${c.label}</span><span class="pzp">🎁 ${c.prize}</span></div>${lanes(c)}</div>`).join('')+
+ `<div class="rf"><span>🏆 Тиждень: ${C.week.map(w=>`${ava(P(w.id).look,20)} <b>${w.wins}</b>`).join(' · ')}</span><span class="more2">Деталі ›</span></div>`;
+ el.querySelectorAll('.cz button').forEach(b=>b.onclick=async e=>{e.stopPropagation();hap('heavy');plus(b,'🎁');const r=await act('prize',{id:b.dataset.z});if(r&&r.ok){hap('ok');confetti()}});
+ el.onclick=e=>{if(e.target.closest('.cz'))return;raceSheet()};runRace(el)}
+function runRace(root){requestAnimationFrame(()=>setTimeout(()=>root.querySelectorAll('.runner').forEach(r=>{const w=r.dataset.pos;if(r.style.left!==w+'%')r.style.left=w+'%'}),60))}
+function goTo(v){unsheet();if(v==='style'){styleSheet();return}const b=document.querySelector('.tab[data-v="'+v+'"]');if(b)b.click()}
+function raceSheet(){const C=S.contest;if(!C)return;const wk=[...C.week].sort((a,b)=>b.wins-a.wins);
+ const turbo=(S.boosts||[]).find(b=>b.key==='turbo');
+ sheet(`<div class="rsh"><h3>🏁 Гонка дня</h3><div class="bigcd">⏱ <span class="cdn">${cdn()}</span></div><p>до фінішу · переможець отримує приз, нічия — приз обом</p></div>
+ ${C.list.map(c=>`<div class="rbox"><div class="rt2"><b>${c.icon} ${c.label}</b></div><div class="pzbig">🎁 Приз: ${c.prize}</div>${lanes(c,true)}
+  <div class="hint">💡 ${c.hint}</div><button class="gob" data-go="${c.go}">Піти ›</button></div>`).join('')}
+ ${turbo&&!C.turbo?`<div class="rbox tb"><b>⚡ Хочеш обігнати?</b><small>Турбо: усе, що зробиш далі сьогодні, рахується ×1,5</small><button class="buy" id="rturbo">⚡ Турбо · ${turbo.price} 💎</button></div>`:C.turbo?`<div class="rbox tb"><b>⚡ Турбо увімкнено!</b><small>Усе, що робиш зараз, рахується ×1,5</small></div>`:''}
+ <div class="sect" style="margin:14px 2px 6px"><b>🏆 Перемоги тижня</b><small>у неділю чемпіон отримує 👑 корону і 🍦</small></div>
+ ${wk.every(w=>!w.wins)?'<div class="rbox small"><span>Цього тижня ще ніхто не виграв — будь першою! 🏁</span></div>':''}<div class="pod" style="${wk.every(w=>!w.wins)?'display:none':''}">${[wk[1],wk[0],wk[2]].map((w,i)=>w?`<div class="pc p${[2,1,3][i]}">${ava(P(w.id).look,[46,60,40][i])}<b>${nm(P(w.id))}</b><small>${w.wins} ${plural(w.wins,['перемога','перемоги','перемог'])}</small><div class="pl">${[2,1,3][i]}</div></div>`:'').join('')}</div>
+ ${C.last?`<div class="sect" style="margin:14px 2px 6px"><b>📜 Вчора</b><small>${C.last.day.slice(8)}.${C.last.day.slice(5,7)}</small></div>${C.last.list.map(c=>{const w=c.board[0]&&c.board[0].v>0?c.board.filter(x=>x.v===c.board[0].v):[];
+  return `<div class="rbox small"><span>${c.icon} ${c.label}</span><span class="win">${w.length?w.map(x=>ava(P(x.id).look,26)+' '+P(x.id).name).join(', ')+' · '+fmt(w[0].v):'ніхто 😴'}</span></div>`}).join('')}`:''}
+ <button class="ghostb" onclick="unsheet()">Закрити</button>`);
+ $('sheet').querySelectorAll('.gob').forEach(b=>b.onclick=()=>goTo(b.dataset.go));runRace($('sheet'));
+ if($('rturbo'))$('rturbo').onclick=async()=>{if(!(await confirmTG(`⚡ Турбо за ${turbo.price} 💎?`)))return;hap('heavy');const r=await act('boost',{key:'turbo'});if(r&&r.ok){confetti();raceSheet()}}}
 // ===================== ⚡ boosts
 function bleft(u){const l=Math.max(0,u-(Date.now()+OFF)),h=Math.floor(l/3600000),m=Math.floor(l%3600000/60000);return h?h+' год '+m+' хв':m+' хв'}
 function renderBoosts(){const B=S.boosts||[];
- $('boosts').innerHTML=B.map(b=>`<div class="card bst ${b.until?'on':''}"><div class="e">${b.icon}</div><div class="tx"><b>${b.label}</b><small>${b.desc}</small></div>
-  ${b.until&&!b.canBuy?`<div class="act">діє ще<br>${bleft(b.until)}</div>`:`<button class="buy" data-b="${b.key}" ${S.me.gems<b.price?'disabled':''}>${b.until?'+24 год · ':''}${b.price} 💎</button>`}</div>`).join('');
+ $('boosts').innerHTML=B.map(b=>`<div class="card bst ${b.until?'on':''}"><div class="e">${b.icon}</div><div class="tx"><b>${b.label}${b.price<b.base?`<span class="sale">−${b.base-b.price} 💎</span>`:''}</b><small>${b.desc}</small></div>
+  ${b.until&&!b.canBuy?`<div class="act">діє ще<br>${bleft(b.until)}</div>`:`<button class="buy" data-b="${b.key}" ${S.me.gems<b.price?'disabled':''}>${b.until?'+24 год · ':''}${b.price<b.base?`<span class="old">${b.base}</span>`:''}${b.price} 💎</button>`}</div>`).join('');
  $('boosts').querySelectorAll('.buy').forEach(x=>x.onclick=async()=>{const b=B.find(y=>y.key===x.dataset.b);
   if(!(await confirmTG(`${b.icon} ${b.label} за ${b.price} 💎?`)))return;hap('heavy');const r=await act('boost',{key:b.key});if(r&&r.ok){hap('ok');confetti()}});
  $('hbst').innerHTML=B.filter(b=>b.until).map(b=>`<span>${b.icon}</span>`).join('')}
