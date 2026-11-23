@@ -3841,6 +3841,23 @@ function appTrade(st, user, a, q) {
     const t = { id: 't' + st.tradeSeq, a: id, b: to, give: {}, turn: id, agreed: {}, sent: false, at: Date.now() };
     t.give[t.a] = {}; t.give[t.b] = {}; st.trades.push(t); q.res = { tid: t.id }; return;
   }
+  if (op === 'offer') { // the whole offer at once (edited in the app without the server), then sent
+    let t = a.tid ? trById(st, String(a.tid)) : null;
+    if (!t) {
+      const to = String(a.to || '');
+      if (!st.people[to] || to === id) { q.out.push('Немає такої людини'); return; }
+      if (st.trades.filter(function (x) { return String(x.a) === id; }).length >= TRADE_MAX) { q.out.push('Забагато відкритих угод'); return; }
+      st.tradeSeq = (st.tradeSeq || 0) + 1;
+      t = { id: 't' + st.tradeSeq, a: id, b: to, give: {}, turn: id, agreed: {}, sent: false, at: Date.now() }; t.give[t.a] = {}; t.give[t.b] = {}; st.trades.push(t);
+    }
+    if (String(t.a) !== id && String(t.b) !== id) { q.out.push('Цієї угоди вже немає'); return; }
+    if (String(t.turn) !== id) { q.out.push('Зараз черга ' + nameOf(st, trOther(t, id))); return; }
+    const o = trOther(t, id), fill = function (u, want) {
+      const g = {}; Object.keys(want || {}).forEach(function (k) { if (trKeys(st, u).indexOf(k) < 0) return; const n = money(Math.max(0, Math.min(trHave(st, u, k), +want[k] || 0))); if (n > 0) g[k] = n; }); return g; };
+    t.give[id] = fill(id, a.mine); t.give[o] = fill(o, a.theirs); t.agreed = {};
+    if (!Object.keys(t.give[id]).length && !Object.keys(t.give[o]).length) { q.out.push('Додай, що міняєте'); q.res = { tid: t.id }; return; }
+    q.message = { text: '' }; onTrade(st, user, ['tr', 'send', t.id], q, noop, true); q.res = { tid: t.id }; return;
+  }
   const t = trById(st, String(a.tid));
   if (!t || (String(t.a) !== id && String(t.b) !== id)) { q.out.push('Цієї угоди вже немає'); return; }
   if (op === 'set') {
@@ -3949,7 +3966,8 @@ function appState(st, id) {
     inv: { food: x.food, ice: x.ice, vac: x.vac.length, cash: money(x.cash), freeze: x.freeze, gifts: x.gift.length,
       coupons: Object.keys(x.coupons).filter(function (k) { return x.coupons[k] > 0 && shopItem(k); }).map(function (k) { const it = shopItem(k); return { id: k, icon: it.icon, label: it.label, n: x.coupons[k] }; }) },
     gemUah: st.cfg.gemUah,
-    farm: appFarm(st, id, now), tasks: appTasks(st, id), invest: appInvest(st, id), my: appMe(st, id, now), people: appPeople(st), looks: appLooks(st, id), trades: appTrades(st, id), fstats: appFarmStats(st, now), contest: appContest(st, id, now), boosts: boostState(st, id, now), excl: Object.keys(EXCL).map(function (k) { const e = exclHolder(st, k); return { key: k, icon: EXCL[k].icon, label: EXCL[k].label, price: EXCL[k].price, holder: e ? e.uid : null, until: e ? e.until : 0 }; }),
+    farm: appFarm(st, id, now), tasks: appTasks(st, id), invest: appInvest(st, id), my: appMe(st, id, now), people: appPeople(st), looks: appLooks(st, id), trades: appTrades(st, id),
+    trInv: Object.keys(st.people).reduce(function (o, u) { o[u] = trKeys(st, u).map(function (k) { return Object.assign(trItem(st, k, trHave(st, u, k)), { step: Math.abs(trSteps(st, k).filter(function (x) { return x[0] > 0; })[0][0]) }); }); return o; }, {}), fstats: appFarmStats(st, now), contest: appContest(st, id, now), boosts: boostState(st, id, now), excl: Object.keys(EXCL).map(function (k) { const e = exclHolder(st, k); return { key: k, icon: EXCL[k].icon, label: EXCL[k].label, price: EXCL[k].price, holder: e ? e.uid : null, until: e ? e.until : 0 }; }),
   };
 }
 

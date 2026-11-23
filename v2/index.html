@@ -400,6 +400,13 @@ body.busy button:not(.pending),body.busy .tile,body.busy .ob{opacity:.6;transiti
 .crop .btn,.item .buy,.itm .buy,.tile .go{margin-top:auto}
 .crop .rw.sub{margin-top:-6px;min-height:1.3em;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .tile{display:flex;flex-direction:column}.cat{justify-content:flex-start}
+
+.rg{background:#fff7ec;border-radius:14px;padding:10px 12px;margin:8px 0}.rg.big{background:#fff;padding:14px}
+.rgh{display:flex;align-items:center;gap:8px}.rgh .nm{flex:1;font-weight:900;font-size:13.5px}.rv{font-weight:900;font-variant-numeric:tabular-nums;text-align:right;color:#5b3fd6}.rv .wh{text-align:right}
+.rx{border:0;background:none;color:var(--mute);font-size:14px;cursor:pointer;padding:2px 4px}
+.rg input[type=range]{width:100%;margin:10px 0 2px;accent-color:#7b5cff;height:28px}
+.rgl{display:flex;justify-content:space-between;font-size:11px;font-weight:800;color:var(--mute)}
+.adds{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.chipadd{border:2px dashed #e6d3b8;background:none;border-radius:12px;padding:6px 9px;font:900 12.5px Nunito,sans-serif;color:#b35a00;cursor:pointer}
 </style></head><body>
 <header class="hdr" id="hdr"><span id="hava" class="tapme"></span><div class="hn"><b id="hname">…</b><span id="httl"></span><span id="hbst"></span></div>
   <div class="hb"><span class="hs"><span class="flame dim" id="flame">🔥</span><b id="hst">0</b></span><span class="hm"><b id="uah">0</b> ₴</span><span class="hg"><b id="gem">0</b> 💎</span></div></header>
@@ -733,10 +740,12 @@ function offerSheet(o){const I=S.invest,left=Math.max(0,o.price-o.raised),bal=I.
  <div class="kv"><div><b>${fmt(bal)} ₴</b><small>у тебе на балансі</small></div><div><b>${fmt(o.my)} ₴</b><small>твій внесок</small></div>
  <div><b>+${fmt(Math.round(o.dayAll*30))} ₴</b><small>ділянка власникам/міс</small></div><div><b>${fmt(left)} ₴</b><small>лишилось зібрати</small></div></div>
  ${(o.who||[]).length?`<div class="sidec" style="margin-bottom:10px"><h5>👥 Уже вклали</h5>${o.who.map(w=>`<div class="own"><span class="nm">${who(w.id,30,true)}</span><span class="pc">${fmt(w.uah)} ₴</span></div>`).join('')}</div>`:''}
- <div class="chips uah">${amts.map(a=>`<button data-a="${a}" ${bal<a?'disabled':''}>+${a} ₴</button>`).join('')}<button data-a="all" ${bal<Math.min(I.min,left)?'disabled':''}>Усе</button></div>
+ ${Math.min(bal,left)>=1?`<div class="rg big"><div class="rgh"><span class="nm">💼 Вкласти</span><span class="rv" id="plv"></span></div><input type="range" id="pl" min="1" max="${Math.floor(Math.min(bal,left))}" step="1" value="${Math.min(Math.floor(Math.min(bal,left)),Math.max(I.min||1,20))}"><div class="rgl"><span>1 ₴</span><span>${bal>=left?'закрити збір':'увесь баланс'} · ${fmt(Math.floor(Math.min(bal,left)))} ₴</span></div></div><button class="buy big" id="plgo"></button>`:'<p>На балансі поки немає гривень для внеску</p>'}
  ${o.my?`<button class="ghostb" id="back" style="color:#e2552b">↩️ Забрати свій внесок (${fmt(o.my)} ₴)</button>`:''}
  <button class="ghostb" onclick="unsheet()">Закрити</button>`);
- $('sheet').querySelectorAll('.chips button').forEach(b=>b.onclick=async()=>{hap('heavy');const r=await act('pledge',{oid:o.id,amt:b.dataset.a});if(r&&r.ok){confetti();const n=S.invest.offers.find(x=>x.id===o.id);if(n)offerSheet(n);else unsheet()}});
+ if($('pl')){let v=+$('pl').value;const sh=()=>{$('plv').textContent=fmt(v)+' ₴ · '+fmt(+(v/o.price*100).toFixed(1))+'% ділянки';$('plgo').textContent=`💼 Вкласти ${fmt(v)} ₴ (≈ +${fmt(Math.round(o.dayAll*30*v/o.price))} ₴/міс)`};sh();
+  $('pl').oninput=e=>{v=+e.target.value;sh()};$('pl').onchange=()=>hap('light');
+  $('plgo').onclick=async()=>{hap('heavy');const r=await act('pledge',{oid:o.id,amt:String(v)});if(r&&r.ok){confetti();const n=S.invest.offers.find(x=>x.id===o.id);if(n)offerSheet(n);else unsheet()}}}
  if($('back'))$('back').onclick=async()=>{if(!(await confirmTG(`Повернути ${fmt(o.my)} ₴ на баланс?`)))return;const r=await act('pledge',{oid:o.id,amt:'back'});if(r&&r.ok)unsheet()}}
 async function ivtake(){if(busy)return;hap('heavy');fly($('itake'),$('itake'),'₴',5);const r=await act('ivtake');if(r&&r.ok)confetti()}
 // ===================== 🔁 trades
@@ -748,33 +757,54 @@ function renderTrades(){const T=S.trades||[];$('trn').textContent=T.length?T.len
  $('trnew').onclick=()=>{const others=(S.people||[]).filter(p=>p.id!==String(S.me.id));
   sheet(`<h3>🔁 Нова угода</h3><p>З ким міняємось?</p><div class="pick"><button id="trbank"><span class="ava bg-gold" style="--s:52px"><i>🏦</i></span>Бот<small style="color:var(--mute);font-size:11px">💎 → ₴</small></button>${others.map(p=>`<button data-u="${p.id}">${ava(p.look,52)}${p.name}</button>`).join('')}</div><button class="ghostb" onclick="unsheet()">Закрити</button>`);
   $('trbank').onclick=bankSheet;
-  $('sheet').querySelectorAll('.pick button[data-u]').forEach(b=>b.onclick=async()=>{const r=await act('tr',{op:'new',to:b.dataset.u});if(r&&r.res)tradeSheet(r.res.tid)})}}
-function tradeSheet(tid){const x=(S.trades||[]).find(t=>t.id===tid);if(!x){unsheet();return}const me=S.me.id,o=x.other,can=x.mine;
- const side=(items,w,have)=>items.map(i=>{const h=(have.find(k=>k.key===i.key)||{}).n,st=(have.find(k=>k.key===i.key)||{}).step||1;
-  return `<div class="ti2"><span class="nm">${i.icon} ${i.label}${i.worth!=null?`<small class="wh">≈ ${fmt(i.worth)} ₴ · +${fmt(i.month)} ₴/міс</small>`:''}</span>${can?`<button data-w="${w}" data-k="${i.key}" data-n="${Math.max(0,+(i.n-st).toFixed(2))}">−</button>`:''}<span class="val">${i.pct!=null?i.pct+'%':fmt(i.n)+(i.unit==='шт'?'':' '+(i.unit==='грн'?'₴':i.unit))}</span>${can?`<button data-w="${w}" data-k="${i.key}" data-n="${Math.min(h||i.n,+(i.n+st).toFixed(2))}">+</button>`:''}</div>`}).join('')||'<div class="ti2"><span class="nm" style="color:var(--mute)">нічого</span></div>';
- const st=!x.sent?'Чернетка: додай, що віддаєш і що хочеш отримати, і надішли.':x.mine?(x.theyAgreed?`${P(o).name} згоджується. Приймеш — і все переміститься одразу.`:'Ти змінила угоду — надішли назад.'):`⏳ Чекаємо відповідь ${P(o).name}.`;
- sheet(`<div class="vs">${ava(P(me).look,52)}<span class="x">⇄</span>${ava(P(o).look,52)}</div><h3 style="text-align:center">Угода з ${P(o).name}</h3><p style="text-align:center">${st}</p>
- <div class="sides"><div class="sidec"><h5>📤 Ти віддаєш</h5>${side(x.give,'m',x.myHave)}${can?`<button class="add" data-add="m">+ Додати своє</button>`:''}</div>
- <div class="sidec"><h5>📥 Ти отримуєш від ${who(o,22)}</h5>${side(x.get,'o',x.theirHave)}${can?`<button class="add" data-add="o">+ Попросити</button>`:''}</div></div>
- ${can?(x.sent&&x.theyAgreed?`<button class="buy big" id="trok" style="background:linear-gradient(#53d97f,#2fb45c);box-shadow:0 4px 0 #23914a">🤝 Прийняти угоду</button>`:`<button class="buy big" id="trsend">📨 Надіслати ${P(o).name}</button>`):''}
- <button class="ghostb" id="trno" style="color:#e2552b">${x.sent?'❌ Відмовитись від угоди':'🗑 Видалити чернетку'}</button><button class="ghostb" onclick="unsheet()">Закрити</button>`);
- const set=async(w,k,n)=>{hap('light');const r=await act('tr',{op:'set',tid,who:w,key:k,n});if(r)tradeSheet(tid)};
- $('sheet').querySelectorAll('.ti2 button').forEach(b=>b.onclick=()=>set(b.dataset.w,b.dataset.k,+b.dataset.n));
- $('sheet').querySelectorAll('.add').forEach(b=>b.onclick=()=>{const w=b.dataset.add,have=w==='m'?x.myHave:x.theirHave;
-  sheet(`<h3>${w==='m'?'📤 Що віддаєш?':'📥 Що хочеш від '+P(o).name+'?'}</h3><p>${have.length?'Обери, потім налаштуєш кількість':'Поки нічого немає для обміну'}</p>
-  ${have.map(h=>`<div class="ti2"><span class="nm">${h.icon} ${h.label}${h.worth!=null?`<small class="wh">уся твоя частка ≈ ${fmt(h.worth)} ₴</small>`:''}</span><span class="val">${h.pct!=null?h.pct+'%':fmt(h.n)}</span><button data-k="${h.key}" data-n="${h.step}">Додати</button></div>`).join('')}
-  <button class="ghostb" id="trback">⬅️ До угоди</button>`);
-  $('trback').onclick=()=>tradeSheet(tid);$('sheet').querySelectorAll('.ti2 button').forEach(b=>b.onclick=()=>set(w,b.dataset.k,Math.min(+b.dataset.n,(have.find(h=>h.key===b.dataset.k)||{}).n)))});
- if($('trsend'))$('trsend').onclick=async()=>{hap('heavy');const r=await act('tr',{op:'send',tid});if(r&&r.ok)unsheet()};
- if($('trok'))$('trok').onclick=async()=>{hap('heavy');const r=await act('tr',{op:'ok',tid});if(r&&r.ok){unsheet();confetti()}};
- $('trno').onclick=async()=>{if(!(await confirmTG(x.sent?'Відмовитись від угоди?':'Видалити чернетку?')))return;const r=await act('tr',{op:'no',tid});if(r&&r.ok)unsheet()}}
-function bankSheet(){const g=S.me.gems,r=S.my.gemUah,me=S.me.id;
+  $('sheet').querySelectorAll('.pick button[data-u]').forEach(b=>b.onclick=()=>{TD={tid:null,to:b.dataset.u,mine:{},theirs:{}};tradeEdit()})}}
+// a slider row: native range, no server calls while you drag
+const unitOf=i=>i.pct!=null?'%':i.unit==='грн'?' ₴':i.unit==='💎'?' 💎':' шт';
+function rngRow(it,val,side){const isPlot=it.pct!=null,price=isPlot?it.n/(it.pct/100):0,step=isPlot?price/100:(it.unit==='шт'?1:it.unit==='💎'?1:1);
+ const max=isPlot?Math.floor(it.n/step)*step:it.n,show=v=>isPlot?`${fmt(+(v/price*100).toFixed(1))}%<small class="wh">≈ ${fmt(Math.round(v))} ₴ · +${fmt(Math.round(it.month*v/it.n))} ₴/міс</small>`:fmt(v)+unitOf(it);
+ return `<div class="rg" data-side="${side}" data-k="${it.key}"><div class="rgh"><span class="nm">${it.icon} ${it.label}</span><span class="rv">${show(val)}</span><button class="rx" title="прибрати">✕</button></div>
+  <input type="range" min="0" max="${max}" step="${step}" value="${Math.min(val,max)}"><div class="rgl"><span>0</span><span>${isPlot?'уся частка':'усе'} · ${show(max).replace(/<small.*$/,'')}</span></div></div>`}
+function bindRanges(root,onChange){root.querySelectorAll('.rg').forEach(r=>{const inp=r.querySelector('input'),it=r._it;
+ inp.oninput=()=>{const v=+inp.value;onChange(r.dataset.side,r.dataset.k,v);const isPlot=it&&it.pct!=null;
+  r.querySelector('.rv').innerHTML=isPlot?`${fmt(+(v/(it.n/(it.pct/100))*100).toFixed(1))}%<small class="wh">≈ ${fmt(Math.round(v))} ₴ · +${fmt(Math.round(it.month*v/it.n))} ₴/міс</small>`:fmt(v)+unitOf(it)};
+ inp.onchange=()=>hap('light')})}
+let TD=null;
+function tradeSheet(tid){const x=(S.trades||[]).find(t=>t.id===tid);if(!x){unsheet();return}
+ if(x.mine){const m={},th={};x.give.forEach(i=>m[i.key]=i.n);x.get.forEach(i=>th[i.key]=i.n);TD={tid,to:x.other,mine:m,theirs:th};tradeEdit();return}
+ const o=x.other,me=S.me.id;
+ sheet(`<div class="vs">${ava(P(me).look,52)}<span class="x">⇄</span>${ava(P(o).look,52)}</div><h3 style="text-align:center">Угода з ${P(o).name}</h3><p style="text-align:center">⏳ Чекаємо відповідь ${P(o).name}.</p>
+ <div class="sides"><div class="sidec"><h5>📤 Ти віддаєш</h5><div class="ti2"><span class="nm">${trLine(x.give)}</span></div></div><div class="sidec"><h5>📥 Ти отримуєш</h5><div class="ti2"><span class="nm">${trLine(x.get)}</span></div></div></div>
+ <button class="ghostb" id="trno" style="color:#e2552b">❌ Скасувати угоду</button><button class="ghostb" onclick="unsheet()">Закрити</button>`);
+ $('trno').onclick=async()=>{if(!(await confirmTG('Скасувати угоду?')))return;const r=await act('tr',{op:'no',tid});if(r&&r.ok)unsheet()}}
+function tradeEdit(){const D=TD,me=String(S.me.id),o=D.to,x=D.tid?(S.trades||[]).find(t=>t.id===D.tid):null,inv=S.trInv||{};
+ const myInv=inv[me]||[],thInv=inv[o]||[],agreed=x&&x.sent&&x.theyAgreed,orig=x?JSON.stringify([x.give.map(i=>[i.key,i.n]),x.get.map(i=>[i.key,i.n])]):'';
+ const rows=(side,invL,sel)=>Object.keys(sel).map(k=>{const it=invL.find(i=>i.key===k);return it?rngRow(it,sel[k],side):''}).join('')||'<div class="ti2"><span class="nm" style="color:var(--mute)">нічого</span></div>';
+ const addable=(invL,sel)=>invL.filter(i=>!(i.key in sel)&&i.n>0);
+ sheet(`<div class="vs">${ava(P(me).look,52)}<span class="x">⇄</span>${ava(P(o).look,52)}</div><h3 style="text-align:center">Угода з ${P(o).name}</h3>
+ <p style="text-align:center">${agreed?`${P(o).name} згоджується на це. Приймеш — і все переміститься одразу. Змінив повзунок — це вже нова пропозиція.`:'Тягни повзунки — нічого не відправиться, поки не натиснеш «Надіслати».'}</p>
+ <div class="sides"><div class="sidec" id="sm"><h5>📤 Ти віддаєш</h5>${rows('m',myInv,D.mine)}<div class="adds">${addable(myInv,D.mine).map(i=>`<button class="chipadd" data-side="m" data-k="${i.key}">+ ${i.icon} ${i.label}</button>`).join('')}</div></div>
+ <div class="sidec" id="so"><h5>📥 Ти отримуєш від ${who(o,22)}</h5>${rows('o',thInv,D.theirs)}<div class="adds">${addable(thInv,D.theirs).map(i=>`<button class="chipadd" data-side="o" data-k="${i.key}">+ ${i.icon} ${i.label}</button>`).join('')}</div></div></div>
+ <button class="buy big" id="trgo" ${agreed?'style="background:linear-gradient(#53d97f,#2fb45c);box-shadow:0 4px 0 #23914a"':''}>${agreed?'🤝 Прийняти угоду':'📨 Надіслати '+P(o).name}</button>
+ ${D.tid?`<button class="ghostb" id="trno" style="color:#e2552b">${x&&x.sent?'❌ Відмовитись від угоди':'🗑 Видалити чернетку'}</button>`:''}<button class="ghostb" onclick="unsheet()">Закрити</button>`);
+ const sel=s=>s==='m'?D.mine:D.theirs,invOf=s=>s==='m'?myInv:thInv;
+ $('sheet').querySelectorAll('.rg').forEach(r=>{r._it=invOf(r.dataset.side).find(i=>i.key===r.dataset.k);r.querySelector('.rx').onclick=()=>{delete sel(r.dataset.side)[r.dataset.k];tradeEdit()}});
+ const dirty=()=>JSON.stringify([Object.entries(D.mine).filter(e=>e[1]>0),Object.entries(D.theirs).filter(e=>e[1]>0)])!==orig;
+ const upd=()=>{const g=$('trgo');if(!agreed)return;const d=dirty();g.textContent=d?'📨 Надіслати нову пропозицію':'🤝 Прийняти угоду';g.style.background=d?'':'linear-gradient(#53d97f,#2fb45c)'};
+ bindRanges($('sheet'),(s,k,v)=>{sel(s)[k]=v;upd()});
+ $('sheet').querySelectorAll('.chipadd').forEach(b=>b.onclick=()=>{const it=invOf(b.dataset.side).find(i=>i.key===b.dataset.k);sel(b.dataset.side)[b.dataset.k]=it.pct!=null?Math.min(it.n,it.n/(it.pct/100)/10):Math.min(it.n,it.step||1);hap('light');tradeEdit()});
+ $('trgo').onclick=async()=>{const clean=o=>Object.fromEntries(Object.entries(o).filter(e=>e[1]>0));
+  if(agreed&&!dirty()){hap('heavy');const r=await act('tr',{op:'ok',tid:D.tid});if(r&&r.ok){unsheet();confetti()}return}
+  if(!Object.keys(clean(D.mine)).length&&!Object.keys(clean(D.theirs)).length){toast('Додай, що міняєте');hap('err');return}
+  hap('heavy');const r=await act('tr',{op:'offer',tid:D.tid,to:D.to,mine:clean(D.mine),theirs:clean(D.theirs)});if(r&&r.ok&&!/Додай/.test(r.toast||''))unsheet()};
+ if($('trno'))$('trno').onclick=async()=>{if(!(await confirmTG(x&&x.sent?'Відмовитись від угоди?':'Видалити чернетку?')))return;const r=await act('tr',{op:'no',tid:D.tid});if(r&&r.ok)unsheet()}}
+function bankSheet(){const g=Math.floor(S.me.gems),r=S.my.gemUah,me=S.me.id;let n=Math.min(g,10);
  sheet(`<div class="vs">${ava(P(me).look,52)}<span class="x">⇄</span><span class="ava bg-gold" style="--s:52px"><i>🏦</i></span></div><h3 style="text-align:center">Обмін із ботом</h3>
- <p style="text-align:center">1 💎 = ${fmt(r)} ₴ · у тебе ${fmt(g)} 💎</p>
- <div class="chips">${[10,20,50].map(v=>`<button data-n="${v}" ${g<v?'disabled':''}>${v} 💎<br>→ ${fmt(v*r)} ₴</button>`).join('')}<button data-n="all" ${g<1?'disabled':''}>Усі ${fmt(Math.floor(g))} 💎<br>→ ${fmt(Math.floor(g)*r)} ₴</button></div>
- <button class="ghostb" onclick="unsheet()">Закрити</button>`);
- $('sheet').querySelectorAll('.chips button').forEach(b=>b.onclick=async()=>{const k=b.dataset.n==='all'?Math.floor(S.me.gems):+b.dataset.n;
-  if(!(await confirmTG(`Обміняти ${k} 💎 на ${fmt(k*r)} ₴?`)))return;hap('heavy');fly(b,$('uah'),'₴',5);const res=await act('gemx',{n:String(b.dataset.n)});if(res&&res.ok)bankSheet()})}
+ <p style="text-align:center">1 💎 = ${fmt(r)} ₴ · у тебе ${fmt(S.me.gems)} 💎</p>
+ ${g<1?'<p style="text-align:center">Поки немає кристалів для обміну</p>':`<div class="rg big"><div class="rgh"><span class="nm">💎 → ₴</span><span class="rv" id="bxv"></span></div><input type="range" id="bx" min="1" max="${g}" step="1" value="${n}"><div class="rgl"><span>1</span><span>усі ${g}</span></div></div>
+ <button class="buy big" id="bxgo"></button>`}<button class="ghostb" onclick="unsheet()">Закрити</button>`);
+ if(g<1)return;const sh=()=>{$('bxv').textContent=`${n} 💎 → ${fmt(+(n*r).toFixed(2))} ₴`;$('bxgo').textContent=`💱 Обміняти ${n} 💎 на ${fmt(+(n*r).toFixed(2))} ₴`};sh();
+ $('bx').oninput=e=>{n=+e.target.value;sh()};$('bx').onchange=()=>hap('light');
+ $('bxgo').onclick=async()=>{hap('heavy');fly($('bxgo'),$('uah'),'₴',5);const res=await act('gemx',{n:String(n)});if(res&&res.ok)bankSheet()}}
 // ===================== 🎨 style studio
 let stab='av';
 function styleSheet(){const L=S.looks,mp=P(S.me.id),cur=mp.look,tabs=[['av','Аватар'],['bg','Фон'],['fr','Рамка'],['ti','Титул'],['ex','✨ Екскл.']];
