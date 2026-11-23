@@ -365,7 +365,39 @@ function cPrizeText(pz, val) {
   if (pz.t === 'ice') return '🍦 морозиво';
   return '';
 }
-function contestVal(st, cid, u, day) {
+function contestVal(st, cid, u, day) { // ⚡ turbo: what is done after buying it counts ×1.5
+  const v = contestRaw(st, cid, u, day), t = ((st.boosts || {})[u] || {}).turbo;
+  return t && t.day === day && t.base[cid] !== undefined ? money(t.base[cid] + (v - t.base[cid]) * 1.5) : v;
+}
+// ⚡ boosts: not crystals for crystals — each gives something else. st.boosts[uid] = { turbo: { day, base }, easy: { day, uah }, petxp: { until } }
+const BOOSTS = {
+  turbo: { icon: '⚡', label: 'Турбо змагання', price: 20, desc: 'усе, що зробиш далі сьогодні, рахується ×1,5 у змаганнях дня' },
+  easy: { icon: '🛡', label: 'Легка норма', price: 25, desc: 'сьогоднішня норма менша на 1 збір' },
+  petxp: { icon: '🐾', label: 'Бонус улюбленцю', price: 15, desc: '+30% досвіду улюбленцю на 24 години' },
+};
+function boostState(st, id, now) {
+  const b = (st.boosts || {})[id] || {}, day = dayKey(now, st.cfg), easyUah = money(Math.max(rewardNow(st, 'beds'), rewardNow(st, 'plots')));
+  return Object.keys(BOOSTS).map(function (k) {
+    const B = BOOSTS[k], on = k === 'petxp' ? (b.petxp && b.petxp.until > now ? b.petxp.until : 0) : (b[k] && b[k].day === day ? nextHour(0) : 0);
+    return { key: k, icon: B.icon, label: B.label, price: B.price, desc: k === 'easy' ? 'сьогоднішня норма менша на 1 збір (−' + easyUah + ' ₴)' : B.desc, until: on, canBuy: k === 'petxp' || !on };
+  });
+}
+function buyBoost(st, user, k, q) {
+  const id = String(user.id), B = BOOSTS[k], now = Date.now(), day = dayKey(now, st.cfg);
+  if (!B) { q.out.push('Такого немає'); return; }
+  st.boosts = st.boosts || {}; const b = st.boosts[id] = st.boosts[id] || {};
+  if (k !== 'petxp' && b[k] && b[k].day === day) { q.out.push('Сьогодні вже діє 👌'); return; }
+  if (k === 'petxp' && !petOk(petOf(st, id))) { q.out.push('Улюбленця ще немає'); return; }
+  const x = inv(st, id); if (x.gems < B.price) { q.out.push('Не вистачає ' + money(B.price - x.gems) + ' 💎'); return; }
+  const before = doneToday(st, id, now), p = st.people[id];
+  x.gems = money(x.gems - B.price); dayAdd(st, id, 'shop', B.price);
+  if (k === 'turbo') { const base = {}; contestsOf(day).forEach(function (c) { base[c.id] = contestRaw(st, c.id, id, day); }); b.turbo = { day: day, base: base }; }
+  if (k === 'easy') b.easy = { day: day, uah: money(Math.max(rewardNow(st, 'beds'), rewardNow(st, 'plots'))) };
+  if (k === 'petxp') b.petxp = { until: Math.max(now, (b.petxp || {}).until || 0) + 86400000 };
+  q.out.push(B.icon + ' ' + B.label + ' увімкнено!');
+  if (k === 'easy' && p && before < p.norm && doneToday(st, id, now) >= p.norm) { const line = streakNow(st, id, now); q.out.push('🎯 Норму виконано!'); if (st.group) sayK(st, 'easy:' + id, '🛡 ' + esc(p.name) + ': норму виконано з легкою нормою!' + line); }
+}
+function contestRaw(st, cid, u, day) {
   const r = ((st.dayLog || {})[day] || {})[u] || {};
   if (cid === 'gin') return money(r.gin || 0);
   if (cid === 'xp') return r.xp || 0;
@@ -768,7 +800,7 @@ function normFor(c, share) { return Math.max(5, Math.round(farmMax(c) * share / 
 function overStep(c) { return normFor(c, c.overPct); }
 // what counts for the norm: UAH earned today (harvests and pet finds, before money set aside for goals)
 function doneToday(st, id, now) {
-  const r = today(st, now)[id], n = r ? money(r.g !== undefined ? r.g : r.uah) : 0;
+  const r = today(st, now)[id], e = ((st.boosts || {})[id] || {}).easy, n = (r ? money(r.g !== undefined ? r.g : r.uah) : 0) + (e && e.day === dayKey(now, st.cfg) ? e.uah : 0); // 🛡 easy norm counts as one harvest
   return onVacation(st, id, now) ? Math.max(n, st.people[id] ? st.people[id].norm : 0) : n;
 }
 function onVacation(st, id, now) { return !!(st.vacation[dayKey(now, st.cfg)] || {})[id]; }
@@ -2931,6 +2963,7 @@ function petChar(st, id) { // the character a person usually harvests on: the fi
 function petXp(st, id, n) {
   const pet = petOf(st, id);
   if (!petOk(pet) || !n) return '';
+  const pb = ((st.boosts || {})[id] || {}).petxp; if (pb && pb.until > Date.now()) n = Math.round(n * 1.3); // 🐾 boost: +30%
   const before = petLevel(pet); pet.xp += n;
   const after = petLevel(pet);
   if (after > before && st.group) {
@@ -3556,6 +3589,7 @@ function appApi(e) {
       }
       else if (body.action === 'look') appLook(st, id, a, q);
       else if (body.action === 'tr') appTrade(st, user, a, q);
+      else if (body.action === 'boost') buyBoost(st, user, String(a.key), q);
       else if (body.action === 'prize') claimPrize(st, id, String(a.id || 'all'), q);
       else if (body.action === 'excl') buyExcl(st, id, String(a.key), q);
       else if (body.action === 'claim') appClaim(st, id, String(a.key || 'all'), q);
@@ -3819,7 +3853,7 @@ function appState(st, id) {
     inv: { food: x.food, ice: x.ice, vac: x.vac.length, cash: money(x.cash), freeze: x.freeze, gifts: x.gift.length,
       coupons: Object.keys(x.coupons).filter(function (k) { return x.coupons[k] > 0 && shopItem(k); }).map(function (k) { const it = shopItem(k); return { id: k, icon: it.icon, label: it.label, n: x.coupons[k] }; }) },
     gemUah: st.cfg.gemUah,
-    farm: appFarm(st, id, now), tasks: appTasks(st, id), invest: appInvest(st, id), my: appMe(st, id, now), people: appPeople(st), looks: appLooks(st, id), trades: appTrades(st, id), fstats: appFarmStats(st, now), contest: appContest(st, id, now), excl: Object.keys(EXCL).map(function (k) { const e = exclHolder(st, k); return { key: k, icon: EXCL[k].icon, label: EXCL[k].label, price: EXCL[k].price, holder: e ? e.uid : null, until: e ? e.until : 0 }; }),
+    farm: appFarm(st, id, now), tasks: appTasks(st, id), invest: appInvest(st, id), my: appMe(st, id, now), people: appPeople(st), looks: appLooks(st, id), trades: appTrades(st, id), fstats: appFarmStats(st, now), contest: appContest(st, id, now), boosts: boostState(st, id, now), excl: Object.keys(EXCL).map(function (k) { const e = exclHolder(st, k); return { key: k, icon: EXCL[k].icon, label: EXCL[k].label, price: EXCL[k].price, holder: e ? e.uid : null, until: e ? e.until : 0 }; }),
   };
 }
 

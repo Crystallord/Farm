@@ -337,8 +337,13 @@ body{padding-bottom:96px}
 .exl{display:flex;flex-direction:column;gap:10px;margin:6px 0}.exr{display:flex;align-items:center;gap:12px;background:#fff;border-radius:16px;padding:10px 12px}
 .exr .tx{flex:1}.exr b{font-weight:900}.exr small{display:block;font-size:12px;color:var(--mute);font-weight:800}
 .exr .buy{width:auto;padding:9px 12px;font-size:13.5px}
+
+#hbst{display:inline-flex;gap:3px;margin-left:4px;vertical-align:middle}#hbst span{font-size:11px;font-weight:900;background:#fff;border-radius:8px;padding:1px 5px;box-shadow:0 1px 0 #f0dcc0;animation:bpulse 2s infinite}
+@keyframes bpulse{50%{box-shadow:0 0 0 3px rgba(255,176,32,.35)}}
+.bst{display:flex;align-items:center;gap:12px;padding:12px 14px}.bst .e{font-size:30px}.bst .tx{flex:1}.bst b{font-weight:900;font-size:15px}.bst small{display:block;font-size:12px;color:var(--mute);font-weight:800;line-height:1.3}
+.bst .buy{width:auto;padding:10px 14px;font-size:14px}.bst.on{background:linear-gradient(135deg,#fff8e1,#ffeab0)}.bst .act{font-size:12px;font-weight:900;color:#b35a00;white-space:nowrap;text-align:right}
 </style></head><body>
-<header class="hdr" id="hdr"><span id="hava" class="tapme"></span><div class="hn"><b id="hname">…</b><span id="httl"></span></div>
+<header class="hdr" id="hdr"><span id="hava" class="tapme"></span><div class="hn"><b id="hname">…</b><span id="httl"></span><span id="hbst"></span></div>
   <div class="hb"><span class="hs"><span class="flame dim" id="flame">🔥</span><b id="hst">0</b></span><span class="hm"><b id="uah">0</b> ₴</span><span class="hg"><b id="gem">0</b> 💎</span></div></header>
 <div class="wrap view on" id="v_farm">
   <div class="card top">
@@ -366,6 +371,9 @@ body{padding-bottom:96px}
 </div>
 <div class="wrap view" id="v_shop">
   <div class="card sh"><div><b>Крамниця дня</b><small>у тебе <span id="sg">0</span> 💎</small></div><div class="timer">🔄 <span id="stm">--:--:--</span></div></div>
+  <div class="sect"><b>⚡ Бусти</b><small>діють одразу</small></div>
+  <div id="boosts" style="display:flex;flex-direction:column;gap:10px"></div>
+  <div class="sect"><b>🛍️ Товари дня</b></div>
   <div class="items" id="items"></div>
   <div class="sect"><b>Скоро відкриється</b><small id="rest"></small></div>
   <div class="items" id="tomorrow"></div>
@@ -466,7 +474,7 @@ function confirmTG(text){return new Promise(res=>{try{TG.showConfirm(text,ok=>re
 // ===================== render: farm
 const WD=['Нд','Пн','Вт','Ср','Чт','Пт','Сб'];
 function safe(f){try{f()}catch(e){console.error(e);toast('⚠️ '+(e&&e.message||e))}}
-function render(){if(!S)return;safe(()=>{renderTop()});safe(()=>{renderRing()});safe(()=>{renderCrops()});safe(()=>{renderOnce()});safe(()=>{renderTasks()});safe(()=>{renderShop()});safe(()=>{if(S.invest)renderInvest()});safe(()=>{renderMe()});safe(()=>{renderClaim()});safe(()=>{renderAppr()});safe(()=>{renderContest()});}
+function render(){if(!S)return;safe(()=>{renderTop()});safe(()=>{renderRing()});safe(()=>{renderCrops()});safe(()=>{renderOnce()});safe(()=>{renderTasks()});safe(()=>{renderShop()});safe(()=>{if(S.invest)renderInvest()});safe(()=>{renderMe()});safe(()=>{renderClaim()});safe(()=>{renderAppr()});safe(()=>{renderContest()});safe(()=>{renderBoosts()});}
 function renderTop(){const me=S.me,w=S.farm.week,done=w[w.length-1].ok,mp=P(me.id);
  $('hava').innerHTML=ava(mp.look,40);$('hname').innerHTML=nm(mp);$('httl').innerHTML=mp.look.ti?`<span class="ttl">${mp.look.ti}</span>`:'';$('hava').onclick=styleSheet;$('hst').textContent=me.streak;
  $('flame2').classList.toggle('dim',!done);
@@ -756,6 +764,14 @@ function renderContest(){const C=S.contest,el=$('cont');if(!C){el.style.display=
   <div class="brd">${c.board.map(x=>`<span class="${top!==null&&x.v===top?'lead':''}">${ava(P(x.id).look,26)}${fmt(x.v)}${top!==null&&x.v===top?' 👑':''}</span>`).join('')}</div></div>`}).join('')+
  `<div class="cw">Перемоги цього тижня: ${C.week.map(w=>`${ava(P(w.id).look,20)} ${w.wins}`).join(' · ')} · у неділю чемпіон отримує 👑</div>`;
  el.querySelectorAll('.cz button').forEach(b=>b.onclick=async()=>{hap('heavy');plus(b,'🎁');const r=await act('prize',{id:b.dataset.z});if(r&&r.ok){hap('ok');confetti()}})}
+// ===================== ⚡ boosts
+function bleft(u){const l=Math.max(0,u-(Date.now()+OFF)),h=Math.floor(l/3600000),m=Math.floor(l%3600000/60000);return h?h+' год '+m+' хв':m+' хв'}
+function renderBoosts(){const B=S.boosts||[];
+ $('boosts').innerHTML=B.map(b=>`<div class="card bst ${b.until?'on':''}"><div class="e">${b.icon}</div><div class="tx"><b>${b.label}</b><small>${b.desc}</small></div>
+  ${b.until&&!b.canBuy?`<div class="act">діє ще<br>${bleft(b.until)}</div>`:`<button class="buy" data-b="${b.key}" ${S.me.gems<b.price?'disabled':''}>${b.until?'+24 год · ':''}${b.price} 💎</button>`}</div>`).join('');
+ $('boosts').querySelectorAll('.buy').forEach(x=>x.onclick=async()=>{const b=B.find(y=>y.key===x.dataset.b);
+  if(!(await confirmTG(`${b.icon} ${b.label} за ${b.price} 💎?`)))return;hap('heavy');const r=await act('boost',{key:b.key});if(r&&r.ok){hap('ok');confetti()}});
+ $('hbst').innerHTML=B.filter(b=>b.until).map(b=>`<span>${b.icon}</span>`).join('')}
 // ===================== tabs
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{hap('light');document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===b));
  document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id==='v_'+b.dataset.v));scrollTo(0,0);if(b.dataset.v==='inv')tickInvest()});
