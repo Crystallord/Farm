@@ -369,6 +369,7 @@ body{padding-bottom:96px}
 .pprev{display:flex;align-items:center;gap:14px;background:rgba(255,255,255,.12);border-radius:14px;padding:12px;margin:8px 0}
 .pprev b{display:block;font-weight:900;font-size:14px}.pprev small{font-size:12px;opacity:.85;font-weight:800}
 .pprev.light{background:#fff;color:var(--ink)}.pprev.light small{color:var(--mute)}
+.cat .w.oth{font-size:12px;color:var(--mute);padding-top:5px;border-top:1px dashed #f0dcc0}.cat .w.oth span{color:var(--mute)}.cat .w.me{color:#1d8a45}.cat .w.oth.me{color:#2fa55a}
 </style></head><body>
 <header class="hdr" id="hdr"><span id="hava" class="tapme"></span><div class="hn"><b id="hname">…</b><span id="httl"></span><span id="hbst"></span></div>
   <div class="hb"><span class="hs"><span class="flame dim" id="flame">🔥</span><b id="hst">0</b></span><span class="hm"><b id="uah">0</b> ₴</span><span class="hg"><b id="gem">0</b> 💎</span></div></header>
@@ -760,7 +761,8 @@ const PCOL=['#ff8a2b','#7b5cff','#2fb45c','#2b9bff','#ff5d8f','#c9a227'];
 function fullStats(){const F=S.fstats;if(!F)return;const pp=F.people,per=fsPer,met=fsMet,val=p=>met==='gin'?(p.fun[per]||{}).gin||0:(p[per]||{}).uah||0;
  const rank=[...pp].sort((a,b)=>val(b)-val(a)),mx=Math.max(1,...pp.map(val)),u=met==='uah'?' ₴':' 💎';
  const pods=[rank[1],rank[0],rank[2]].map((p,i)=>p?`<div class="pc p${[2,1,3][i]}">${ava(P(p.id).look,[46,60,40][i])}<b>${P(p.id).name}</b><small>${fmt(Math.round(val(p)))}${u}</small><div class="pl">${[2,1,3][i]}</div></div>`:'').join('');
- const best=(f,lab,fmtv)=>{const w=[...pp].sort((a,b)=>f(b)-f(a))[0];return w&&f(w)>0?`<div class="cat"><small>${lab}</small><div class="w">${ava(P(w.id).look,24)}${P(w.id).name}<span>${fmtv(f(w))}</span></div></div>`:''};
+ const best=(f,lab,fmtv)=>{const r=[...pp].sort((a,b)=>(f(b)||0)-(f(a)||0)),top=f(r[0])||0;if(!(top>0))return '';const me=String(S.me.id);
+ return `<div class="cat"><small>${lab}</small>${r.map((w,i)=>{const v=f(w)||0,win=v===top;return `<div class="w ${win?'win':'oth'} ${w.id===me?'me':''}">${ava(P(w.id).look,win?24:18)}${P(w.id).name}${win?' 🥇':''}<span>${fmtv(v)}</span></div>`}).join('')}</div>`};
  sheet(`<h3>📊 Статистика ферми</h3><p>Хто сьогодні король урожаю? 👑</p>
  <div class="mc">${[['today','Сьогодні'],['yday','Вчора'],['week','Тиждень'],['lweek','Мин. тиждень']].map(([k,l])=>`<button data-p="${k}" class="${k===per?'on':''}">${l}</button>`).join('')}</div>
  <div class="mc">${[['month','Місяць'],['all','Весь час']].map(([k,l])=>`<button data-p="${k}" class="${k===per?'on':''}">${l}</button>`).join('')}</div>
