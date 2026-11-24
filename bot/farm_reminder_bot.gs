@@ -3655,6 +3655,7 @@ function appApi(e) {
       }
       else if (body.action === 'look') appLook(st, id, a, q);
       else if (body.action === 'tr') appTrade(st, user, a, q);
+      else if (body.action === 'grow') appSetGrow(st, user, a, q);
       else if (body.action === 'pet') appPet(st, user, String(a.data || 'pet:card'), q);
       else if (body.action === 'boost') buyBoost(st, user, String(a.key), q);
       else if (body.action === 'prize') claimPrize(st, id, String(a.id || 'all'), q);
@@ -3910,6 +3911,24 @@ function appFarmStats(st, now) {
   const tot = function (k) { return people.reduce(function (a, p) { return { n: a.n + p[k].n, uah: money(a.uah + p[k].uah) }; }, { n: 0, uah: 0 }); };
   return { days: days, people: people, farm: { today: tot('today'), week: tot('week'), month: tot('month'), all: tot('all'), bank: money(st.bank || 0), plots: (st.cfg.iplots || []).length } };
 }
+// 🌱 what grows: seedbeds crop, bundles on our plots, neutral land (the owner changes it in the app)
+function appGrow(st, id) {
+  const c = st.cfg, f = farmCalc(c);
+  return { edit: String(id) === String(st.owner), beds: f.beds, spots: f.spots, bedCrop: c.bedCrop, bundleCrop: c.bundleCrop, bundles: f.pbundles, comps: f.comps, nbundles: f.nbundles, neutral: f.neutral,
+    crops: Object.keys(CROPS).map(function (k) { const cf = Object.assign({}, c, { bedCrop: k }); return { key: k, label: CROPS[k].label, min: CROPS[k].min, icon: { narcissus: '🌼', clover: '🍀', corn: '🌽', mr: '🌿', tc: '🌵' }[k] || '🌱', uah: money(KINDS.beds.reward(cf)) }; }),
+    bcrops: Object.keys(BUNDLES).map(function (k) { return { key: k, label: BUNDLES[k].label, min: BUNDLES[k].min, gold: money(bundleHarvest(Object.assign({}, c, { bundleCrop: k })).gold) }; }),
+    compGold: money(composterHarvest().gold), plotMin: plotType(c).min, plotsUah: money(KINDS.plots.reward(c)), bedsUah: money(KINDS.beds.reward(c)) };
+}
+function appSetGrow(st, user, a, q) {
+  if (String(user.id) !== String(st.owner)) { q.out.push('Змінювати може лише власник ферми'); return; }
+  const c = st.cfg, f0 = farmCalc(c), clamp = function (v, lo, hi) { return Math.max(lo, Math.min(hi, v)); };
+  if (a.bedCrop && CROPS[a.bedCrop] && a.bedCrop !== c.bedCrop) applySetting(st, ['set', 'bedCrop', String(a.bedCrop)]);
+  if (a.bundleCrop && BUNDLES[a.bundleCrop]) c.bundleCrop = String(a.bundleCrop);
+  if (a.bundles !== undefined) c.bundles = clamp(Math.round(+a.bundles || 0), 0, f0.spots);
+  if (a.nbundles !== undefined) c.nbundles = clamp(Math.round(+a.nbundles || 0), 0, 1000);
+  if (a.neutral !== undefined) c.neutral = clamp(Math.round(+a.neutral || 0), 0, 500);
+  q.out.push('🌱 Збережено');
+}
 function appMe(st, id, now) { // 👤 stats, records, the family this week, the next achievements, the inventory
   const day = dayKey(now, st.cfg), wk = 'w:' + weekKey(day), mo = 'm:' + monthKey(now);
   const pick = function (key, u) { const r = (st.stats[key] || {})[u || id]; return { n: r ? r.n : 0, uah: r ? money(r.g !== undefined ? r.g : r.uah) : 0 }; };
@@ -3967,7 +3986,7 @@ function appState(st, id) {
       coupons: Object.keys(x.coupons).filter(function (k) { return x.coupons[k] > 0 && shopItem(k); }).map(function (k) { const it = shopItem(k); return { id: k, icon: it.icon, label: it.label, n: x.coupons[k] }; }) },
     gemUah: st.cfg.gemUah,
     farm: appFarm(st, id, now), tasks: appTasks(st, id), invest: appInvest(st, id), my: appMe(st, id, now), people: appPeople(st), looks: appLooks(st, id), trades: appTrades(st, id),
-    trInv: Object.keys(st.people).reduce(function (o, u) { o[u] = trKeys(st, u).map(function (k) { return Object.assign(trItem(st, k, trHave(st, u, k)), { step: Math.abs(trSteps(st, k).filter(function (x) { return x[0] > 0; })[0][0]) }); }); return o; }, {}), fstats: appFarmStats(st, now), contest: appContest(st, id, now), boosts: boostState(st, id, now), excl: Object.keys(EXCL).map(function (k) { const e = exclHolder(st, k); return { key: k, icon: EXCL[k].icon, label: EXCL[k].label, price: EXCL[k].price, holder: e ? e.uid : null, until: e ? e.until : 0 }; }),
+    trInv: Object.keys(st.people).reduce(function (o, u) { o[u] = trKeys(st, u).map(function (k) { return Object.assign(trItem(st, k, trHave(st, u, k)), { step: Math.abs(trSteps(st, k).filter(function (x) { return x[0] > 0; })[0][0]) }); }); return o; }, {}), fstats: appFarmStats(st, now), grow: appGrow(st, id), contest: appContest(st, id, now), boosts: boostState(st, id, now), excl: Object.keys(EXCL).map(function (k) { const e = exclHolder(st, k); return { key: k, icon: EXCL[k].icon, label: EXCL[k].label, price: EXCL[k].price, holder: e ? e.uid : null, until: e ? e.until : 0 }; }),
   };
 }
 

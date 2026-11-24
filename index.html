@@ -407,6 +407,13 @@ body.busy button:not(.pending),body.busy .tile,body.busy .ob{opacity:.6;transiti
 .rg input[type=range]{width:100%;margin:10px 0 2px;accent-color:#7b5cff;height:28px}
 .rgl{display:flex;justify-content:space-between;font-size:11px;font-weight:800;color:var(--mute)}
 .adds{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.chipadd{border:2px dashed #e6d3b8;background:none;border-radius:12px;padding:6px 9px;font:900 12.5px Nunito,sans-serif;color:#b35a00;cursor:pointer}
+
+.growb{border:0;border-radius:16px;padding:12px;font:900 14.5px Nunito,sans-serif;color:#1d8a45;background:#e9ffef;box-shadow:0 3px 0 #c8efd4;cursor:pointer}
+.gsec{background:#fff;border-radius:16px;padding:12px;margin:10px 0}.gsec h5{margin:0 0 4px;font-size:14px;font-weight:900}.gsec>small{display:block;color:var(--mute);font-weight:800;font-size:12px;margin-bottom:8px}
+.cpick{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.cpick button{border:0;border-radius:14px;padding:10px 4px;background:#f7efe3;font:900 12.5px Nunito,sans-serif;color:var(--ink);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;height:100%}
+.cpick button .e{font-size:24px}.cpick button small{font-size:10.5px;color:var(--mute);font-weight:800}.cpick button.on{background:#e9ffef;box-shadow:0 0 0 3px #2fb45c}
+.split{display:flex;height:14px;border-radius:7px;overflow:hidden;margin:6px 0}.split i{display:block;height:100%}.split .b{background:#ffb020}.split .c{background:#c08a5a}
+.gsave{position:sticky;bottom:0;padding-top:6px;background:linear-gradient(transparent,var(--bg) 30%)}
 </style></head><body>
 <header class="hdr" id="hdr"><span id="hava" class="tapme"></span><div class="hn"><b id="hname">…</b><span id="httl"></span><span id="hbst"></span></div>
   <div class="hb"><span class="hs"><span class="flame dim" id="flame">🔥</span><b id="hst">0</b></span><span class="hm"><b id="uah">0</b> ₴</span><span class="hg"><b id="gem">0</b> 💎</span></div></header>
@@ -422,6 +429,7 @@ body.busy button:not(.pending),body.busy .tile,body.busy .ob{opacity:.6;transiti
     <div class="nf"><span class="left" id="left">…</span><span class="nx" id="ms"></span></div>
   </div>
   <div class="hv" id="hv"></div>
+  <button class="growb" id="growb">🌱 Що росте · змінити</button>
   <div class="card petc" id="petc"></div>
   <div class="card cont" id="cont"></div>
   <div class="sect" style="margin-top:22px"><b>Посадила щось інше?</b><small>разовий збір</small></div>
@@ -920,6 +928,33 @@ function renderPet(){const el=$('petc'),pe=S.pet;
   ${pe.ask?`<button class="go" data-d="pet:dar:-1">🐾 Так, я ${S.me.female?'була':'був'} в дару</button>`:''}
   <button data-d="pet:feed" ${pe.fed>=100?'disabled':''}>🍖 Погодувати${pe.food?` (є ${pe.food})`:` · ${S.shop.food.price} 💎`}</button><button data-d="pet:wardrobe">👕 Гардероб</button></div>`;
  el.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>petDo(b.dataset.d,b))}
+// ===================== 🌱 what grows
+let GD=null;
+function growSheet(){const G=S.grow;if(!G)return;if(!GD)GD={bedCrop:G.bedCrop,bundleCrop:G.bundleCrop,bundles:G.bundles,nbundles:G.nbundles,neutral:G.neutral};const D=GD,ro=!G.edit;
+ const bc=G.bcrops.find(x=>x.key===D.bundleCrop)||G.bcrops[0],own=Math.min(D.bundles,G.spots),comps=G.spots-own;
+ const plotMin=(own+D.nbundles>0&&comps+D.neutral>0)?Math.max(90,bc.min):(own+D.nbundles>0?bc.min:90),gold=(own+D.nbundles)*bc.gold+(comps+D.neutral)*G.compGold;
+ const dirty=['bedCrop','bundleCrop','bundles','nbundles','neutral'].some(k=>D[k]!==G[k]);
+ const dur=m=>m>=60?Math.floor(m/60)+' год'+(m%60?' '+m%60+' хв':''):m+' хв';
+ sheet(`<h3>🌱 Що росте</h3><p>${ro?'Змінює власник ферми — тут можна подивитись.':'Обери — і натисни «Зберегти». Таймери перерахуються самі.'}</p>
+ <div class="gsec"><h5>🏠 Грядки в будинках · ${G.beds}</h5><small>Що посаджено на грядках</small>
+  <div class="cpick">${G.crops.map(c=>`<button data-bed="${c.key}" class="${c.key===D.bedCrop?'on':''}" ${ro?'disabled':''}><span class="e">${c.icon}</span>${c.label}<small>${dur(c.min)} · ${fmt(c.uah)} ₴</small></button>`).join('')}</div></div>
+ <div class="gsec"><h5>📦 Бандли — яка культура</h5><small>Для бандлів і на своїй, і на нейтральній землі</small>
+  <div class="cpick" style="grid-template-columns:repeat(4,1fr)">${G.bcrops.map(c=>`<button data-bc="${c.key}" class="${c.key===D.bundleCrop?'on':''}" ${ro?'disabled':''}><span class="e">📦</span>${c.label}<small>${dur(c.min)}</small></button>`).join('')}</div></div>
+ <div class="gsec"><h5>🏡 Своя земля · ${G.spots} місць</h5><small>Бандл займає місце компостера</small>
+  <div class="split"><i class="b" style="width:${G.spots?own/G.spots*100:0}%"></i><i class="c" style="width:${G.spots?comps/G.spots*100:0}%"></i></div>
+  <div class="rg"><div class="rgh"><span class="nm">📦 бандлів ${bc.label}</span><span class="rv" id="gv1">${own} · 🪱 ${comps}</span></div><input type="range" id="g1" min="0" max="${G.spots}" step="1" value="${own}" ${ro?'disabled':''}></div></div>
+ <div class="gsec"><h5>🌍 Нейтральна земля</h5><small>Скільки в середньому стоїть (бо крадуть)</small>
+  <div class="rg"><div class="rgh"><span class="nm">📦 бандлів</span><span class="rv" id="gv2">${D.nbundles}</span></div><input type="range" id="g2" min="0" max="${Math.max(40,D.nbundles)}" step="1" value="${D.nbundles}" ${ro?'disabled':''}></div>
+  <div class="rg"><div class="rgh"><span class="nm">🪱 компостерів</span><span class="rv" id="gv3">${D.neutral}</span></div><input type="range" id="g3" min="0" max="${Math.max(60,D.neutral)}" step="1" value="${D.neutral}" ${ro?'disabled':''}></div></div>
+ <div class="gsec"><h5>🪱 Хробаки: збір кожні ${dur(plotMin)}</h5><small>≈ ${fmt(Math.round(gold))}g за збір · зараз ${fmt(G.plotsUah)} ₴</small></div>
+ ${ro?'':`<div class="gsave"><button class="buy big" id="gsave" ${dirty?'':'disabled'}>💾 Зберегти</button></div>`}<button class="ghostb" onclick="GD=null;unsheet()">Закрити</button>`);
+ const keep=()=>{const sc=$('sheet').scrollTop;growSheet();$('sheet').scrollTop=sc};
+ $('sheet').querySelectorAll('[data-bed]').forEach(b=>b.onclick=()=>{D.bedCrop=b.dataset.bed;hap('light');keep()});
+ $('sheet').querySelectorAll('[data-bc]').forEach(b=>b.onclick=()=>{D.bundleCrop=b.dataset.bc;hap('light');keep()});
+ [['g1','bundles'],['g2','nbundles'],['g3','neutral']].forEach(([i,k])=>{const el=$(i);el.oninput=()=>{D[k]=+el.value;
+  if(k==='bundles')$('gv1').textContent=`${D.bundles} · 🪱 ${G.spots-D.bundles}`;else $(i==='g2'?'gv2':'gv3').textContent=D[k];const g=$('gsave');if(g)g.disabled=false};el.onchange=()=>{hap('light');keep()}});
+ if($('gsave'))$('gsave').onclick=async()=>{hap('heavy');const r=await act('grow',D);if(r&&r.ok){GD=null;unsheet();confetti()}}}
+$('growb').onclick=()=>{GD=null;growSheet()};
 // ===================== tabs
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{hap('light');document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===b));
  document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id==='v_'+b.dataset.v));scrollTo(0,0);if(b.dataset.v==='inv')tickInvest()});
