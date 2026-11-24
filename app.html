@@ -506,6 +506,7 @@ body.winter .crop.ready .beam{display:none}body.winter .crop{overflow:visible}
 .garl b{position:absolute;width:11px;height:14px;margin:-7px 0 0 -5.5px;border:1.5px solid rgba(255,255,255,.7);border-radius:50% 50% 45% 45%;background:var(--c);box-shadow:0 0 8px 2px var(--c);animation:blink 1.2s var(--d) ease-in-out infinite}
 @keyframes blink{0%,100%{opacity:1;filter:brightness(1.25)}50%{opacity:.35;filter:brightness(.7)}}
 .treetab .ti{font-size:30px!important;margin-top:-16px;background:radial-gradient(circle,#fff 55%,#e6f2ff);border-radius:50%;width:50px;height:50px;display:grid;place-items:center;box-shadow:0 4px 14px rgba(40,120,70,.35);filter:none!important}
+.hdr.hbeta{flex-wrap:wrap;padding-top:8px}#betabar{flex-basis:100%;padding:4px 8px;border-radius:10px;background:repeating-linear-gradient(45deg,#7b5cff,#7b5cff 10px,#6a4be8 10px,#6a4be8 20px);color:#fff;font-size:11px;font-weight:800;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .betab{display:inline-block;font-size:10px;font-weight:900;color:#fff;background:#7b5cff;border-radius:6px;padding:1px 5px;margin-left:4px;vertical-align:middle}
 .mus{border:0;background:#fff;border-radius:12px;padding:5px 8px;font-size:15px;box-shadow:0 2px 0 #dce8f5;cursor:pointer}
 /* tree page */
@@ -642,7 +643,7 @@ const TG=window.Telegram&&Telegram.WebApp; try{TG.ready();TG.expand();TG.setHead
 const qs=new URLSearchParams(location.search), API=qs.get('api')||window.FARM_API||'', DEMO=qs.get('demo')==='1'||!(TG&&TG.initData), BETA=qs.get('beta')==='1';
 const quiet=()=>{const h=new Date().getHours();return h<8}; // 00:00–08:00: no vibration
 const hap=t=>{if(quiet())return;try{t==='ok'?TG.HapticFeedback.notificationOccurred('success'):t==='err'?TG.HapticFeedback.notificationOccurred('error'):TG.HapticFeedback.impactOccurred(t||'medium')}catch(e){}};
-const APP_VER='24.11.1524';
+const APP_VER='24.11.1532';
 const $=id=>document.getElementById(id), R=95, C=2*Math.PI*R;
 const fmt=v=>(+v).toLocaleString('uk-UA',{minimumFractionDigits:(+v)%1?2:0,maximumFractionDigits:2});
 const plural=(n,f)=>{n=Math.abs(n)%100;const b=n%10;return n>10&&n<20?f[2]:b===1?f[0]:b>=2&&b<=4?f[1]:f[2]};
@@ -1199,7 +1200,7 @@ function renderWinter(){const W=S.winter||{};const on=!!W.design;document.body.c
  if(on&&!snowMade){snowMade=true;$('snowfall').innerHTML=[...Array(34)].map(()=>{const s=2+Math.random()*5;return `<i style="--x:${Math.random()*100}%;--s:${s}px;--o:${.5+Math.random()*.5};--t:${7+Math.random()*9}s;--d:-${Math.random()*14}s;--w:${(Math.random()-.5)*60}px"></i>`}).join('')}
  const tt=$('treetab');tt.style.display=on?'':'none';$('gdot').textContent=W.gifts||0;$('gdot').style.display=W.gifts?'grid':'none';
  document.querySelector('.nav .in').style.gridTemplateColumns=on?'repeat(6,1fr)':'';
- $('hname').querySelector('.betab')||(BETA&&$('hname').insertAdjacentHTML('beforeend','<span class="betab">БЕТА</span>'));
+ if(BETA&&!$('betabar')){$('hdr').classList.add('hbeta');$('hdr').insertAdjacentHTML('afterbegin','<div id="betabar">🧪 <b>БЕТА</b> · тестова копія — справжня ферма не змінюється</div>')}
  if(on&&!$('musb')){$('hbst').insertAdjacentHTML('afterend',`<button class="mus" id="musb">${musicOn()?'🔊':'🔇'}</button>`);$('musb').onclick=e=>{e.stopPropagation();musicToggle()}}
  // garlands on ready crops
  document.querySelectorAll('.crop').forEach(c=>{if(c.querySelector('.garl'))return;const g=document.createElement('span');g.className='garl';const cols=['#ff4d4d','#ffd84a','#4dd2ff','#5ee07a','#ff8af0'];const pts=[];
