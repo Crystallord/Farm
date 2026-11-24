@@ -293,9 +293,9 @@ body{padding-bottom:96px}
 
 .hdr{position:sticky;top:0;z-index:45;display:flex;align-items:center;gap:10px;padding:16px 14px 10px;background:#fff3e2;border-bottom:1px solid #f0dcc0;margin:-14px -14px 12px;box-shadow:0 4px 14px rgba(160,110,50,.08)}
 .hn{flex:1;min-width:0;line-height:1.15}.hn b{display:block;font-size:16px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.hn .ttl{margin:2px 0 0}
-.hb{display:flex;gap:6px;align-items:center}
-.hb>span{background:#fff;border-radius:12px;padding:5px 8px;font-size:13px;font-weight:900;white-space:nowrap;box-shadow:0 2px 0 #f0dcc0;font-variant-numeric:tabular-nums}
-.hb .hg{color:#5b3fd6}.hb .hs{color:#e2552b}.hb .flame{font-size:13px;filter:none}.hb .flame.dim{filter:grayscale(1) opacity(.5)}
+.hb{display:grid;grid-template-columns:auto auto;gap:5px;justify-content:end;justify-items:stretch}
+.hb>span{display:inline-flex;align-items:center;justify-content:center;gap:3px;line-height:1.25em;background:#fff;border-radius:12px;padding:5px 8px;font-size:13px;font-weight:900;white-space:nowrap;box-shadow:0 2px 0 #f0dcc0;font-variant-numeric:tabular-nums}
+.hb .hg{color:#5b3fd6}.hb .hsn{display:none;color:#2a7fc9}body.winter .hb .hsn{display:inline-flex}.hb .hs,.hb .hsn{font-size:12px;padding:3px 8px}.hb .hs{color:#e2552b}.hb .flame{font-size:13px;filter:none}.hb .flame.dim{filter:grayscale(1) opacity(.5)}
 .bigfl{font-size:34px;line-height:1}.bigfl.dim{filter:grayscale(.65) opacity(.6)}
 .top .sline{font-size:14px}.top .sline b{font-size:19px}
 
@@ -507,8 +507,9 @@ body.winter .crop.ready .beam{display:none}body.winter .crop{overflow:visible}
 @keyframes blink{0%,100%{opacity:1;filter:brightness(1.25)}50%{opacity:.35;filter:brightness(.7)}}
 .treetab .ti{font-size:30px!important;margin-top:-16px;background:radial-gradient(circle,#fff 55%,#e6f2ff);border-radius:50%;width:50px;height:50px;display:grid;place-items:center;box-shadow:0 4px 14px rgba(40,120,70,.35);filter:none!important}
 .hdr.hbeta{flex-wrap:wrap;padding-top:8px}#betabar{flex-basis:100%;padding:4px 8px;border-radius:10px;background:repeating-linear-gradient(45deg,#7b5cff,#7b5cff 10px,#6a4be8 10px,#6a4be8 20px);color:#fff;font-size:11px;font-weight:800;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bigb{border:0;border-radius:16px;padding:12px 8px;font:900 17px Nunito,sans-serif;color:#fff;cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,.18)}.bigb:disabled{opacity:.4;filter:grayscale(.6)}
 .betab{display:inline-block;font-size:10px;font-weight:900;color:#fff;background:#7b5cff;border-radius:6px;padding:1px 5px;margin-left:4px;vertical-align:middle}
-.mus{border:0;background:#fff;border-radius:12px;padding:5px 8px;font-size:15px;box-shadow:0 2px 0 #dce8f5;cursor:pointer}
+.mus{position:fixed;right:12px;bottom:calc(var(--navh,92px) + 10px);z-index:41;width:42px;height:42px;border-radius:50%;border:0;background:#fff;font-size:18px;display:grid;place-items:center;box-shadow:0 3px 10px rgba(60,90,130,.22),0 2px 0 #dce8f5;cursor:pointer}
 /* tree page */
 .scene{position:relative;height:420px;border-radius:24px;overflow:hidden;background:linear-gradient(#152a52 0%,#2a4d86 55%,#4b77b5 75%,#dfeeff 75.2%,#ffffff 100%);box-shadow:0 10px 26px rgba(30,60,110,.3)}
 .scene .stars i{position:absolute;width:2px;height:2px;background:#fff;border-radius:50%;animation:tw 2.4s var(--d) infinite}@keyframes tw{50%{opacity:.2}}
@@ -552,7 +553,7 @@ body.winter .crop.ready .beam{display:none}body.winter .crop{overflow:visible}
 .tl{animation:blink 1.2s ease-in-out infinite}.star{animation:pulse3 2s ease-in-out infinite;transform-origin:center}
 </style></head><body class="loading">
 <header class="hdr" id="hdr"><span id="hava" class="tapme"></span><div class="hn"><b id="hname">…</b><span id="httl"></span><span id="hbst"></span></div>
-  <div class="hb"><span class="hs"><span class="flame dim" id="flame">🔥</span><b id="hst">0</b></span><span class="hm"><b id="uah">0</b> ₴</span><span class="hg"><b id="gem">0</b> 💎</span></div></header>
+  <div class="hb"><span class="hm"><b id="uah">0</b> ₴</span><span class="hg"><b id="gem">0</b> 💎</span><span class="hs"><span class="flame dim" id="flame">🔥</span><b id="hst">0</b></span><span class="hsn" id="hsnw"><b id="hsn">0</b> ❄️</span></div></header>
 <div class="wrap view on" id="v_farm">
   <div class="card top">
     <div class="streak"><span class="bigfl dim" id="flame2">🔥</span>
@@ -643,7 +644,7 @@ const TG=window.Telegram&&Telegram.WebApp; try{TG.ready();TG.expand();TG.setHead
 const qs=new URLSearchParams(location.search), API=qs.get('api')||window.FARM_API||'', DEMO=qs.get('demo')==='1'||!(TG&&TG.initData), BETA=qs.get('beta')==='1';
 const quiet=()=>{const h=new Date().getHours();return h<8}; // 00:00–08:00: no vibration
 const hap=t=>{if(quiet())return;try{t==='ok'?TG.HapticFeedback.notificationOccurred('success'):t==='err'?TG.HapticFeedback.notificationOccurred('error'):TG.HapticFeedback.impactOccurred(t||'medium')}catch(e){}};
-const APP_VER='24.11.1532';
+const APP_VER='24.11.1556';
 const $=id=>document.getElementById(id), R=95, C=2*Math.PI*R;
 const fmt=v=>(+v).toLocaleString('uk-UA',{minimumFractionDigits:(+v)%1?2:0,maximumFractionDigits:2});
 const plural=(n,f)=>{n=Math.abs(n)%100;const b=n%10;return n>10&&n<20?f[2]:b===1?f[0]:b>=2&&b<=4?f[1]:f[2]};
@@ -1004,15 +1005,27 @@ function styleSheet(){const L=S.looks,mp=P(S.me.id),cur=mp.look,tabs=[['av','А�
  ${stab==='ex'?`<p>Тиждень лише в однієї людини на всю родину. Купиш — і в інших такого не буде 7 днів.</p><div class="exl">${(S.excl||[]).map(e=>{const mine=e.holder===String(S.me.id),busy2=e.holder&&!mine,d=new Date(e.until);const dd=String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0');
   const pv=e.key==='crown'?ava(Object.assign({},cur,{crown:true}),46):e.key==='sparkle'?ava(Object.assign({},cur,{sparkle:true}),46):`<b class="rbn" style="font-size:17px">${S.me.name}</b>`;
   return `<div class="exr">${pv}<div class="tx"><b>${e.icon} ${e.label}</b><small>${mine?'твоє до '+dd:busy2?'зайнято: '+P(e.holder).name+' до '+dd:'вільне · 7 днів'}</small></div>${busy2?'':`<button class="buy" data-x="${e.key}">${mine?'+7 днів · ':''}${e.price} 💎</button>`}</div>`}).join('')}</div>`:`<div class="sgrid ${stab==='ti'?'ti':''}">${L[stab].map(o=>{const on=wornKey[stab]===o.key,pv=stab==='av'?ava(Object.assign({},cur,{av:o.key}),46):stab==='bg'?ava(Object.assign({},cur,{bg:o.key}),46):stab==='fr'?ava(Object.assign({},cur,{fr:o.key}),46):`<span class="ttl" style="font-size:12px">${o.label||'—'}</span>`;
-  return `<button data-k="${o.key}" class="${on?'on':''}">${o.winter?'<span class="wint">❄️</span>':''}${pv}${stab!=='av'&&stab!=='ti'?`<span>${o.label}</span>`:''}<span class="${on?'ok':o.own?'ok':'pr'}">${on?'✓ вдягнуто':o.own?'є':o.price+' 💎'}</span></button>`}).join('')}</div>`}
+  return `<button data-k="${o.key}" class="${on?'on':''}">${o.winter?'<span class="wint">❄️</span>':''}${pv}${stab!=='av'&&stab!=='ti'?`<span>${o.label}</span>`:''}<span class="${on?'ok':o.own?'ok':'pr'}">${on?'✓ вдягнуто':o.own?'є':o.winter?o.price+' 💎 / '+o.price*SR()+' ❄️':o.price+' 💎'}</span></button>`}).join('')}</div>`}
  <button class="ghostb" onclick="unsheet()">Готово</button>`);
  $('sheet').querySelectorAll('.stabs button').forEach(b=>b.onclick=()=>{stab=b.dataset.t;styleSheet()});
  $('sheet').querySelectorAll('.exr .buy').forEach(b=>b.onclick=async()=>{const e=S.excl.find(x=>x.key===b.dataset.x);if(S.me.gems<e.price){toast(`Потрібно ще ${Math.ceil(e.price-S.me.gems)} 💎`);hap('err');return}
   if(!(await confirmTG(`${e.icon} ${e.label} на 7 днів за ${e.price} 💎?`)))return;hap('heavy');const r=await act('excl',{key:e.key});if(r&&r.ok){confetti();styleSheet()}});
  $('sheet').querySelectorAll('.sgrid button').forEach(b=>b.onclick=async()=>{const o=L[stab].find(x=>x.key===b.dataset.k);
+  if(!o.own&&o.winter)return winterBuy(o);
   if(!o.own){if(S.me.gems<o.price){toast(`Потрібно ще ${Math.ceil(o.price-S.me.gems)} 💎 — заробляй у Завданнях!`);hap('err');return}
    if(!(await confirmTG(`Купити за ${o.price} 💎?`)))return}
   hap('heavy');const r=await act('look',{kind:stab,key:o.key});if(r&&r.ok){if(!o.own)confetti();styleSheet()}})}
+const SR=()=>(S.winter&&S.winter.rate)||10;
+function winterBuy(o){const cur=P(S.me.id).look,sn=(S.winter&&S.winter.snow)||0,ps=o.price*SR(),gOk=S.me.gems>=o.price,sOk=sn>=ps;
+ const pv=stab==='ti'?`<span class="ttl" style="font-size:15px">${o.label}</span>`:ava(Object.assign({},cur,{[stab]:o.key}),96);
+ sheet(`<div class="prev">${pv}<b style="font-size:18px">❄️ Зимовий стиль${stab!=='av'&&stab!=='ti'?' · '+o.label:''}</b><small style="color:var(--mute);font-weight:800">Чим платити?</small></div>
+ <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:6px 0 12px">
+  <button class="bigb" id="wbg" ${gOk?'':'disabled'} style="background:#7b5cff">${o.price} 💎<small style="display:block;font-size:11px;opacity:.85">у тебе ${fmt(S.me.gems)}</small></button>
+  <button class="bigb" id="wbs" ${sOk?'':'disabled'} style="background:#2a8fe0">${ps} ❄️<small style="display:block;font-size:11px;opacity:.85">у тебе ${fmt(sn)}</small></button></div>
+ <button class="ghostb" id="wbb">Назад</button>`);
+ $('wbb').onclick=()=>styleSheet();
+ const go=async c=>{hap('heavy');const r=await act('look',{kind:stab,key:o.key,cur:c});if(r&&r.ok){confetti();styleSheet()}};
+ $('wbg').onclick=()=>go('gem');$('wbs').onclick=()=>go('snow')}
 // ===================== 📊 full farm stats
 let fsPer='week',fsMet='uah';
 const PCOL=['#ff8a2b','#7b5cff','#2fb45c','#2b9bff','#ff5d8f','#c9a227'];
@@ -1198,10 +1211,10 @@ async function buySheet(o){sheet(`<h3>🏡 «${o.name}»</h3><p>Рахую, що
 let snowMade=false;
 function renderWinter(){const W=S.winter||{};const on=!!W.design;document.body.classList.toggle('winter',on);
  if(on&&!snowMade){snowMade=true;$('snowfall').innerHTML=[...Array(34)].map(()=>{const s=2+Math.random()*5;return `<i style="--x:${Math.random()*100}%;--s:${s}px;--o:${.5+Math.random()*.5};--t:${7+Math.random()*9}s;--d:-${Math.random()*14}s;--w:${(Math.random()-.5)*60}px"></i>`}).join('')}
- const tt=$('treetab');tt.style.display=on?'':'none';$('gdot').textContent=W.gifts||0;$('gdot').style.display=W.gifts?'grid':'none';
+ if(on)roll($('hsn'),W.snow||0);const nv=document.querySelector('.nav');if(nv)document.documentElement.style.setProperty('--navh',nv.offsetHeight+'px');const tt=$('treetab');tt.style.display=on?'':'none';$('gdot').textContent=W.gifts||0;$('gdot').style.display=W.gifts?'grid':'none';
  document.querySelector('.nav .in').style.gridTemplateColumns=on?'repeat(6,1fr)':'';
  if(BETA&&!$('betabar')){$('hdr').classList.add('hbeta');$('hdr').insertAdjacentHTML('afterbegin','<div id="betabar">🧪 <b>БЕТА</b> · тестова копія — справжня ферма не змінюється</div>')}
- if(on&&!$('musb')){$('hbst').insertAdjacentHTML('afterend',`<button class="mus" id="musb">${musicOn()?'🔊':'🔇'}</button>`);$('musb').onclick=e=>{e.stopPropagation();musicToggle()}}
+ if(on&&!$('musb')){document.body.insertAdjacentHTML('beforeend',`<button class="mus" id="musb">${musicOn()?'🔊':'🔇'}</button>`);$('musb').onclick=e=>{e.stopPropagation();musicToggle()}}
  // garlands on ready crops
  document.querySelectorAll('.crop').forEach(c=>{if(c.querySelector('.garl'))return;const g=document.createElement('span');g.className='garl';const cols=['#ff4d4d','#ffd84a','#4dd2ff','#5ee07a','#ff8af0'];const pts=[];
   for(let i=0;i<=6;i++)pts.push([i/6*100,0]);for(let i=1;i<4;i++)pts.push([100,i/4*100]);for(let i=6;i>=0;i--)pts.push([i/6*100,100]);for(let i=3;i>0;i--)pts.push([0,i/4*100]);

@@ -848,7 +848,7 @@ function today(st, now) { return st.stats['d:' + dayKey(now, st.cfg)] || {}; }
 // The farm's reference day (еталон), the base of norms, plot income and payback: Cactus/Turmeric in the seedbeds,
 // 2/3 of the composter spots as Clover bundles and 1/3 as composters (worms), 6 harvests of each a day. It does not
 // depend on what is planted today, only on the land: more plots or neutral land -> more pay per harvest -> a bigger norm.
-const BOT_VER = '24.11.1532'; // set by bump.sh on every push
+const BOT_VER = '24.11.1556'; // set by bump.sh on every push
 const REF_DEF = { bedCrop: 'tc', bundleCrop: 'clover', bundleShare: 2 / 3, runs: 6 };
 let REF_OVR = null; // the owner's reference day (st.cfg.ref), set when the state is loaded
 const REF = {
@@ -3864,6 +3864,13 @@ function appLook(st, id, a, q) {
   if (!lookOwns(st, id, kind, key)) {
     if (isWinterLook(kind, key) && !winterOf(st, Date.now()).styles) { q.out.push('❄️ Зимові стилі продаються лише взимку'); return; }
     const x = inv(st, id);
+    if (a.cur === 'snow' && isWinterLook(kind, key)) { // winter styles: also for snowflakes
+      const need = L[1] * SNOW.rate; st.snow = st.snow || {};
+      if ((st.snow[id] || 0) < need) { q.out.push('Не вистачає ' + Math.ceil(need - (st.snow[id] || 0)) + ' ❄️'); return; }
+      st.snow[id] -= need;
+      st.lookOwn = st.lookOwn || {}; st.lookOwn[id] = st.lookOwn[id] || {}; st.lookOwn[id][kind + ':' + key] = dayKey(Date.now(), st.cfg);
+      q.out.push('✨ Куплено за ' + need + ' ❄️ і вдягнуто!'); st.look[id][kind] = key; return;
+    }
     if (x.gems < L[1]) { q.out.push('Не вистачає ' + money(L[1] - x.gems) + ' 💎'); return; }
     x.gems = money(x.gems - L[1]); dayAdd(st, id, 'style', L[1]);
     st.lookOwn = st.lookOwn || {}; st.lookOwn[id] = st.lookOwn[id] || {}; st.lookOwn[id][kind + ':' + key] = dayKey(Date.now(), st.cfg);
