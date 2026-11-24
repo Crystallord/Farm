@@ -423,7 +423,54 @@ body.busy button:not(.pending),body.busy .tile,body.busy .ob{opacity:.6;transiti
 .up{color:#e2552b}.dn{color:#1d8a45}.same{color:var(--ink)}
 .refload{opacity:.45;transition:opacity .2s}
 .nav{position:fixed}.ver{text-align:center;margin-top:2px;font-size:9.5px;font-weight:800;color:#c8b49c;letter-spacing:.02em;pointer-events:none;font-variant-numeric:tabular-nums}
-</style></head><body>
+
+/* 1 drawer */
+.grab{width:42px;height:5px;border-radius:3px;background:#d9c7b0;margin:-8px auto 12px}
+.sheet{touch-action:pan-y;transition:transform .32s cubic-bezier(.32,.72,0,1)}
+.shade.on .sheet{animation:up .38s cubic-bezier(.32,.72,0,1)}
+body>.hdr,body>.view{transition:transform .38s cubic-bezier(.32,.72,0,1),border-radius .38s,filter .38s;transform-origin:50% 0}
+body.sheeton>.hdr{transform:scale(.94) translateY(6px);filter:brightness(.92)}
+body.sheeton>.view.on{transform:scale(.94) translateY(10px);border-radius:18px;filter:brightness(.92)}
+/* 2 toasts */
+.toasts{position:fixed;left:50%;top:max(12px,env(safe-area-inset-top));transform:translateX(-50%);width:min(92vw,420px);z-index:95;pointer-events:none}
+.tst{position:absolute;left:0;right:0;top:0;display:flex;align-items:center;gap:10px;background:#fff;border-radius:16px;padding:12px 14px;font-weight:900;font-size:14px;line-height:1.25;
+ box-shadow:0 10px 30px rgba(0,0,0,.16);pointer-events:auto;touch-action:none;transform:translateY(calc(var(--i,0)*9px)) scale(calc(1 - var(--i,0)*.05));z-index:calc(10 - var(--i,0));
+ transition:transform .35s cubic-bezier(.2,.9,.3,1.15),opacity .3s,translate .3s,background .25s;animation:tin .4s cubic-bezier(.2,.9,.3,1.2)}
+.tst:not(:first-child)>span:last-child{opacity:.0}
+@keyframes tin{from{transform:translateY(-120%)}}
+.tst.hid{opacity:0}.tst.out{opacity:0;translate:0 -40px}
+.tst.ok{background:#e9ffef;color:#1d6b38}.tst.err{background:#fff0ea;color:#b3402b}.tst.pend{background:#fff}
+.sp2{width:18px;height:18px;flex:none;border-radius:50%;border:3px solid #f0e4d4;border-top-color:#ff7a1a;animation:spin .7s linear infinite}
+.ti2{flex:none}
+/* 3 rolling digits */
+.rl{display:inline-block;height:1em;line-height:1em;overflow:hidden;vertical-align:-0.12em}.rc{display:flex;flex-direction:column;transition:transform .8s cubic-bezier(.2,.9,.25,1.05)}.rc i{font-style:normal;height:1em;line-height:1em}
+.rs{display:inline-block}
+/* 4 ready beam + shimmer */
+.crop{position:relative;isolation:isolate}.crop .beam{display:none}
+.crop.ready .beam{display:block;position:absolute;inset:0;border-radius:inherit;overflow:hidden;z-index:-1;pointer-events:none}
+.crop.ready .beam::before{content:"";position:absolute;inset:-60%;background:conic-gradient(from 0deg,transparent 0 290deg,#2fb45c 325deg,#c8ffd9 345deg,transparent 360deg);animation:spin 2.8s linear infinite}
+.crop.ready .beam::after{content:"";position:absolute;inset:2.5px;border-radius:inherit;background:#fff}
+.crop.ready .btn{background:linear-gradient(110deg,#2fb45c 38%,#9bf5bb 50%,#2fb45c 62%);background-size:260% 100%;animation:shimmer 2.4s linear infinite,breathe 1.6s infinite}
+@keyframes shimmer{from{background-position:130% 0}to{background-position:-130% 0}}
+/* 6 bars */
+.bl2 .br{display:flex;align-items:center;gap:8px;padding:5px 0}.bl2 .rk{width:22px;text-align:center;font-weight:900;color:var(--mute)}
+.bl2 .bb{flex:1;position:relative;height:30px;border-radius:9px;background:#fbf1e2;overflow:hidden}.bl2 .bb i{position:absolute;left:0;top:0;bottom:0;border-radius:9px;background:linear-gradient(90deg,#ffd27a,#ffb020);transition:width .8s cubic-bezier(.2,.9,.25,1.05)}
+.bl2 .bb span{position:relative;display:flex;align-items:center;height:100%;padding-left:10px;font-weight:900;font-size:13px;white-space:nowrap;color:#5a3a00}
+.bl2 .br.me .bb i{background:linear-gradient(90deg,#9be7b1,#3cc46a)}.bl2 .br.me .bb span{color:#0f4a2a}
+.cbar{display:flex;height:16px;border-radius:8px;overflow:hidden;gap:2px;margin:6px 0}.cbar i{display:block}
+.lg3{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;font-weight:900;color:#6a5844}.lg3 i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px}
+/* 7 invest growth */
+.igr{margin-top:12px;text-align:left}.igh{display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:900;opacity:.9}
+.dl{background:rgba(185,255,214,.18);color:#b9ffd6;border-radius:8px;padding:2px 7px}
+.igr svg{display:block;width:100%;height:64px;margin-top:6px;overflow:visible}.igr .ln{stroke-dasharray:900;stroke-dashoffset:900;animation:draw 1.4s .2s ease-out forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.igl{display:flex;justify-content:space-between;font-size:11px;font-weight:800;opacity:.7}
+/* 8 skeleton */
+body.loading .hb>span,body.loading .hn b,body.loading .card:not(.race){color:transparent!important;background:linear-gradient(90deg,#f3e9dc 25%,#fbf4ea 50%,#f3e9dc 75%)!important;background-size:300% 100%!important;animation:shimmer 1.3s linear infinite!important}
+body.loading .card *,body.loading .hb>span *,body.loading #hava{visibility:hidden}
+body.loading .hn b{border-radius:8px;min-width:90px;display:inline-block}
+body.drag,body.drag *{user-select:none;-webkit-user-select:none}
+</style></head><body class="loading">
 <header class="hdr" id="hdr"><span id="hava" class="tapme"></span><div class="hn"><b id="hname">…</b><span id="httl"></span><span id="hbst"></span></div>
   <div class="hb"><span class="hs"><span class="flame dim" id="flame">🔥</span><b id="hst">0</b></span><span class="hm"><b id="uah">0</b> ₴</span><span class="hg"><b id="gem">0</b> 💎</span></div></header>
 <div class="wrap view on" id="v_farm">
@@ -468,6 +515,7 @@ body.busy button:not(.pending),body.busy .tile,body.busy .ob{opacity:.6;transiti
   <div class="card ihero"><small>Твої ділянки заробили сьогодні</small>
     <div class="tick"><span id="ti">0</span><span class="dec" id="td">,00000</span> <span class="cur">₴</span></div>
     <div class="irow"><div><b id="iday">0</b><small>₴ на день</small></div><div><b id="imon">0</b><small>₴ на місяць</small></div><div><b id="iwal">0</b><small>₴ до виплати</small></div></div>
+    <div class="igr" id="igr"></div>
     <div class="inote">якщо базова ферма збирає на 100%</div><button class="take" id="itake" style="display:none"></button></div>
   <div id="offs"></div>
   <div class="sect"><b>Мої ділянки</b><small id="icnt"></small></div>
@@ -502,7 +550,7 @@ body.busy button:not(.pending),body.busy .tile,body.busy .ob{opacity:.6;transiti
   <button class="tab" data-v="shop"><span class="ti">🛍️</span>Крамниця<span class="dot" id="sdot" style="display:none">0</span></button>
   <button class="tab" data-v="me"><span class="ti">👤</span>Я<span class="dot" id="mdot" style="display:none">0</span></button>
 </div><div class="ver" id="ver"></div></nav>
-<div class="shade" id="shade"><div class="sheet" id="sheet"></div></div><canvas id="cf"></canvas><div class="toast" id="toast"></div>
+<div class="shade" id="shade"><div class="sheet" id="sheet"></div></div><canvas id="cf"></canvas><div class="toasts" id="toasts"></div>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script>
 // ===================== setup
@@ -510,7 +558,7 @@ const TG=window.Telegram&&Telegram.WebApp; try{TG.ready();TG.expand();TG.setHead
 const qs=new URLSearchParams(location.search), API=qs.get('api')||window.FARM_API||'', DEMO=qs.get('demo')==='1'||!(TG&&TG.initData);
 const quiet=()=>{const h=new Date().getHours();return h<8}; // 00:00–08:00: no vibration
 const hap=t=>{if(quiet())return;try{t==='ok'?TG.HapticFeedback.notificationOccurred('success'):t==='err'?TG.HapticFeedback.notificationOccurred('error'):TG.HapticFeedback.impactOccurred(t||'medium')}catch(e){}};
-const APP_VER='24.11.1332';
+const APP_VER='24.11.1407';
 const $=id=>document.getElementById(id), R=95, C=2*Math.PI*R;
 const fmt=v=>(+v).toLocaleString('uk-UA',{minimumFractionDigits:(+v)%1?2:0,maximumFractionDigits:2});
 const plural=(n,f)=>{n=Math.abs(n)%100;const b=n%10;return n>10&&n<20?f[2]:b===1?f[0]:b>=2&&b<=4?f[1]:f[2]};
@@ -534,20 +582,31 @@ function pend(on){const b=lastTap;document.body.classList.toggle('busy',on);
   if(on&&b&&b.isConnected){b.classList.add('pending');b.dataset.pw=b.style.minWidth;b.style.minWidth=b.offsetWidth+'px'}
   if(!on)document.querySelectorAll('.pending').forEach(x=>{x.classList.remove('pending');x.style.minWidth=x.dataset.pw||''})}
 async function act(action,args){
-  if(busy) return null; busy=true;pend(true);
+  if(busy) return null; busy=true;pend(true);const pt=PEND[action]?pendToast(PEND[action]):null;
   try{const r=await call(action,args);
-    if(r.error){toast(r.msg||'Помилка');hap('err');return r}
+    if(r.error){toast(r.msg||'Помилка','err',pt);hap('err');return r}
     if(r.state) apply(r.state);
-    if(r.toast) toast(r.toast);
+    if(r.toast) toast(r.toast,null,pt);else drop(pt);
     return r;
-  }catch(e){toast('Немає зв’язку з ботом 😕 '+(e&&e.message?e.message.slice(0,60):''));hap('err');return null}finally{busy=false;pend(false)}
+  }catch(e){toast('Немає зв’язку з ботом 😕 '+(e&&e.message?e.message.slice(0,60):''),'err',pt);hap('err');return null}finally{busy=false;pend(false)}
 }
-function apply(st){S=st;$('ver').textContent='v'+APP_VER+(st.ver?' · бот '+st.ver:'');OFF=(st.farm&&st.farm.now?st.farm.now-Date.now():0);render()}
+function apply(st){S=st;document.body.classList.remove('loading');$('ver').textContent='v'+APP_VER+(st.ver?' · бот '+st.ver:'');OFF=(st.farm&&st.farm.now?st.farm.now-Date.now():0);render()}
 // ===================== helpers
+function roll(el,v){const s=fmt(+(+v).toFixed(2));if(el.dataset.s===s)return;const first=!el.dataset.s;el.dataset.s=s;el.dataset.v=v;
+ if(!el.querySelector('.rl')||el.children.length!==[...s].length)el.innerHTML=[...s].map(ch=>/\d/.test(ch)?`<span class="rl"><span class="rc">${'0123456789'.split('').map(d=>`<i>${d}</i>`).join('')}</span></span>`:`<span class="rs">${ch}</span>`).join('');
+ const cols=el.children;[...s].forEach((ch,i)=>{const c=cols[i];if(/\d/.test(ch)){const r=c.firstChild;if(first)r.style.transition='none';r.style.transform=`translateY(-${+ch}em)`;if(first)requestAnimationFrame(()=>r.style.transition='')}else c.textContent=ch})}
 function countTo(el,to,dec,ms=900){const from=+el.dataset.v||0;el.dataset.v=to;const t0=performance.now();
  (function f(t){const k=Math.min(1,(t-t0)/ms),e=1-Math.pow(1-k,3),v=from+(to-from)*e;el.textContent=dec?fmt(+v.toFixed(2)):Math.round(v);if(k<1)requestAnimationFrame(f)})(t0)}
 function bump(e){const p=e.closest('.card')||e.closest('span')||e;p.classList.remove('bump');void p.offsetWidth;p.classList.add('bump')}
-let tt;function toast(t){const e=$('toast');e.textContent=t;e.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>e.classList.remove('show'),2600)}
+function toastEl(){const e=document.createElement('div');e.className='tst';$('toasts').prepend(e);
+ let x0=null;e.addEventListener('pointerdown',v=>{x0=v.clientX;e.style.transition='none'});e.addEventListener('pointermove',v=>{if(x0!=null)e.style.translate=(v.clientX-x0)+'px 0'});
+ e.addEventListener('pointerup',v=>{e.style.transition='';if(x0!=null&&Math.abs(v.clientX-x0)>50)drop(e);else e.style.translate='';x0=null});stackT();return e}
+function stackT(){[...$('toasts').children].forEach((c,i)=>{c.style.setProperty('--i',i);c.classList.toggle('hid',i>2)})}
+function drop(e){if(!e||!e.isConnected)return;e.classList.add('out');setTimeout(()=>{e.remove();stackT()},300)}
+function toast(t,kind,el){el=el||toastEl();const k=kind||(/немає|не вистачає|не можна|помилка|спершу|зайнято|не вдалося|лише|уже|ще не|😕/i.test(t)?'err':/[+✅🎉💸🎁]|готово|куплено|збережено|вдягнуто/i.test(t)?'ok':'');
+ el.className='tst '+k;el.innerHTML=`<span class="ti2">${k==='ok'?'✅':k==='err'?'⚠️':'💬'}</span><span>${t.replace(/^✅\s*/,'')}</span>`;clearTimeout(el._t);el._t=setTimeout(()=>drop(el),k==='err'?4200:2800);return el}
+function pendToast(t){const e=toastEl();e.className='tst pend';e.innerHTML=`<span class="sp2"></span><span>${t}</span>`;return e}
+const PEND={harvest:'Збираю…',task:'Надсилаю на перевірку…',buy:'Купую…',food:'Купую корм…',gemx:'Міняю…',pledge:'Вкладаю…',tr:'Надсилаю угоду…',claim:'Забираю нагороду…',prize:'Забираю приз…',look:'Вдягаю…',excl:'Купую…',boost:'Вмикаю буст…',item:'Використовую…',pet:'Хвилинку…',grow:'Зберігаю…',refSave:'Зберігаю еталон…',offerBought:'Записую покупку…',ivtake:'Забираю дохід…',sell:'Продаю частку…',decide:'Підтверджую…'};
 function plus(el,txt,col){const r=el.getBoundingClientRect(),p=document.createElement('div');p.className='plus';p.textContent=txt;if(col)p.style.color=col;
  p.style.left=(r.left+r.width/2-30)+'px';p.style.top=(r.top-10)+'px';document.body.appendChild(p);setTimeout(()=>p.remove(),1200)}
 function fly(from,to,char,n,done){const a=from.getBoundingClientRect(),b=to.getBoundingClientRect();let k=0;
@@ -573,7 +632,7 @@ function renderTop(){const me=S.me,w=S.farm.week,done=w[w.length-1].ok,mp=P(me.i
  $('sd').textContent=me.streak;$('sdw').textContent=plural(me.streak,['день','дні','днів']);
  $('flame').classList.toggle('dim',!done);
  $('days').innerHTML=w.map((d,i)=>`<div class="d ${d.ok?'on':''} ${i===w.length-1?'today':''}"><i></i>${i===w.length-1?'Сьог.':WD[new Date(d.day+'T12:00:00').getDay()]}</div>`).join('');
- countTo($('uah'),me.balance,1);countTo($('gem'),me.gems,1);streakWarn()}
+ roll($('uah'),me.balance);roll($('gem'),me.gems);streakWarn()}
 function streakWarn(){if(!S)return;const w=S.farm.week,el=$('sw');
  if(w[w.length-1].ok){el.textContent='Вогник горить! Завтра буде '+(S.me.streak+1);el.className='';return}
  const n=new Date(),h=23-n.getHours(),m=59-n.getMinutes();el.textContent=`Ще ${h} год ${m} хв, щоб зберегти вогник`;el.className='warn'}
@@ -592,7 +651,7 @@ function preview(uah){if(!S||!S.me.norm)return;previewing=uah?1:0;ghostSet(uah||
 function ghostSet(add){const g=$('ghost'),p=Math.min(1,(S.me.done+add)/S.me.norm);g.style.width=(p*100)+'%';const on=add>0&&S.me.done<S.me.norm;
  if(on!==g.classList.contains('pulse')){g.classList.toggle('pulse',on);g.style.animationDelay=-(Date.now()%1600)+'ms'}}
 function leftMs(c){const at=c.ripe||c.due;return at?Math.max(0,at-(Date.now()+OFF)):0} // ripe: real growth end; due: the reminder (may be moved to the morning)
-function renderCrops(){$('hv').innerHTML=S.farm.crops.map(c=>`<div class="card crop" id="c_${c.id}"><div class="t">${c.icon} ${c.name}</div><div class="rw sub">${c.crop||'&nbsp;'}</div>
+function renderCrops(){$('hv').innerHTML=S.farm.crops.map(c=>`<div class="card crop" id="c_${c.id}"><span class="beam"></span><div class="t">${c.icon} ${c.name}</div><div class="rw sub">${c.crop||'&nbsp;'}</div>
  <div class="mini"><svg viewBox="0 0 86 86"><circle class="tr" cx="43" cy="43" r="37"/><circle class="pr" cx="43" cy="43" r="37"/></svg><div class="ic">${c.icon.split(/(?=[\uD800-\uDBFF])/)[0]}</div></div>
  <div class="rw">+${fmt(c.uah)} ₴ · +${fmt(c.gem)} 💎</div><button class="btn"></button></div>`).join('');
  for(const c of S.farm.crops){const el=$('c_'+c.id),b=el.querySelector('button');b.onclick=()=>harvest(c,el.querySelector('.mini'));
@@ -671,6 +730,12 @@ function shopTimer(){const n=new Date(),e=new Date(n);e.setHours(24,0,0,0);const
 setInterval(shopTimer,1000);shopTimer();
 // ===================== investments
 function renderInvest(){const I=S.invest,mine=I.plots.filter(p=>p.share>0);
+ const H=I.hist||[];if(H.length>1){const mx=Math.max(1,...H.map(h=>h.mon)),W=300,Hh=60,pts=H.map((h,i)=>[i/(H.length-1)*W,Hh-4-(h.mon/mx)*(Hh-12)]),d0=H[0].mon,d1=H[H.length-1].mon,dd=d1-d0;
+  const line=pts.map(p=>p.join(',')).join(' ');
+  $('igr').innerHTML=`<div class="igh"><span>📈 Дохід на місяць · 30 днів</span>${Math.abs(dd)>=1?`<span class="dl">${dd>0?'▲ +':'▼ '}${fmt(Math.round(dd))} ₴</span>`:''}</div>
+  <svg viewBox="0 0 ${W} ${Hh}" preserveAspectRatio="none"><defs><linearGradient id="ig" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8ff0b0" stop-opacity=".55"/><stop offset="1" stop-color="#8ff0b0" stop-opacity="0"/></linearGradient></defs>
+  <polygon points="0,${Hh} ${line} ${W},${Hh}" fill="url(#ig)"/><polyline class="ln" points="${line}" fill="none" stroke="#b9ffd6" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><circle cx="${pts[pts.length-1][0]}" cy="${pts[pts.length-1][1]}" r="4" fill="#fff"/></svg>
+  <div class="igl"><span>${fmt(Math.round(d0))} ₴</span><span>зараз ${fmt(Math.round(d1))} ₴</span></div>`}
  $('iday').textContent=fmt(+I.daily.toFixed(2));$('imon').textContent=fmt(Math.round(I.daily*30));$('iwal').textContent=fmt(I.wallet);
  $('icnt').textContent=mine.length?mine.length+' '+plural(mine.length,['ділянка','ділянки','ділянок']):'';
  $('tiles').innerHTML=mine.length?mine.map(p=>{const pc=Math.round(p.share*100);return `<div class="card tile">
@@ -722,8 +787,16 @@ function renderMe(){const M=S.my;if(!M)return;const mp=P(S.me.id);
 $('achmore').onclick=()=>{achAll=!achAll;renderMe()};
 async function useIt(i,btn){if(busy)return;hap('heavy');const r=await act('item',{what:i.what});if(r&&r.ok){plus(btn,i.icon);hap('ok');if(i.what==='prize')confetti()}}
 // ===================== bottom sheet
-function sheet(html){$('sheet').innerHTML=html;$('shade').classList.add('on')}
-function unsheet(){$('shade').classList.remove('on')}
+function sheet(html){const sh=$('sheet'),was=$('shade').classList.contains('on');sh.innerHTML='<div class="grab"></div>'+html;sh.style.transform='';
+ if(!was){$('shade').classList.add('on');document.body.classList.add('sheeton')}}
+function unsheet(){const sh=$('sheet');if(!$('shade').classList.contains('on'))return;sh.style.transition='transform .28s cubic-bezier(.32,.72,0,1)';sh.style.transform='translateY(105%)';document.body.classList.remove('sheeton');
+ setTimeout(()=>{$('shade').classList.remove('on');sh.style.transition='';sh.style.transform=''},260)}
+(function(){let y0=null,dy=0,t0=0;const sh=()=>$('sheet');
+ document.addEventListener('pointerdown',e=>{const s=sh();if(!s||!s.contains(e.target)||e.target.closest('input,button,.sgrid,.cpick'))return;if(s.scrollTop>0&&!e.target.closest('.grab'))return;y0=e.clientY;dy=0;t0=Date.now();s.style.transition='none';document.body.classList.add('drag')},true);
+ document.addEventListener('pointermove',e=>{if(y0==null)return;dy=Math.max(0,e.clientY-y0);if(dy>4)sh().style.transform=`translateY(${dy}px)`;$('shade').style.background=`rgba(40,25,10,${.45*(1-Math.min(1,dy/400))})`},true);
+ const end=()=>{document.body.classList.remove('drag');if(y0==null)return;const s=sh(),v=dy/Math.max(1,Date.now()-t0);s.style.transition='transform .3s cubic-bezier(.32,.72,0,1)';$('shade').style.background='';
+  if(dy>110||(dy>30&&v>.6)){hap('light');unsheet()}else s.style.transform='';y0=null};
+ document.addEventListener('pointerup',end,true);document.addEventListener('pointercancel',end,true)})();
 $('shade').onclick=e=>{if(e.target.id==='shade')unsheet()};
 // ===================== claim achievements, exchange
 function renderClaim(){const M=S.my,C=M.claim||[],el={style:{},querySelectorAll:()=>[]};
@@ -862,7 +935,7 @@ function fullStats(){const F=S.fstats;if(!F)return;const pp=F.people,per=fsPer,m
  <div class="mc">${[['month','Місяць'],['all','Весь час']].map(([k,l])=>`<button data-p="${k}" class="${k===per?'on':''}">${l}</button>`).join('')}</div>
  <div class="mc">${[['uah','💰 Гривні'],['gin','💎 Кристали']].map(([k,l])=>`<button data-m="${k}" class="${k===met?'on':''}">${l}</button>`).join('')}</div>
  ${pp.every(p=>!val(p))?'<div class="rbox small"><span>За цей період ще немає даних 🌱</span></div>':`<div class="pod">${pods}</div>`}
- <div class="lb">${rank.map((p,i)=>`<div class="fr ${p.id===String(S.me.id)?'me':''}"><span class="rk">${['🥇','🥈','🥉'][i]||i+1}</span><span class="nm">${who(p.id,28)}</span><span class="fb"><i style="width:${val(p)/mx*100}%"></i></span><span class="fv">${fmt(Math.round(val(p)))}${u}</span></div>`).join('')}</div>
+ <div class="lb bl2">${rank.map((p,i)=>`<div class="br ${p.id===String(S.me.id)?'me':''}"><span class="rk">${['🥇','🥈','🥉'][i]||i+1}</span>${ava(P(p.id).look,28)}<span class="bb"><i style="width:${Math.max(4,val(p)/mx*100)}%"></i><span>${P(p.id).name} · <b>${fmt(Math.round(val(p)))}${u}</b></span></span></div>`).join('')}</div>
  <div class="sect" style="margin:14px 2px 0"><b>🏆 Хто в чому найкращий</b><small>${{today:'сьогодні',yday:'вчора',week:'цього тижня',lweek:'минулого тижня',month:'цього місяця',all:'за весь час'}[per]}</small></div>
  <div class="cats">${per!=='all'&&per!=='month'||true?'':''}${best(p=>p.fun[per].gin,'💎 Заробили кристалів',v=>fmt(v))}${best(p=>p.fun[per].gout,'🛍️ Витратили кристалів',v=>fmt(v))}
   ${best(p=>p.fun[per].looks,'🎨 Куплено стилю',v=>v)}${best(p=>p.fun[per].xp,'🐾 Досвід улюбленця',v=>'+'+v)}${best(p=>p.fun[per].inv,'💼 Вкладено в землю',v=>fmt(v)+' ₴')}${per==='today'?best(p=>p.normPct,'🎯 Норма сьогодні',v=>v+'%'):per==='yday'?best(p=>p.normPctY,'🎯 Норма вчора',v=>v+'%'):''}
@@ -952,6 +1025,8 @@ function growSheet(){const G=S.grow;if(!G)return;if(!GD)GD={bedCrop:G.bedCrop,bu
  const dirty=['bedCrop','bundleCrop','bundles','nbundles','neutral'].some(k=>D[k]!==G[k]);
  const dur=m=>m>=60?Math.floor(m/60)+' год'+(m%60?' '+m%60+' хв':''):m+' хв';
  sheet(`<h3>🌱 Що росте</h3><p>${ro?'Змінює власник ферми — тут можна подивитись.':'Обери — і натисни «Зберегти». Таймери перерахуються самі.'}</p>
+ <div class="gsec"><h5>💰 Що приносить збір зараз</h5><div class="cbar"><i style="flex:${G.bedsUah||.01};background:#ff9ad5"></i><i style="flex:${G.plotsUah||.01};background:#ffb020"></i></div>
+  <div class="lg3"><span><i style="background:#ff9ad5"></i>🌱 Грядки · ${fmt(G.bedsUah)} ₴</span><span><i style="background:#ffb020"></i>📦🪱 Бандли й хробаки · ${fmt(G.plotsUah)} ₴</span></div></div>
  <div class="gsec"><h5>🏠 Грядки в будинках · ${G.beds}</h5><small>Що посаджено на грядках</small>
   <div class="cpick">${G.crops.map(c=>`<button data-bed="${c.key}" class="${c.key===D.bedCrop?'on':''}" ${ro?'disabled':''}><span class="e">${c.icon}</span>${c.label}<small>${dur(c.min)} · ${fmt(c.uah)} ₴</small></button>`).join('')}</div></div>
  <div class="gsec"><h5>📦 Бандли — яка культура</h5><small>Для бандлів і на своїй, і на нейтральній землі</small>
@@ -1037,8 +1112,10 @@ function demoState(){const now=Date.now();return{me:{id:'2',name:'Марія',ge
  people:[{id:'2',name:'Марія',look:{av:'🦄',bg:'rose',fr:'rainbow',ti:'Королева грядок'}},{id:'1',name:'Тато',look:{av:'🐻',bg:'sky',fr:'gold',ti:''},owner:true}],
  looks:{av:['🙂','🐱','🐶','🦄','🧚','🐲','👑','🔮'].map((k,i)=>({key:k,price:i<3?0:15+i*5,own:i<4})),bg:['sand','sky','mint','rose','ocean','sunset','galaxy','gold'].map((k,i)=>({key:k,label:k,price:i<2?0:15+i*8,own:i<2||k==='rose'})),fr:['none','silver','gold','rainbow','fire','stars'].map((k,i)=>({key:k,label:k,price:[0,30,60,120,150,200][i],own:i===0||k==='rainbow'})),ti:[['','Без титулу'],['farmer','Фермерка'],['queen','Королева грядок'],['legend','Легенда ферми']].map((x,i)=>({key:x[0],label:x[1],price:[0,0,50,150][i],own:i<3}))},
  trades:[{id:'t1',other:'1',sent:true,mine:true,theyAgreed:true,give:[{key:'gem',n:5,icon:'💎',label:'Кристали',unit:'💎',pct:null}],get:[{key:'uah',n:10,icon:'💰',label:'Гривні',unit:'грн',pct:null}],myHave:[{key:'gem',n:67,icon:'💎',label:'Кристали',unit:'💎',step:1},{key:'uah',n:533,icon:'💰',label:'Гривні',unit:'грн',step:1}],theirHave:[{key:'uah',n:900,icon:'💰',label:'Гривні',unit:'грн',step:1}]}],
- inv:{food:4},my:{today:{n:2,uah:21},week:{n:9,uah:112},month:{n:41,uah:533},days:[...Array(7)].map((_,i)=>({day:new Date(Date.now()-(6-i)*864e5).toISOString().slice(0,10),uah:[34,12,31,45,0,30,21][i],n:3})),rec:{bestStreak:12,bestDay:7,harvests:241,earned:3120},family:[{id:'1',name:'Тато',uah:140},{id:'2',name:'Марія',uah:112,me:true}],claim:[{key:'first',icon:'🌅',name:'З першого дня'},{key:'0.0',icon:'🌱',name:'Перший урожай'},{key:'0.1',icon:'🧺',name:'Десять кошиків'}],achGem:1,gemUah:.5,ach:{got:7,total:64,first:{key:'first',paid:false},next:[{title:'🚜 Збори',v:41,need:50,icon:'🚜',name:'Справжня фермерка',from:10,unit:['збір','збори','зборів'],done:2,steps:5,claim:{key:'0.1',icon:'🧺',name:'Десять кошиків'}},{title:'🔥 Стрік',v:9,need:14,icon:'🔥',name:'Два тижні',from:7,unit:['день','дні','днів'],done:2,steps:6},{title:'💰 Заробіток',v:533,need:1000,icon:'💎',name:'Тисячниця',from:500,unit:['гривня','гривні','гривень'],done:3,steps:6},{title:'⚡ Рекорд за день',v:4,need:6,icon:'⚡',name:'Робочий день',from:0,unit:['збір','збори','зборів'],done:0,steps:3},{title:'🏁 Перегони',v:1,need:3,icon:'🏁',name:'Чемпіонка',from:1,unit:['перемога','перемоги','перемог'],done:1,steps:4}]},items:[{what:'prize',icon:'🎁',label:'Невідкритий приз',n:1,act:'Відкрити'},{what:'ice',icon:'🍦',label:'Морозиво',n:2,act:'Хочу!'},{what:'cpn_x',icon:'🍽️',label:'Мий за мною посуд',n:1,act:'Використати'},{what:'',icon:'❄️',label:'Заморозка стріку',n:1,note:'спрацює сама'}]},invest:{min:20,balance:533,daily:3.42,wallet:12.5,plots:[{id:'p1',name:'Сонячна',type:'16×16 з будинком',owners:[{id:'1',share:.69},{id:'2',share:.31}],share:.31,my:930,got:12,canSell:true,day:1.14,dayAll:3.68},{id:'p2',name:'Лісова',type:'24×24 з будинком',share:.2,day:2.28,dayAll:11.4}],offers:[{id:'o1',who:[{id:'1',uah:1360},{id:'2',uah:500}],name:'Річкова',type:'16×16 з будинком',price:3000,raised:1860,my:500,dayAll:3.68}]}}}
-function demoCall(a,x){D=D||demoState();let t='',res=null;const now=Date.now();
+ inv:{food:4},my:{today:{n:2,uah:21},week:{n:9,uah:112},month:{n:41,uah:533},days:[...Array(7)].map((_,i)=>({day:new Date(Date.now()-(6-i)*864e5).toISOString().slice(0,10),uah:[34,12,31,45,0,30,21][i],n:3})),rec:{bestStreak:12,bestDay:7,harvests:241,earned:3120},family:[{id:'1',name:'Тато',uah:140},{id:'2',name:'Марія',uah:112,me:true}],claim:[{key:'first',icon:'🌅',name:'З першого дня'},{key:'0.0',icon:'🌱',name:'Перший урожай'},{key:'0.1',icon:'🧺',name:'Десять кошиків'}],achGem:1,gemUah:.5,ach:{got:7,total:64,first:{key:'first',paid:false},next:[{title:'🚜 Збори',v:41,need:50,icon:'🚜',name:'Справжня фермерка',from:10,unit:['збір','збори','зборів'],done:2,steps:5,claim:{key:'0.1',icon:'🧺',name:'Десять кошиків'}},{title:'🔥 Стрік',v:9,need:14,icon:'🔥',name:'Два тижні',from:7,unit:['день','дні','днів'],done:2,steps:6},{title:'💰 Заробіток',v:533,need:1000,icon:'💎',name:'Тисячниця',from:500,unit:['гривня','гривні','гривень'],done:3,steps:6},{title:'⚡ Рекорд за день',v:4,need:6,icon:'⚡',name:'Робочий день',from:0,unit:['збір','збори','зборів'],done:0,steps:3},{title:'🏁 Перегони',v:1,need:3,icon:'🏁',name:'Чемпіонка',from:1,unit:['перемога','перемоги','перемог'],done:1,steps:4}]},items:[{what:'prize',icon:'🎁',label:'Невідкритий приз',n:1,act:'Відкрити'},{what:'ice',icon:'🍦',label:'Морозиво',n:2,act:'Хочу!'},{what:'cpn_x',icon:'🍽️',label:'Мий за мною посуд',n:1,act:'Використати'},{what:'',icon:'❄️',label:'Заморозка стріку',n:1,note:'спрацює сама'}]},invest:{hist:[...Array(30)].map((_,i)=>({day:'',mon:i<8?40:i<19?82:i<26?112:150})),min:20,balance:533,daily:3.42,wallet:12.5,plots:[{id:'p1',name:'Сонячна',type:'16×16 з будинком',owners:[{id:'1',share:.69},{id:'2',share:.31}],share:.31,my:930,got:12,canSell:true,day:1.14,dayAll:3.68},{id:'p2',name:'Лісова',type:'24×24 з будинком',share:.2,day:2.28,dayAll:11.4}],offers:[{id:'o1',who:[{id:'1',uah:1360},{id:'2',uah:500}],name:'Річкова',type:'16×16 з будинком',price:3000,raised:1860,my:500,dayAll:3.68}]}}}
+function demoCall(a,x){if(DEMO_SLOW)return new Promise(r=>setTimeout(()=>r(demoCall0(a,x)),900));return demoCall0(a,x)}
+let DEMO_SLOW=1;
+function demoCall0(a,x){D=D||demoState();let t='',res=null;const now=Date.now();
  if(a==='harvest'){const c=x.crop?D.farm.once.find(o=>o.id===x.crop):D.farm.crops.find(c=>c.id===x.kind);const k=D.farm.crops.find(c=>c.id===x.kind);
   D.me.done+=c.uah;D.me.balance+=c.uah;D.me.gems+=c.gem;k.due=now+k.cycle*60000;D.farm.now=now;if(D.me.done>=D.me.norm&&!D.farm.week[6].ok){D.farm.week[6].ok=true;D.me.streak++}t='+'+c.uah+' грн · +'+c.gem+' 💎'}
  if(a==='task'){const T=[...D.tasks.ar,...D.tasks.wow].find(t=>t.id===x.id);T.wait++;D.tasks.waitN++;D.tasks.waitGems+=T.gems;t='⏳ Надіслано на підтвердження: +'+T.gems+' 💎'}

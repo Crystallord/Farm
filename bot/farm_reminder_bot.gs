@@ -834,7 +834,7 @@ function today(st, now) { return st.stats['d:' + dayKey(now, st.cfg)] || {}; }
 // The farm's reference day (еталон), the base of norms, plot income and payback: Cactus/Turmeric in the seedbeds,
 // 2/3 of the composter spots as Clover bundles and 1/3 as composters (worms), 6 harvests of each a day. It does not
 // depend on what is planted today, only on the land: more plots or neutral land -> more pay per harvest -> a bigger norm.
-const BOT_VER = '24.11.1332'; // set by bump.sh on every push
+const BOT_VER = '24.11.1407'; // set by bump.sh on every push
 const REF_DEF = { bedCrop: 'tc', bundleCrop: 'clover', bundleShare: 2 / 3, runs: 6 };
 let REF_OVR = null; // the owner's reference day (st.cfg.ref), set when the state is loaded
 const REF = {
@@ -3783,7 +3783,11 @@ function appInvest(st, id) {
   const plots = (st.cfg.iplots || []).map(function (p) { const d = offerDaily(st, p), k = mine(p);
     return { owners: Object.keys(p.shares).filter(function (u) { return p.shares[u] > 0; }).map(function (u) { return { id: u, share: shareOf(p, u), uah: money(p.shares[u]) }; }).sort(function (x, y) { return y.share - x.share; }), sellFrom: addDays(p.since, SELL_AFTER), canSell: !!p.shares[id] && String(id) !== String(st.owner) && today >= addDays(p.since, SELL_AFTER), got: money((p.got || {})[id] || 0), id: p.id, name: p.name, type: typeLabel(p.type), share: k, my: money(p.shares[id] || 0), price: p.price, dayAll: money(d), day: d * k }; });
   const offers = (st.offers || []).map(function (o) { return { who: Object.keys(o.pledges).filter(function (u) { return o.pledges[u] > 0; }).map(function (u) { return { id: u, uah: money(o.pledges[u]) }; }).sort(function (x, y) { return y.uah - x.uah; }), id: o.id, name: o.name, type: typeLabel(o.type), price: o.price, raised: money(offerSum(o)), my: money(o.pledges[id] || 0), dayAll: money(offerDaily(st, o)) }; });
-  return { min: INV_MIN, balance: money(st.balance[id] || 0), daily: plots.reduce(function (a, p) { return a + p.day; }, 0), wallet: money((st.invWallet || {})[id] || 0), plots: plots, offers: offers };
+  const hist = []; // my monthly land income on each of the last 30 days (plots count from the day they were bought)
+  for (let i = 29; i >= 0; i--) { const d = addDays(today, -i);
+    hist.push({ day: d, mon: money((st.cfg.iplots || []).filter(function (p) { return p.since <= d; }).reduce(function (a, p) { return a + offerDaily(st, p) * shareOf(p, id) * 30; }, 0)) }); }
+  const split = { beds: money(KINDS.beds.reward(st.cfg)), plots: money(KINDS.plots.reward(st.cfg)) };
+  return { hist: hist, split: split, min: INV_MIN, balance: money(st.balance[id] || 0), daily: plots.reduce(function (a, p) { return a + p.day; }, 0), wallet: money((st.invWallet || {})[id] || 0), plots: plots, offers: offers };
 }
 // 🏅 +1 💎 for every achievement, taken by hand in the app (old ones too): st.achPaid[uid] = { achKey: day }
 function achLabel(st, id, key) {
