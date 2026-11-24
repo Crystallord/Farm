@@ -245,11 +245,23 @@ function verb(p, male, female) { return p && p.female ? female : male; }
 // ---------------------------------------------------------------- storage
 function props() { return PropertiesService.getScriptProperties(); }
 // Script Properties hold at most 9 KB per value, so the state is stored in pieces: STATE_N = count, STATE_0…
+// 🧪 SANDBOX: the owner's beta copy of the farm (BETA_* properties). Nothing reaches Telegram, no triggers are made.
+let SANDBOX = false;
+function betaMode(v) { SANDBOX = !!v; } // tests
+function stateKey() { return SANDBOX ? 'BETA' : 'STATE'; }
 function readState() {
-  const all = props().getProperties(), n = +(all.STATE_N || 0);
-  if (!n) return all.STATE || '';
-  let s = ''; for (let i = 0; i < n; i++) s += all['STATE_' + i] || '';
+  const all = props().getProperties(), K = stateKey(), n = +(all[K + '_N'] || 0);
+  if (!n) { if (SANDBOX) return betaSeed(all); return all.STATE || ''; }
+  let s = ''; for (let i = 0; i < n; i++) s += all[K + '_' + i] || '';
   return s;
+}
+function betaSeed(all) { // the first beta run: a light copy of the real farm (no logs, no messages)
+  const n = +(all.STATE_N || 0); let s = ''; for (let i = 0; i < n; i++) s += all['STATE_' + i] || ''; if (!n) s = all.STATE || '{}';
+  const st = JSON.parse(s || '{}');
+  ['msgs', 'eph', 'gemLog', 'dayLog', 'trackSnap', 'contestLog', 'normLog', 'pend', 'trades', 'gifs'].forEach(function (k) { delete st[k]; });
+  Object.keys(st.stats || {}).filter(function (k) { return k[0] === 'd'; }).sort().slice(0, -14).forEach(function (k) { delete st.stats[k]; });
+  st.timers = {}; st.beta = true;
+  return JSON.stringify(st);
 }
 function loadState() {
   const s = readState();
@@ -512,13 +524,13 @@ function appContest(st, id, now) {
 }
 function saveState(st) {
   dayTrack(st);
-  const s = JSON.stringify(st), CH = 2500, out = {}; // 2500 chars ≤ 9 KB even if every char takes 3 bytes
-  let n = 0; for (let i = 0; i < s.length; i += CH) out['STATE_' + n++] = s.slice(i, i + CH);
-  out.STATE_N = String(n);
-  const p = props(), old = +(p.getProperty('STATE_N') || 0);
+  const s = JSON.stringify(st), CH = 2500, out = {}, K = stateKey(); // 2500 chars ≤ 9 KB even if every char takes 3 bytes
+  let n = 0; for (let i = 0; i < s.length; i += CH) out[K + '_' + n++] = s.slice(i, i + CH);
+  out[K + '_N'] = String(n);
+  const p = props(), old = +(p.getProperty(K + '_N') || 0);
   p.setProperties(out);
-  for (let i = n; i < old; i++) p.deleteProperty('STATE_' + i);
-  if (p.getProperty('STATE')) p.deleteProperty('STATE');
+  for (let i = n; i < old; i++) p.deleteProperty(K + '_' + i);
+  if (!SANDBOX && p.getProperty('STATE')) p.deleteProperty('STATE');
 }
 function withLock(fn) {
   const lock = LockService.getScriptLock();
@@ -560,6 +572,7 @@ function backupToOwner(st) {
   } catch (err) { console.error(err); }
 }
 function tg(method, payload) {
+  if (SANDBOX) return { ok: true, result: { message_id: 0 } }; // beta: nothing goes to Telegram
   const url = 'https://api.telegram.org/bot' + props().getProperty('BOT_TOKEN') + '/' + method;
   const res = UrlFetchApp.fetch(url, {
     method: 'post', contentType: 'application/json', payload: JSON.stringify(payload), muteHttpExceptions: true,
@@ -778,12 +791,13 @@ function whenText(ms) { // "о 12:30", "завтра о 10:00"
 // ---------------------------------------------------------------- timers
 // st.timers[kind] = { id, due } for 'beds', 'plots', 'daily' (morning checklist) and 'evening' (summary)
 function dropTrigger(id) {
-  if (!id) return;
+  if (!id || SANDBOX) return;
   ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getUniqueId() === id) ScriptApp.deleteTrigger(t); });
 }
 function cancelTimer(st, kind) { const t = st.timers[kind]; if (t) dropTrigger(t.id); delete st.timers[kind]; }
 function startTimerAt(st, kind, due) {
   cancelTimer(st, kind);
+  if (SANDBOX) { st.timers[kind] = { id: 'beta', due: due }; return; }
   const t = ScriptApp.newTrigger('fire_' + kind).timeBased().after(Math.max(60 * 1000, due - Date.now())).create();
   st.timers[kind] = { id: t.getUniqueId(), due: due };
 }
@@ -834,7 +848,7 @@ function today(st, now) { return st.stats['d:' + dayKey(now, st.cfg)] || {}; }
 // The farm's reference day (еталон), the base of norms, plot income and payback: Cactus/Turmeric in the seedbeds,
 // 2/3 of the composter spots as Clover bundles and 1/3 as composters (worms), 6 harvests of each a day. It does not
 // depend on what is planted today, only on the land: more plots or neutral land -> more pay per harvest -> a bigger norm.
-const BOT_VER = '24.11.1426'; // set by bump.sh on every push
+const BOT_VER = '24.11.1524'; // set by bump.sh on every push
 const REF_DEF = { bedCrop: 'tc', bundleCrop: 'clover', bundleShare: 2 / 3, runs: 6 };
 let REF_OVR = null; // the owner's reference day (st.cfg.ref), set when the state is loaded
 const REF = {
@@ -906,6 +920,8 @@ function credit(st, user, kind, uahAmount, now) {
   }
   const cnt = st.count[day] = st.count[day] || {};
   if (harvest) cnt[kind] = (cnt[kind] || 0) + 1;
+  const pn = (st.people[user.id] || {}).norm || 0, before = harvest ? doneToday(st, String(user.id), now) : 0; // ❄️ winter: snowflakes for the harvest and for reaching the norm
+  if (harvest) snowAdd(st, String(user.id), SNOW.harvest);
   if (harvest) { st.grown = st.grown || {}; st.grown[kind] = now + KINDS[kind].cycle(st.cfg) * 60000; st.grownMin = st.grownMin || {}; st.grownMin[kind] = KINDS[kind].cycle(st.cfg); } // when it is really ripe (the reminder may wait for the morning)
   Object.keys(st.count).sort().slice(0, -3).forEach(function (k) { delete st.count[k]; });
   const gross = uahAmount, counts = harvest || kind === 'pet'; // counts for the norm
@@ -918,6 +934,7 @@ function credit(st, user, kind, uahAmount, now) {
     if (counts) r.g = money((r.g !== undefined ? r.g : r.uah) + gross);
     r.uah += uahAmount;
   });
+  if (harvest && pn && before < pn && doneToday(st, String(user.id), now) >= pn) snowAdd(st, String(user.id), SNOW.norm);
   const keys = Object.keys(st.stats).sort(); // keep ~70 days, 12 weeks and 13 months
   [['d', 70], ['w', 12], ['m', 13]].forEach(function (p) {
     const ks = keys.filter(function (k) { return k[0] === p[0]; });
@@ -1523,6 +1540,7 @@ function grantTask(st, x) {
   g.tasks[x.task] = (g.tasks[x.task] || 0) + gems; g.n = g.n || {}; g.n[x.task] = (g.n[x.task] || 0) + 1;
   x.gems = gems + gemBoost(st, x.uid, gems); // 💎 season: +20%
   inv(st, x.uid).gems += x.gems;
+  snowAdd(st, String(x.uid), gems * SNOW.perGem); // ❄️ winter
   if (t.game === 'wow') { st.wowDone = st.wowDone || {}; st.wowDone[x.uid] = st.wowDone[x.uid] || {}; st.wowDone[x.uid][x.task.slice(3)] = wowDone(st, x.uid, x.task.slice(3)) + 1; }
   return t;
 }
@@ -3642,6 +3660,8 @@ function appApi(e) {
   try {
     const body = JSON.parse(e.postData.contents || '{}'), user = appUser(body.initData);
     if (!user) return appJson({ error: 'auth', msg: 'Не вдалося перевірити вхід. Відкрий застосунок ще раз з Telegram.' });
+    SANDBOX = false;
+    if (body.beta) { const real = JSON.parse(readState() || '{}'); if (String(user.id) !== String(real.owner)) return appJson({ error: 'beta', msg: 'Бета поки лише для власника ферми' }); SANDBOX = true; }
     return appJson(withLock(function () {
       const st = loadState(), id = String(user.id);
       if (!st.people[id]) return { error: 'member', msg: 'Тебе ще немає на фермі. Натисни ▶️ Почати день у групі.' };
@@ -3677,6 +3697,8 @@ function appApi(e) {
         else if (offerSum(o) < o.price - 0.005) q.out.push('Ще не зібрано 100%');
         else { closeOffer(st, o, true); q.out.push('🎉 «' + o.name + '» куплена! Норми й заробіток перераховано'); }
       }
+      else if (body.action === 'tree') appTree(st, user, a, q);
+      else if (body.action === 'betaReset') { if (SANDBOX) { const pr = props(), n = +(pr.getProperty('BETA_N') || 0); for (let i = 0; i < n; i++) pr.deleteProperty('BETA_' + i); pr.deleteProperty('BETA_N'); return { ok: true, toast: '🧪 Бету скинуто — відкрий ще раз' }; } }
       else if (body.action === 'grow') appSetGrow(st, user, a, q);
       else if (body.action === 'pet') appPet(st, user, String(a.data || 'pet:card'), q);
       else if (body.action === 'boost') buyBoost(st, user, String(a.key), q);
@@ -3817,12 +3839,16 @@ function appClaim(st, id, key, q) {
 // st.look[uid] = { av, bg, fr, ti } what is worn; st.lookOwn[uid] = { 'av:🦄': day } what is bought. price 0 = free for everyone.
 const LOOKS = { // free: only the plain start; everything else is for crystals
   av: [['🙂', 0], ['🐱', 5], ['🐶', 5], ['🐰', 5], ['🐥', 5], ['🐹', 5], ['🦊', 8], ['🐻', 8], ['🐼', 8], ['🐸', 8],
-    ['🦋', 15], ['🦄', 15], ['🌸', 15], ['🧚', 20], ['🌈', 20], ['🐲', 25], ['🦖', 25], ['🐙', 25], ['🧜‍♀️', 30], ['👸', 30], ['🤴', 30], ['🐉', 35], ['🦁', 35], ['👑', 40], ['🪐', 45], ['🔮', 50]],
+    ['🦋', 15], ['🦄', 15], ['🌸', 15], ['🧚', 20], ['🌈', 20], ['🐲', 25], ['🦖', 25], ['🐙', 25], ['🧜‍♀️', 30], ['👸', 30], ['🤴', 30], ['🐉', 35], ['🦁', 35], ['👑', 40], ['🪐', 45], ['🔮', 50],
+    ['❄️', 20], ['🐧', 25], ['☃️', 30], ['🦌', 35], ['🎅', 40], ['🤶', 40], ['🎄', 45]],
   bg: [['sand', 0, 'Пісок'], ['sky', 8, 'Небо'], ['mint', 12, 'М’ята'], ['peach', 12, 'Персик'], ['lavender', 18, 'Лаванда'], ['rose', 18, 'Троянда'],
-    ['ocean', 30, 'Океан'], ['sunset', 40, 'Захід сонця'], ['galaxy', 60, 'Галактика'], ['gold', 80, 'Золото']],
-  fr: [['none', 0, 'Без рамки'], ['silver', 30, 'Срібна'], ['gold', 60, 'Золота'], ['rainbow', 120, 'Веселка ✨'], ['fire', 150, 'Вогняна 🔥'], ['stars', 200, 'Зоряна ⭐']],
+    ['ocean', 30, 'Океан'], ['sunset', 40, 'Захід сонця'], ['galaxy', 60, 'Галактика'], ['gold', 80, 'Золото'],
+    ['snow', 25, 'Сніжок'], ['xmas', 45, 'Різдво'], ['aurora', 60, 'Північне сяйво']],
+  fr: [['none', 0, 'Без рамки'], ['silver', 30, 'Срібна'], ['gold', 60, 'Золота'], ['rainbow', 120, 'Веселка ✨'], ['fire', 150, 'Вогняна 🔥'], ['stars', 200, 'Зоряна ⭐'],
+    ['frost', 80, 'Іній ❄️'], ['garland', 120, 'Гірлянда 🎄']],
   ti: [['', 0, 'Без титулу'], ['farmer', 10, 'Фермерка', 'Фермер'], ['worm', 40, 'Майстриня хробаків', 'Майстер хробаків'], ['queen', 50, 'Королева грядок', 'Король грядок'],
-    ['gem', 80, 'Кристальна принцеса', 'Кристальний принц'], ['tycoon', 100, 'Магнатка землі', 'Магнат землі'], ['legend', 150, 'Легенда ферми', 'Легенда ферми']],
+    ['gem', 80, 'Кристальна принцеса', 'Кристальний принц'], ['tycoon', 100, 'Магнатка землі', 'Магнат землі'], ['legend', 150, 'Легенда ферми', 'Легенда ферми'],
+    ['elf', 50, 'Ельфійка Миколая', 'Ельф Миколая'], ['snowq', 80, 'Снігова королева', 'Сніговий король']],
 };
 function lookOf(st, id) {
   const l = (st.look || {})[id] || {}, p = st.people[id] || {}, t = LOOKS.ti.filter(function (x) { return x[0] === (l.ti || ''); })[0];
@@ -3836,6 +3862,7 @@ function appLook(st, id, a, q) {
   if (!L) { q.out.push('Такого немає'); return; }
   st.look = st.look || {}; st.look[id] = st.look[id] || {};
   if (!lookOwns(st, id, kind, key)) {
+    if (isWinterLook(kind, key) && !winterOf(st, Date.now()).styles) { q.out.push('❄️ Зимові стилі продаються лише взимку'); return; }
     const x = inv(st, id);
     if (x.gems < L[1]) { q.out.push('Не вистачає ' + money(L[1] - x.gems) + ' 💎'); return; }
     x.gems = money(x.gems - L[1]); dayAdd(st, id, 'style', L[1]);
@@ -3845,10 +3872,93 @@ function appLook(st, id, a, q) {
   } else q.out.push('👌 Вдягнуто');
   st.look[id][kind] = key;
 }
+// ---------------------------------------------------------------- ❄️ WINTER: design, winter styles, the Christmas tree
+// Tree and gifts: 1 Dec – 1 Jan. Winter design, styles and decorating: 1 Dec – end of February. The beta (SANDBOX) is always winter.
+const WINTER_LOOKS = { av: ['❄️', '🐧', '☃️', '🦌', '🎅', '🤶', '🎄'], bg: ['snow', 'xmas', 'aurora'], fr: ['frost', 'garland'], ti: ['elf', 'snowq'] };
+function isWinterLook(kind, key) { return (WINTER_LOOKS[kind] || []).indexOf(key) >= 0; }
+function winterOf(st, now) {
+  if (SANDBOX) return { design: true, tree: true, styles: true };
+  const md = dayKey(now, st.cfg).slice(5), w = md >= '12-01' || md <= '02-29';
+  return { design: w, styles: w, tree: md >= '12-01' || md === '01-01' };
+}
+const SNOW = { rate: 10, harvest: 8, norm: 40, perGem: 2, tree: 50 }; // 1 💎 → 10 ❄️; earned: a harvest +8, the norm +40, a task +2 per its 💎
+const TREE_UP = [0, 400, 650, 900, 1150, 1400, 1700, 2000, 2300, 2600]; // ❄️ to grow from level i to i+1 (13 100 in all): ≥ half of a day's 💎
+const GIFT_HOUR = 9;
+const GIFTS = [ // the gift table (to be tuned): [weight, kind, min, max]
+  [36, 'snow', 60, 160], [26, 'gem', 3, 9], [14, 'food', 2, 4], [10, 'aura', 1, 1], [8, 'gem', 10, 20], [6, 'look', 0, 0],
+];
+function snowAdd(st, u, n) { if (!winterOf(st, Date.now()).tree || !n) return; st.snow = st.snow || {}; st.snow[u] = Math.round((st.snow[u] || 0) + n); }
+function treeOf(st, u) { return ((st.tree || {})[u]) || null; }
+function giftsLeft(st, u, now) {
+  const t = treeOf(st, u); if (!t || !winterOf(st, now).tree) return 0;
+  const day = dayKey(now, st.cfg); if (hourOf(now) < GIFT_HOUR && !SANDBOX) return 0;
+  return Math.max(0, t.lvl - ((t.opened || {})[day] || 0));
+}
+function appWinter(st, id, now) {
+  const W = winterOf(st, now), t = treeOf(st, id);
+  const nextGift = nextHour(GIFT_HOUR);
+  return { design: W.design, tree: W.tree, styles: W.styles, beta: SANDBOX, snow: Math.round(((st.snow || {})[id]) || 0), rate: SNOW.rate, earn: SNOW, buyTree: SNOW.tree,
+    lvl: t ? t.lvl : 0, max: TREE_UP.length, up: t && t.lvl < TREE_UP.length ? TREE_UP[t.lvl] : 0, gifts: giftsLeft(st, id, now), nextGift: nextGift, giftHour: GIFT_HOUR,
+    pet: (function () { const pe = petOf(st, id); return petOk(pe) ? { icon: petFace(pe), name: pe.name } : null; })() };
+}
+function giftRoll(st, id) {
+  const tot = GIFTS.reduce(function (a, g) { return a + g[0]; }, 0); let r = Math.random() * tot, g = GIFTS[0];
+  for (let i = 0; i < GIFTS.length; i++) { r -= GIFTS[i][0]; if (r <= 0) { g = GIFTS[i]; break; } }
+  const n = g[2] + Math.floor(Math.random() * (g[3] - g[2] + 1)), x = inv(st, id);
+  if (g[1] === 'snow') { st.snow[id] = (st.snow[id] || 0) + n; return { icon: '❄️', text: '+' + n + ' сніжинок', rare: false }; }
+  if (g[1] === 'gem') { x.gems = money(x.gems + n); return { icon: '💎', text: '+' + n + ' кристалів', rare: n >= 10 }; }
+  if (g[1] === 'food') { x.food += n; return { icon: '🍖', text: '+' + n + ' корму', rare: false }; }
+  if (g[1] === 'aura') { st.temp = st.temp || {}; const tm = st.temp[id] = st.temp[id] || {}; tm.aura = Math.max(Date.now(), tm.aura || 0) + 86400000; return { icon: '✨', text: 'Аура на 1 день', rare: true }; }
+  // a winter style the person does not have yet
+  const free = []; Object.keys(WINTER_LOOKS).forEach(function (k) { WINTER_LOOKS[k].forEach(function (key) { if (!lookOwns(st, id, k, key)) free.push([k, key]); }); });
+  if (!free.length) { x.gems = money(x.gems + 15); return { icon: '💎', text: '+15 кристалів', rare: true }; }
+  const f = free[Math.floor(Math.random() * free.length)], L = LOOKS[f[0]].filter(function (y) { return y[0] === f[1]; })[0];
+  st.lookOwn = st.lookOwn || {}; st.lookOwn[id] = st.lookOwn[id] || {}; st.lookOwn[id][f[0] + ':' + f[1]] = dayKey(Date.now(), st.cfg);
+  return { icon: f[0] === 'av' ? f[1] : '🎁', text: 'Зимовий стиль: ' + ({ av: 'аватар ' + f[1], bg: 'фон «' + L[2] + '»', fr: 'рамка «' + L[2] + '»', ti: 'титул «' + L[2] + '»' }[f[0]]), rare: true, look: { kind: f[0], key: f[1] } };
+}
+function appTree(st, user, a, q) {
+  const id = String(user.id), now = Date.now(), W = winterOf(st, now), x = inv(st, id), op = String(a.op || '');
+  st.snow = st.snow || {}; st.tree = st.tree || {};
+  if (op === 'betaGems') { if (!SANDBOX) { q.out.push('Лише в беті'); return; } x.gems = money(x.gems + 100); st.snow[id] = (st.snow[id] || 0) + 500; q.out.push('🧪 +100 💎 · +500 ❄️'); return; }
+  if (op === 'betaGifts') { if (!SANDBOX) { q.out.push('Лише в беті'); return; } const t = treeOf(st, id); if (t) t.opened = {}; q.out.push('🧪 Подарунки знову під ялинкою'); return; }
+  if (!W.tree && op !== 'snowBuy') { q.out.push('🎄 Ялинка працює з 1 грудня до 1 січня'); return; }
+  if (op === 'snowBuy') {
+    if (!W.tree) { q.out.push('❄️ Сніжинки потрібні лише для ялинки (1 грудня – 1 січня)'); return; }
+    const g = Math.floor(+a.gems || 0); if (g < 1) { q.out.push('?'); return; }
+    if (x.gems < g) { q.out.push('Не вистачає 💎'); return; }
+    x.gems = money(x.gems - g); dayAdd(st, id, 'shop', g); st.snow[id] = (st.snow[id] || 0) + g * SNOW.rate; q.out.push('❄️ +' + g * SNOW.rate + ' сніжинок'); return;
+  }
+  if (op === 'buy') {
+    if (treeOf(st, id)) { q.out.push('Ялинка вже є 🎄'); return; }
+    if (x.gems < SNOW.tree) { q.out.push('Не вистачає ' + money(SNOW.tree - x.gems) + ' 💎'); return; }
+    x.gems = money(x.gems - SNOW.tree); dayAdd(st, id, 'shop', SNOW.tree); st.tree[id] = { lvl: 1, at: now, opened: {} }; if (hourOf(now) >= GIFT_HOUR && !SANDBOX) st.tree[id].opened[dayKey(now, st.cfg)] = 1; // the first gift: tomorrow morning
+    q.out.push('🎄 Ялинка твоя! Завтра о ' + GIFT_HOUR + ':00 під нею буде перший подарунок');
+    const pe = st.people[id]; if (pe) sayK(st, 'tree:' + id, '🎄 ' + esc(pe.name) + ' ' + verb(pe, 'поставив', 'поставила') + ' свою різдвяну ялинку! Прикрашай сніжинками — щоранку під нею подарунки 🎁');
+    return;
+  }
+  const t = treeOf(st, id); if (!t) { q.out.push('Спершу купи ялинку'); return; }
+  if (op === 'up') {
+    if (t.lvl >= TREE_UP.length) { q.out.push('Ялинка вже найбільша ✨'); return; }
+    const c = TREE_UP[t.lvl]; if ((st.snow[id] || 0) < c) { q.out.push('Не вистачає ' + (c - (st.snow[id] || 0)) + ' ❄️'); return; }
+    st.snow[id] -= c; t.lvl++; dayAdd(st, id, 'tree', c);
+    q.out.push('🎄 Ялинка ' + t.lvl + ' рівня! Тепер ' + t.lvl + ' ' + plural(t.lvl, ['подарунок', 'подарунки', 'подарунків']) + ' щоранку');
+    const pe = st.people[id]; if (pe && t.lvl >= 5) sayK(st, 'tree:' + id, '🎄 Ялинка ' + esc(pe.name) + ' виросла до ' + t.lvl + ' рівня! ✨');
+    return;
+  }
+  if (op === 'gift') {
+    if (giftsLeft(st, id, now) <= 0) { q.out.push('Подарунків поки немає — нові о ' + GIFT_HOUR + ':00 🎁'); return; }
+    const day = dayKey(now, st.cfg); t.opened = t.opened || {}; t.opened[day] = (t.opened[day] || 0) + 1;
+    Object.keys(t.opened).sort().slice(0, -3).forEach(function (k) { delete t.opened[k]; });
+    q.res = { gift: giftRoll(st, id) }; return;
+  }
+  q.out.push('?');
+}
 function appPeople(st) { return Object.keys(st.people).map(function (u) { return { id: u, name: nameOf(st, u), look: lookOf(st, u), owner: String(u) === String(st.owner) }; }); }
 function appLooks(st, id) {
   const p = st.people[id] || {};
-  return Object.keys(LOOKS).reduce(function (o, k) { o[k] = LOOKS[k].map(function (x) { return { key: x[0], price: x[1], label: k === 'ti' && p.female === false && x[3] ? x[3] : x[2] || '', own: lookOwns(st, id, k, x[0]) }; }); return o; }, {});
+  const w = winterOf(st, Date.now()).styles;
+  return Object.keys(LOOKS).reduce(function (o, k) { o[k] = LOOKS[k].map(function (x) { const win = isWinterLook(k, x[0]), own = lookOwns(st, id, k, x[0]);
+    return { key: x[0], price: x[1], label: k === 'ti' && p.female === false && x[3] ? x[3] : x[2] || '', own: own, winter: win }; }).filter(function (x) { return !x.winter || w || x.own; }); return o; }, {});
 }
 // 🔁 trades for the app: the same deals as in the bot (st.trades)
 function trUnit(key) { return key === 'uah' || key === 'cash' ? 'грн' : key === 'gem' ? '💎' : key.indexOf('s_') === 0 ? 'грн частки' : 'шт'; }
@@ -4057,7 +4167,7 @@ function appState(st, id) {
       coupons: Object.keys(x.coupons).filter(function (k) { return x.coupons[k] > 0 && shopItem(k); }).map(function (k) { const it = shopItem(k); return { id: k, icon: it.icon, label: it.label, n: x.coupons[k] }; }) },
     gemUah: st.cfg.gemUah,
     ver: BOT_VER, farm: appFarm(st, id, now), tasks: appTasks(st, id), invest: appInvest(st, id), my: appMe(st, id, now), people: appPeople(st), looks: appLooks(st, id), trades: appTrades(st, id),
-    trInv: Object.keys(st.people).reduce(function (o, u) { o[u] = trKeys(st, u).map(function (k) { return Object.assign(trItem(st, k, trHave(st, u, k)), { step: Math.abs(trSteps(st, k).filter(function (x) { return x[0] > 0; })[0][0]) }); }); return o; }, {}), fstats: appFarmStats(st, now), grow: appGrow(st, id), contest: appContest(st, id, now), boosts: boostState(st, id, now), excl: Object.keys(EXCL).map(function (k) { const e = exclHolder(st, k); return { key: k, icon: EXCL[k].icon, label: EXCL[k].label, price: EXCL[k].price, holder: e ? e.uid : null, until: e ? e.until : 0 }; }),
+    trInv: Object.keys(st.people).reduce(function (o, u) { o[u] = trKeys(st, u).map(function (k) { return Object.assign(trItem(st, k, trHave(st, u, k)), { step: Math.abs(trSteps(st, k).filter(function (x) { return x[0] > 0; })[0][0]) }); }); return o; }, {}), fstats: appFarmStats(st, now), winter: appWinter(st, id, now), grow: appGrow(st, id), contest: appContest(st, id, now), boosts: boostState(st, id, now), excl: Object.keys(EXCL).map(function (k) { const e = exclHolder(st, k); return { key: k, icon: EXCL[k].icon, label: EXCL[k].label, price: EXCL[k].price, holder: e ? e.uid : null, until: e ? e.until : 0 }; }),
   };
 }
 
@@ -4570,6 +4680,13 @@ function onMessage(msg) {
     if (cmd === 'news') { newsPrompt(st); return; }
     if (cmd === 'update') { // /update: take the bot's code from GitHub and publish it as a new version
       try { say(msg.chat.id, selfUpdate('')); } catch (err) { say(msg.chat.id, '⚠️ Оновлення не вдалося: ' + esc(String(err.message || err)).slice(0, 600)); }
+      return;
+    }
+    if (cmd === 'beta') { // /beta: the owner's test copy of the app (its own balances, nothing reaches the group)
+      if (String(msg.from.id) !== String(st.owner)) { say(msg.chat.id, 'Бета поки лише для власника ферми'); return; }
+      const u = appFullUrl(); if (!u) { say(msg.chat.id, 'Спершу підключи застосунок: /app'); return; }
+      say(msg.chat.id, '🧪 ' + b('Бета: зимове оновлення') + '\nОкрема копія ферми з тестовим балансом. Усе, що робиш тут, не змінює справжню ферму й не пише в групу.',
+        { inline_keyboard: [[{ text: '🎄 Відкрити бету', web_app: { url: u + (u.indexOf('?') < 0 ? '?' : '&') + 'beta=1' } }]] });
       return;
     }
     if (cmd === 'app') { // /app https://<you>.github.io/farm/ : connect the 📱 Mini App

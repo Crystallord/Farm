@@ -489,6 +489,66 @@ body.drag,body.drag *{user-select:none;-webkit-user-select:none}
 .coins span{position:absolute;bottom:-18px;left:var(--x);font-size:15px;font-weight:900;color:#2fb45c;animation:float 4.4s var(--d) ease-in infinite;opacity:0}
 @keyframes float{0%{transform:translateY(0) scale(.7);opacity:0}15%{opacity:.9}70%{opacity:.7}100%{transform:translateY(-150px) scale(1.05) rotate(12deg);opacity:0}}
 .tile .mo{position:relative;animation:pulse2 2.2s ease-in-out infinite}@keyframes pulse2{50%{text-shadow:0 0 12px rgba(47,180,92,.45)}}
+
+/* ❄️ WINTER */
+body.winter{background:radial-gradient(120% 60% at 50% 0,#e6f2ff,#f4f8ff 55%,#fff7ec)}
+.snowfall{position:fixed;inset:0;pointer-events:none;z-index:44;overflow:hidden;display:none}body.winter .snowfall{display:block}
+.snowfall i{position:absolute;top:-12px;left:var(--x);width:var(--s);height:var(--s);border-radius:50%;background:#fff;opacity:var(--o);box-shadow:0 0 4px rgba(160,190,230,.6);animation:fall var(--t) linear var(--d) infinite}
+@keyframes fall{0%{transform:translate(0,-10px)}50%{transform:translate(var(--w),50vh)}100%{transform:translate(calc(var(--w)*-.5),105vh)}}
+body.winter .card{position:relative}
+body.winter .card::before{content:"";position:absolute;left:10px;right:10px;top:-7px;height:14px;border-radius:12px 12px 8px 8px;pointer-events:none;z-index:3;
+ background:radial-gradient(circle at 10% 100%,#fff 6px,transparent 7px),radial-gradient(circle at 30% 90%,#fff 8px,transparent 9px),radial-gradient(circle at 55% 100%,#fff 7px,transparent 8px),radial-gradient(circle at 78% 85%,#fff 9px,transparent 10px),radial-gradient(circle at 95% 100%,#fff 5px,transparent 6px),linear-gradient(#fff,#fff) 0 70%/100% 5px no-repeat;
+ filter:drop-shadow(0 2px 2px rgba(90,130,190,.45))}
+body.winter .hdr{background:#eef6ff}
+body.winter .crop.ready .beam{display:none}body.winter .crop{overflow:visible}
+.garl{position:absolute;inset:-5px;pointer-events:none;z-index:4;display:none}body.winter .crop.ready .garl{display:block}
+.garl::before{content:"";position:absolute;inset:3px;border-radius:26px;border:2px solid #2f6b3a;opacity:.55}
+.garl b{position:absolute;width:11px;height:14px;margin:-7px 0 0 -5.5px;border:1.5px solid rgba(255,255,255,.7);border-radius:50% 50% 45% 45%;background:var(--c);box-shadow:0 0 8px 2px var(--c);animation:blink 1.2s var(--d) ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1;filter:brightness(1.25)}50%{opacity:.35;filter:brightness(.7)}}
+.treetab .ti{font-size:30px!important;margin-top:-16px;background:radial-gradient(circle,#fff 55%,#e6f2ff);border-radius:50%;width:50px;height:50px;display:grid;place-items:center;box-shadow:0 4px 14px rgba(40,120,70,.35);filter:none!important}
+.betab{display:inline-block;font-size:10px;font-weight:900;color:#fff;background:#7b5cff;border-radius:6px;padding:1px 5px;margin-left:4px;vertical-align:middle}
+.mus{border:0;background:#fff;border-radius:12px;padding:5px 8px;font-size:15px;box-shadow:0 2px 0 #dce8f5;cursor:pointer}
+/* tree page */
+.scene{position:relative;height:420px;border-radius:24px;overflow:hidden;background:linear-gradient(#152a52 0%,#2a4d86 55%,#4b77b5 75%,#dfeeff 75.2%,#ffffff 100%);box-shadow:0 10px 26px rgba(30,60,110,.3)}
+.scene .stars i{position:absolute;width:2px;height:2px;background:#fff;border-radius:50%;animation:tw 2.4s var(--d) infinite}@keyframes tw{50%{opacity:.2}}
+.scene .house{position:absolute;right:-6px;bottom:24%;width:46%;opacity:.95}
+.scene .treesvg{position:absolute;left:50%;bottom:6%;transform:translateX(-50%);transition:height .8s cubic-bezier(.2,.9,.25,1.1)}
+.scene .petg{position:absolute;bottom:5%;left:8%;text-align:center;font-weight:900;color:#2a4d86;font-size:11px}.scene .petg span{font-size:46px;display:block;animation:bob 2.6s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-5px)}}
+.gifts{position:absolute;bottom:4%;left:50%;transform:translateX(-50%);display:flex;gap:2px;z-index:5}
+.gifts button{border:0;background:none;font-size:34px;cursor:pointer;animation:wig 1.6s infinite;padding:0;filter:drop-shadow(0 3px 4px rgba(0,0,0,.25))}
+.lvlb{position:absolute;top:12px;left:12px;background:rgba(255,255,255,.9);border-radius:12px;padding:5px 10px;font-weight:900;font-size:13px;color:#1d4a2a}
+.snowb{position:absolute;top:12px;right:12px;background:rgba(255,255,255,.9);border-radius:12px;padding:5px 10px;font-weight:900;font-size:13px;color:#2a5da8}
+.tcard{background:#fff;border-radius:20px;padding:14px;box-shadow:0 2px 0 #dce8f5,0 8px 20px rgba(60,100,160,.1)}
+.tcard h4{margin:0 0 6px;font-size:15px;font-weight:900}.tcard small{display:block;color:var(--mute);font-weight:800;font-size:12px;line-height:1.35}
+.tprog{height:14px;border-radius:7px;background:#e8f0fb;overflow:hidden;margin:8px 0}.tprog i{display:block;height:100%;background:linear-gradient(90deg,#9fd8ff,#3f8de0);border-radius:7px;transition:width .8s}
+.tbtn{width:100%;border:0;border-radius:16px;padding:13px;font:900 15px Nunito,sans-serif;color:#fff;background:linear-gradient(#3cc46a,#1f9b4c);box-shadow:0 4px 0 #177a3b;cursor:pointer;margin-top:8px}
+.tbtn.blue{background:linear-gradient(#5aa8ff,#2f7be0);box-shadow:0 4px 0 #2563b8}.tbtn:disabled{background:#e4ecf5;color:#9db0c8;box-shadow:none}
+.earn2{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:8px}.earn2 div{background:#f1f7ff;border-radius:12px;padding:8px 4px;text-align:center;font-weight:900;font-size:12px}.earn2 b{display:block;font-size:15px;color:#2a5da8}
+/* gift overlay */
+.gov{position:fixed;inset:0;z-index:120;display:none;align-items:center;justify-content:center;flex-direction:column;background:radial-gradient(circle at 50% 45%,#3a2a6a,#0d0a20 70%);overflow:hidden;touch-action:none}
+.gov.on{display:flex;animation:fadein .3s}
+.gov .rays{position:absolute;width:160vmax;height:160vmax;background:repeating-conic-gradient(rgba(255,230,150,.18) 0 10deg,transparent 10deg 20deg);animation:spin 18s linear infinite;border-radius:50%}
+.gov .glow{position:absolute;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(255,236,170,.9),rgba(255,200,90,.25) 45%,transparent 70%);animation:pulse3 1.8s ease-in-out infinite}
+@keyframes pulse3{50%{transform:scale(1.12)}}
+.gbox{position:relative;font-size:130px;line-height:1;cursor:pointer;transition:transform .2s;filter:drop-shadow(0 10px 20px rgba(0,0,0,.4));user-select:none}
+.gbox.hit{animation:hit .35s}@keyframes hit{0%{transform:scale(1)}30%{transform:scale(1.18) rotate(-8deg)}60%{transform:scale(.95) rotate(6deg)}100%{transform:scale(1)}}
+.gov .hint{position:relative;margin-top:26px;color:#fff;font-weight:900;font-size:16px;opacity:.85}
+.gov .dots{position:relative;display:flex;gap:8px;margin-top:10px}.gov .dots i{width:12px;height:12px;border-radius:50%;background:rgba(255,255,255,.25)}.gov .dots i.on{background:#ffd84a}
+.paper{position:fixed;width:12px;height:8px;border-radius:2px;pointer-events:none;z-index:125;will-change:transform}
+.flash{position:fixed;inset:0;background:#fff;z-index:126;pointer-events:none;animation:flash .7s forwards}@keyframes flash{to{opacity:0}}
+.reward{position:relative;display:flex;flex-direction:column;align-items:center;gap:10px;animation:rev .7s cubic-bezier(.2,1.4,.4,1)}
+@keyframes rev{from{transform:scale(.2) rotate(-20deg);opacity:0}}
+.reward .ri{font-size:110px;line-height:1;filter:drop-shadow(0 0 24px rgba(255,230,150,.9))}
+.reward b{color:#fff;font-size:24px;font-weight:900;text-align:center;padding:0 20px}.reward.rare b{color:#ffd84a;text-shadow:0 0 16px rgba(255,200,60,.8)}
+.reward small{color:#ffe9a8;font-weight:900;font-size:13px;letter-spacing:.1em}
+.reward button{margin-top:16px;border:0;border-radius:16px;padding:13px 34px;font:900 16px Nunito,sans-serif;background:#ffd84a;color:#5a3a00;cursor:pointer}
+/* winter looks */
+.bg-snow{--bgc:linear-gradient(135deg,#ffffff,#d9ecff)}.bg-xmas{--bgc:linear-gradient(135deg,#e23b3b,#1f8a4c)}.bg-aurora{--bgc:linear-gradient(160deg,#0b2a4a,#1fd8a0 55%,#8a5cff)}
+.fr-frost{--frc:conic-gradient(#e8f6ff,#9fd8ff,#ffffff,#bfe6ff,#e8f6ff)}.fr-frost{filter:drop-shadow(0 0 6px rgba(150,210,255,.9))}
+.fr-garland{--frc:conic-gradient(#ff4d4d 0 12%,#2f6b3a 12% 13%,#ffd84a 13% 25%,#2f6b3a 25% 26%,#4dd2ff 26% 38%,#2f6b3a 38% 39%,#5ee07a 39% 51%,#2f6b3a 51% 52%,#ff4d4d 52% 64%,#2f6b3a 64% 65%,#ffd84a 65% 77%,#2f6b3a 77% 78%,#4dd2ff 78% 90%,#2f6b3a 90% 91%,#5ee07a 91%)}.fr-garland::after{animation:spin 6s steps(8) infinite}
+.sgrid .wint{position:absolute;top:4px;right:6px;font-size:11px}
+.tl{animation:blink 1.2s ease-in-out infinite}.star{animation:pulse3 2s ease-in-out infinite;transform-origin:center}
 </style></head><body class="loading">
 <header class="hdr" id="hdr"><span id="hava" class="tapme"></span><div class="hn"><b id="hname">…</b><span id="httl"></span><span id="hbst"></span></div>
   <div class="hb"><span class="hs"><span class="flame dim" id="flame">🔥</span><b id="hst">0</b></span><span class="hm"><b id="uah">0</b> ₴</span><span class="hg"><b id="gem">0</b> 💎</span></div></header>
@@ -563,9 +623,13 @@ body.drag,body.drag *{user-select:none;-webkit-user-select:none}
   <div class="recs" id="recs"></div>
   <div class="demo dm"></div>
 </div>
+<div class="wrap view" id="v_tree"><div id="treeview"></div></div>
+<div class="snowfall" id="snowfall"></div>
+<div class="gov" id="gov"></div>
 <nav class="nav"><div class="in">
   <button class="tab on" data-v="farm"><span class="ti">🌾</span>Ферма</button>
   <button class="tab" data-v="tasks"><span class="ti">📜</span>Завдання<span class="dot" id="tdot" style="display:none">0</span></button>
+  <button class="tab treetab" data-v="tree" id="treetab" style="display:none"><span class="ti">🎄</span>Ялинка<span class="dot" id="gdot" style="display:none">0</span></button>
   <button class="tab" data-v="inv"><span class="ti">💼</span>Інвест.</button>
   <button class="tab" data-v="shop"><span class="ti">🛍️</span>Крамниця<span class="dot" id="sdot" style="display:none">0</span></button>
   <button class="tab" data-v="me"><span class="ti">👤</span>Я<span class="dot" id="mdot" style="display:none">0</span></button>
@@ -575,10 +639,10 @@ body.drag,body.drag *{user-select:none;-webkit-user-select:none}
 <script>
 // ===================== setup
 const TG=window.Telegram&&Telegram.WebApp; try{TG.ready();TG.expand();TG.setHeaderColor&&TG.setHeaderColor('#ffe7c4');TG.setBackgroundColor&&TG.setBackgroundColor('#fff7ec')}catch(e){}
-const qs=new URLSearchParams(location.search), API=qs.get('api')||window.FARM_API||'', DEMO=qs.get('demo')==='1'||!(TG&&TG.initData);
+const qs=new URLSearchParams(location.search), API=qs.get('api')||window.FARM_API||'', DEMO=qs.get('demo')==='1'||!(TG&&TG.initData), BETA=qs.get('beta')==='1';
 const quiet=()=>{const h=new Date().getHours();return h<8}; // 00:00–08:00: no vibration
 const hap=t=>{if(quiet())return;try{t==='ok'?TG.HapticFeedback.notificationOccurred('success'):t==='err'?TG.HapticFeedback.notificationOccurred('error'):TG.HapticFeedback.impactOccurred(t||'medium')}catch(e){}};
-const APP_VER='24.11.1426';
+const APP_VER='24.11.1524';
 const $=id=>document.getElementById(id), R=95, C=2*Math.PI*R;
 const fmt=v=>(+v).toLocaleString('uk-UA',{minimumFractionDigits:(+v)%1?2:0,maximumFractionDigits:2});
 const plural=(n,f)=>{n=Math.abs(n)%100;const b=n%10;return n>10&&n<20?f[2]:b===1?f[0]:b>=2&&b<=4?f[1]:f[2]};
@@ -591,7 +655,7 @@ document.querySelectorAll('.dm').forEach(e=>e.textContent=DEMO?'демо-реж�
 // ===================== server
 async function call(action,args){
   if(DEMO) return demoCall(action,args||{});
-  const r=await fetch(API+(API.indexOf('?')<0?'?':'&')+'app=1',{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({initData:TG.initData,action,args:args||{}})});
+  const r=await fetch(API+(API.indexOf('?')<0?'?':'&')+'app=1',{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({initData:TG.initData,action,args:args||{},beta:BETA})});
   return r.json();
 }
 // ⏳ pending: the tapped button shows a spinner, everything else waits (no double taps)
@@ -645,7 +709,7 @@ function confirmTG(text){return new Promise(res=>{try{TG.showConfirm(text,ok=>re
 // ===================== render: farm
 const WD=['Нд','Пн','Вт','Ср','Чт','Пт','Сб'];
 function safe(f){try{f()}catch(e){console.error(e);toast('⚠️ '+(e&&e.message||e))}}
-function render(){if(!S)return;safe(()=>{renderTop()});safe(()=>{renderRing()});safe(()=>{renderCrops()});safe(()=>{renderOnce()});safe(()=>{renderTasks()});safe(()=>{renderShop()});safe(()=>{if(S.invest)renderInvest()});safe(()=>{renderMe()});safe(()=>{renderClaim()});safe(()=>{renderAppr()});safe(()=>{renderContest()});safe(()=>{renderBoosts()});safe(()=>{renderPet()});}
+function render(){if(!S)return;safe(()=>{renderTop()});safe(()=>{renderRing()});safe(()=>{renderCrops()});safe(()=>{renderOnce()});safe(()=>{renderTasks()});safe(()=>{renderShop()});safe(()=>{if(S.invest)renderInvest()});safe(()=>{renderMe()});safe(()=>{renderClaim()});safe(()=>{renderAppr()});safe(()=>{renderContest()});safe(()=>{renderBoosts()});safe(()=>{renderPet()});safe(()=>{renderWinter()});}
 function renderTop(){const me=S.me,w=S.farm.week,done=w[w.length-1].ok,mp=P(me.id);
  $('hava').innerHTML=ava(mp.look,40);$('hname').innerHTML=nm(mp);$('httl').innerHTML=mp.look.ti?`<span class="ttl">${mp.look.ti}</span>`:'';$('hava').onclick=styleSheet;$('hst').textContent=me.streak;
  $('flame2').classList.toggle('dim',!done);
@@ -939,7 +1003,7 @@ function styleSheet(){const L=S.looks,mp=P(S.me.id),cur=mp.look,tabs=[['av','А�
  ${stab==='ex'?`<p>Тиждень лише в однієї людини на всю родину. Купиш — і в інших такого не буде 7 днів.</p><div class="exl">${(S.excl||[]).map(e=>{const mine=e.holder===String(S.me.id),busy2=e.holder&&!mine,d=new Date(e.until);const dd=String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0');
   const pv=e.key==='crown'?ava(Object.assign({},cur,{crown:true}),46):e.key==='sparkle'?ava(Object.assign({},cur,{sparkle:true}),46):`<b class="rbn" style="font-size:17px">${S.me.name}</b>`;
   return `<div class="exr">${pv}<div class="tx"><b>${e.icon} ${e.label}</b><small>${mine?'твоє до '+dd:busy2?'зайнято: '+P(e.holder).name+' до '+dd:'вільне · 7 днів'}</small></div>${busy2?'':`<button class="buy" data-x="${e.key}">${mine?'+7 днів · ':''}${e.price} 💎</button>`}</div>`}).join('')}</div>`:`<div class="sgrid ${stab==='ti'?'ti':''}">${L[stab].map(o=>{const on=wornKey[stab]===o.key,pv=stab==='av'?ava(Object.assign({},cur,{av:o.key}),46):stab==='bg'?ava(Object.assign({},cur,{bg:o.key}),46):stab==='fr'?ava(Object.assign({},cur,{fr:o.key}),46):`<span class="ttl" style="font-size:12px">${o.label||'—'}</span>`;
-  return `<button data-k="${o.key}" class="${on?'on':''}">${pv}${stab!=='av'&&stab!=='ti'?`<span>${o.label}</span>`:''}<span class="${on?'ok':o.own?'ok':'pr'}">${on?'✓ вдягнуто':o.own?'є':o.price+' 💎'}</span></button>`}).join('')}</div>`}
+  return `<button data-k="${o.key}" class="${on?'on':''}">${o.winter?'<span class="wint">❄️</span>':''}${pv}${stab!=='av'&&stab!=='ti'?`<span>${o.label}</span>`:''}<span class="${on?'ok':o.own?'ok':'pr'}">${on?'✓ вдягнуто':o.own?'є':o.price+' 💎'}</span></button>`}).join('')}</div>`}
  <button class="ghostb" onclick="unsheet()">Готово</button>`);
  $('sheet').querySelectorAll('.stabs button').forEach(b=>b.onclick=()=>{stab=b.dataset.t;styleSheet()});
  $('sheet').querySelectorAll('.exr .buy').forEach(b=>b.onclick=async()=>{const e=S.excl.find(x=>x.key===b.dataset.x);if(S.me.gems<e.price){toast(`Потрібно ще ${Math.ceil(e.price-S.me.gems)} 💎`);hap('err');return}
@@ -1129,9 +1193,97 @@ async function buySheet(o){sheet(`<h3>🏡 «${o.name}»</h3><p>Рахую, що
  ${S.me.owner&&R.full?`<button class="buy big" id="bgo" style="background:linear-gradient(#53d97f,#2fb45c);box-shadow:0 4px 0 #23914a">✅ Так, куплено в грі</button>`:R.full?'<p>Підтвердити покупку може власник ферми.</p>':'<p>Збір ще не завершено.</p>'}
  <button class="ghostb" onclick="unsheet()">Закрити</button>`);
  if($('bgo'))$('bgo').onclick=async()=>{hap('heavy');const x=await act('offerBought',{oid:o.id});if(x&&x.ok&&!/Ще не|закрито|лише/.test(x.toast||'')){unsheet();confetti()}}}
+// ===================== ❄️ WINTER
+let snowMade=false;
+function renderWinter(){const W=S.winter||{};const on=!!W.design;document.body.classList.toggle('winter',on);
+ if(on&&!snowMade){snowMade=true;$('snowfall').innerHTML=[...Array(34)].map(()=>{const s=2+Math.random()*5;return `<i style="--x:${Math.random()*100}%;--s:${s}px;--o:${.5+Math.random()*.5};--t:${7+Math.random()*9}s;--d:-${Math.random()*14}s;--w:${(Math.random()-.5)*60}px"></i>`}).join('')}
+ const tt=$('treetab');tt.style.display=on?'':'none';$('gdot').textContent=W.gifts||0;$('gdot').style.display=W.gifts?'grid':'none';
+ document.querySelector('.nav .in').style.gridTemplateColumns=on?'repeat(6,1fr)':'';
+ $('hname').querySelector('.betab')||(BETA&&$('hname').insertAdjacentHTML('beforeend','<span class="betab">БЕТА</span>'));
+ if(on&&!$('musb')){$('hbst').insertAdjacentHTML('afterend',`<button class="mus" id="musb">${musicOn()?'🔊':'🔇'}</button>`);$('musb').onclick=e=>{e.stopPropagation();musicToggle()}}
+ // garlands on ready crops
+ document.querySelectorAll('.crop').forEach(c=>{if(c.querySelector('.garl'))return;const g=document.createElement('span');g.className='garl';const cols=['#ff4d4d','#ffd84a','#4dd2ff','#5ee07a','#ff8af0'];const pts=[];
+  for(let i=0;i<=6;i++)pts.push([i/6*100,0]);for(let i=1;i<4;i++)pts.push([100,i/4*100]);for(let i=6;i>=0;i--)pts.push([i/6*100,100]);for(let i=3;i>0;i--)pts.push([0,i/4*100]);
+  g.innerHTML=pts.map((p,i)=>`<b style="left:${p[0]}%;top:${p[1]}%;--c:${cols[i%5]};--d:${(i%5)*.24}s"></b>`).join('');c.appendChild(g)});
+ if($('v_tree').classList.contains('on'))renderTree();
+ if(on&&musicOn())musicArm()}
+// the tree as a picture: grows with the level
+function rnd(seed){let s=seed;return()=>{s=(s*9301+49297)%233280;return s/233280}}
+function treeSVG(L){const R=rnd(7),tiers=Math.min(6,1+Math.ceil(L/2)),W=260,H=320,top=H-60-Math.min(230,40+L*21),base=H-38,cx=W/2,bw=40+L*15;let g='';const orn=[];
+ for(let i=0;i<tiers;i++){const y1=top+(base-top)*i/tiers,y2=top+(base-top)*(i+1)/tiers+12,w=bw*(0.35+0.65*(i+1)/tiers);
+  g+=`<path d="M${cx} ${y1-6} Q${cx-w*.2} ${y1+(y2-y1)*.4} ${cx-w/2} ${y2} Q${cx-w*.25} ${y2-8} ${cx} ${y2-4} Q${cx+w*.25} ${y2-8} ${cx+w/2} ${y2} Q${cx+w*.2} ${y1+(y2-y1)*.4} ${cx} ${y1-6}Z" fill="${i%2?'#1f7a3f':'#24894a'}" stroke="#165c2f" stroke-width="2"/>`;
+  g+=`<path d="M${cx-w*.42} ${y2-3} Q${cx} ${y2-14} ${cx+w*.42} ${y2-3}" stroke="#fff" stroke-width="${L>=2?5:0}" fill="none" stroke-linecap="round" opacity=".9"/>`;
+  const n=Math.round(L*0.9);for(let k=0;k<n;k++){const yy=y1+(y2-y1)*(0.35+R()*0.55),ww=w*(yy-y1)/(y2-y1)*0.42;orn.push([cx+(R()*2-1)*ww,yy])}}
+ const cols=['#ff4d4d','#ffd84a','#4dd2ff','#c77dff','#ff8a3d'];
+ const balls=orn.map((o,i)=>`<circle cx="${o[0]}" cy="${o[1]}" r="${4+(i%3)}" fill="${cols[i%5]}" stroke="#fff" stroke-width="1"/>`).join('');
+ const lights=L>=3?orn.map((o,i)=>i%2?`<circle cx="${o[0]+6}" cy="${o[1]-7}" r="2.6" fill="${cols[(i+2)%5]}" class="tl" style="animation-delay:${(i%6)*.2}s"/>`:'').join(''):'';
+ const star=L>=5?`<g transform="translate(${cx},${top-14}) scale(${L>=10?1.5:1})"><path d="M0,-16 4.7,-5 16,-5 7,2 10.5,14 0,7 -10.5,14 -7,2 -16,-5 -4.7,-5Z" fill="#ffd84a" stroke="#e0a100" stroke-width="1.5" class="star"/></g>`:'';
+ const trunk=`<rect x="${cx-9}" y="${base-2}" width="18" height="26" rx="3" fill="#8a5526"/>`;
+ return `<svg class="treesvg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">${trunk}${g}${balls}${lights}${star}</svg>`}
+const HOUSE=`<svg class="house" viewBox="0 0 200 170"><rect x="30" y="70" width="140" height="90" rx="6" fill="#f3d9b8"/><path d="M15 78 100 18 185 78Z" fill="#b8483a"/><path d="M12 80 Q100 8 188 80 L188 70 Q100 0 12 70Z" fill="#fff"/>
+ <rect x="140" y="22" width="18" height="40" fill="#8a5a46"/><rect x="137" y="18" width="24" height="8" rx="3" fill="#fff"/><rect x="50" y="95" width="34" height="30" rx="4" fill="#ffd56b"/><rect x="116" y="95" width="34" height="30" rx="4" fill="#ffd56b"/>
+ <path d="M67 95v30M50 110h34M133 95v30M116 110h34" stroke="#c98a3a" stroke-width="3"/><rect x="86" y="118" width="28" height="42" rx="4" fill="#8a5526"/><rect x="25" y="155" width="150" height="10" rx="5" fill="#fff"/></svg>`;
+function renderTree(){const W=S.winter||{},el=$('treeview'),pet=W.pet;
+ const stars=[...Array(24)].map(()=>`<i style="left:${Math.random()*100}%;top:${Math.random()*60}%;--d:${Math.random()*2.4}s"></i>`).join('');
+ if(!W.lvl){el.innerHTML=`<div class="scene"><div class="stars">${stars}</div>${HOUSE}${pet?`<div class="petg"><span>${pet.icon}</span>${pet.name}</div>`:''}
+   <div style="position:absolute;left:50%;bottom:10%;transform:translateX(-50%);font-size:80px;opacity:.35">🎄</div></div>
+   <div class="tcard" style="margin-top:12px"><h4>🎄 Твоя різдвяна ялинка</h4><small>Купи ялинку і прикрашай її сніжинками ❄️. Кожен рівень — ще один подарунок під ялинкою щоранку о ${W.giftHour}:00. Рівнів — ${W.max}.</small>
+   ${W.tree?`<button class="tbtn" id="tbuy" ${S.me.gems<W.buyTree?'disabled':''}>🎄 Купити ялинку · ${W.buyTree} 💎</button>`:'<small style="margin-top:8px">Ялинку можна було купити з 1 грудня до 1 січня.</small>'}</div>`;
+  if($('tbuy'))$('tbuy').onclick=async()=>{if(!(await confirmTG(`Купити ялинку за ${W.buyTree} 💎?`)))return;hap('heavy');const r=await act('tree',{op:'buy'});if(r&&r.ok)confetti()};treeBeta();return}
+ const full=W.lvl>=W.max,k=full?1:Math.min(1,W.snow/W.up);
+ el.innerHTML=`<div class="scene"><div class="stars">${stars}</div>${HOUSE}${treeSVG(W.lvl)}${pet?`<div class="petg"><span>${pet.icon}</span>${pet.name}</div>`:''}
+  <div class="lvlb">🎄 ${W.lvl} рівень</div><div class="snowb">❄️ ${fmt(W.snow)}</div>
+  <div class="gifts">${[...Array(W.gifts||0)].map((_,i)=>`<button data-g="${i}" style="animation-delay:${i*.15}s">🎁</button>`).join('')}</div></div>
+  ${W.gifts?`<div class="tcard" style="margin-top:12px;text-align:center"><h4>🎁 Під ялинкою ${W.gifts} ${plural(W.gifts,['подарунок','подарунки','подарунків'])}!</h4><small>Тисни на подарунок, щоб розгорнути</small></div>`:`<div class="tcard" style="margin-top:12px"><small>🎁 Нові подарунки — завтра о ${W.giftHour}:00 · ${W.lvl} ${plural(W.lvl,['подарунок','подарунки','подарунків'])}</small></div>`}
+  ${W.tree?`<div class="tcard" style="margin-top:12px"><h4>${full?'✨ Ялинка найбільша!':`⬆️ До ${W.lvl+1} рівня`}</h4>${full?'<small>Кожного ранку — '+W.lvl+' подарунків</small>':`<div class="tprog"><i style="width:${k*100}%"></i></div><small>❄️ ${fmt(W.snow)} / ${fmt(W.up)} · рівень дасть +1 подарунок щоранку</small>
+   <button class="tbtn" id="tup" ${W.snow<W.up?'disabled':''}>🎄 Прикрасити · ${fmt(W.up)} ❄️</button>`}</div>
+  <div class="tcard" style="margin-top:12px"><h4>❄️ Сніжинки</h4><small>Падають самі: за кожен збір, норму й завдання. Або обміняй кристали: 1 💎 = ${W.rate} ❄️</small>
+   <div class="earn2"><div><b>+${W.earn.harvest}</b>за збір</div><div><b>+${W.earn.norm}</b>за норму</div><div><b>+${W.earn.perGem}</b>за 1 💎 завдань</div></div>
+   ${Math.floor(S.me.gems)>=1?`<div class="rg big" style="margin-top:10px"><div class="rgh"><span class="nm">💎 → ❄️</span><span class="rv" id="sbv"></span></div><input type="range" id="sb" min="1" max="${Math.floor(S.me.gems)}" step="1" value="${Math.min(Math.floor(S.me.gems),Math.max(1,full?1:Math.ceil(Math.max(0,W.up-W.snow)/W.rate)))}"></div><button class="tbtn blue" id="sbgo"></button>`:''}</div>`:''}`;
+ el.querySelectorAll('.gifts button').forEach(b=>b.onclick=()=>openGift(b));
+ if($('tup'))$('tup').onclick=async()=>{hap('heavy');const r=await act('tree',{op:'up'});if(r&&r.ok&&!/Не вистачає/.test(r.toast||''))confetti()};
+ if($('sb')){let n=+$('sb').value;const sh=()=>{$('sbv').textContent=`${n} 💎 → ${n*W.rate} ❄️`;$('sbgo').textContent=`❄️ Обміняти ${n} 💎`};sh();$('sb').oninput=e=>{n=+e.target.value;sh()};$('sb').onchange=()=>hap('light');
+  $('sbgo').onclick=async()=>{hap('heavy');await act('tree',{op:'snowBuy',gems:n})}}
+ treeBeta()}
+function treeBeta(){if(!BETA)return;$('treeview').insertAdjacentHTML('beforeend',`<div class="tcard" style="margin-top:12px;background:#f1ecff"><h4>🧪 Бета-інструменти</h4><small>Лише в тестовій копії</small>
+  <button class="tbtn blue" id="b1">+100 💎 · +500 ❄️</button><button class="tbtn blue" id="b2">🎁 Повернути подарунки</button><button class="tbtn" style="background:#e2552b;box-shadow:0 4px 0 #b3402b" id="b3">↺ Скинути бету (копія з ферми)</button></div>`);
+ $('b1').onclick=()=>act('tree',{op:'betaGems'});$('b2').onclick=()=>act('tree',{op:'betaGifts'});$('b3').onclick=async()=>{if(!(await confirmTG('Скинути бету? Візьметься свіжа копія справжньої ферми.')))return;await act('betaReset');act('state')}}
+// 🎁 opening a gift: 3 taps, paper flies, then the reward
+async function openGift(btn){hap('medium');const g=$('gov');let taps=0,res=null,done=false;
+ g.innerHTML=`<div class="rays"></div><div class="glow"></div><div class="gbox" id="gbx">🎁</div><div class="hint">Тисни на подарунок!</div><div class="dots"><i></i><i></i><i></i></div>`;g.classList.add('on');
+ const req=call('tree',{op:'gift'}).then(r=>{res=r;return r}).catch(()=>null);
+ $('gbx').onclick=async e=>{if(done)return;taps++;hap(taps<3?'heavy':'ok');const b=$('gbx');b.classList.remove('hit');void b.offsetWidth;b.classList.add('hit');b.style.fontSize=(130+taps*16)+'px';
+  g.querySelectorAll('.dots i').forEach((d,i)=>d.classList.toggle('on',i<taps));paper(b,18+taps*10);
+  if(taps<3)return;done=true;const r=await req;
+  g.insertAdjacentHTML('beforeend','<div class="flash"></div>');
+  setTimeout(()=>{const gift=r&&r.res&&r.res.gift;if(r&&r.state)apply(r.state);
+   g.querySelectorAll('.gbox,.hint,.dots').forEach(x=>x.remove());
+   g.insertAdjacentHTML('beforeend',gift?`<div class="reward ${gift.rare?'rare':''}"><small>${gift.rare?'✨ РІДКІСНИЙ ✨':'ТВІЙ ПОДАРУНОК'}</small><div class="ri">${gift.icon}</div><b>${gift.text}</b><button id="gok">Ура!</button></div>`:`<div class="reward"><b>${(r&&(r.toast||r.msg))||'Немає зв’язку з ботом 😕'}</b><button id="gok">Закрити</button></div>`);
+   if(gift){confetti();if(gift.rare)setTimeout(confetti,600)}
+   $('gok').onclick=()=>{g.classList.remove('on');g.innerHTML=''}},250)}}
+function paper(el,n){const r=el.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,cols=['#ff4d4d','#ffd84a','#4dd2ff','#5ee07a','#ff8af0','#ffffff'];
+ for(let i=0;i<n;i++){const p=document.createElement('div');p.className='paper';p.style.background=cols[i%6];p.style.left=cx+'px';p.style.top=cy+'px';document.body.appendChild(p);
+  const a=Math.random()*Math.PI*2,v=120+Math.random()*220,dx=Math.cos(a)*v,dy=Math.sin(a)*v-60,rot=Math.random()*720;
+  p.animate([{transform:'translate(-50%,-50%) rotate(0)',opacity:1},{transform:`translate(calc(-50% + ${dx}px),calc(-50% + ${dy+180}px)) rotate(${rot}deg)`,opacity:0}],{duration:900+Math.random()*500,easing:'cubic-bezier(.2,.7,.4,1)'}).onfinish=()=>p.remove()}}
+// 🎵 Jingle Bells (James Lord Pierpont, 1857 — public domain), played with Web Audio
+let AC=null,musT=null,musNext=0,musI=0;
+const musicOn=()=>{try{return localStorage.getItem('music')!=='0'}catch(e){return true}};
+const N={C4:261.63,D4:293.66,E4:329.63,F4:349.23,G4:392,A4:440,B4:493.88,C5:523.25,D5:587.33,E5:659.25,F5:698.46,G5:783.99};
+const SONG=[['E5',1],['E5',1],['E5',2],['E5',1],['E5',1],['E5',2],['E5',1],['G5',1],['C5',1.5],['D5',.5],['E5',4],['F5',1],['F5',1],['F5',1.5],['F5',.5],['F5',1],['E5',1],['E5',1],['E5',.5],['E5',.5],['E5',1],['D5',1],['D5',1],['E5',1],['D5',2],['G5',2],
+ ['E5',1],['E5',1],['E5',2],['E5',1],['E5',1],['E5',2],['E5',1],['G5',1],['C5',1.5],['D5',.5],['E5',4],['F5',1],['F5',1],['F5',1],['F5',1],['F5',1],['E5',1],['E5',1],['E5',.5],['E5',.5],['G5',1],['G5',1],['F5',1],['D5',1],['C5',4],[null,2]];
+const BEAT=.32;
+function bell(f,t,d){const o=AC.createOscillator(),o2=AC.createOscillator(),gn=AC.createGain();o.type='sine';o2.type='triangle';o.frequency.value=f;o2.frequency.value=f*2;
+ gn.gain.setValueAtTime(0,t);gn.gain.linearRampToValueAtTime(.09,t+.01);gn.gain.exponentialRampToValueAtTime(.0008,t+Math.max(.35,d*BEAT*1.6));
+ const g2=AC.createGain();g2.gain.value=.25;o2.connect(g2);g2.connect(gn);o.connect(gn);gn.connect(AC.destination);o.start(t);o2.start(t);o.stop(t+d*BEAT*1.8+.4);o2.stop(t+d*BEAT*1.8+.4)}
+function musicLoop(){if(!AC)return;while(musNext<AC.currentTime+1.2){const [n,d]=SONG[musI%SONG.length];if(n)bell(N[n],musNext,d);musNext+=d*BEAT;musI++}}
+function musicStart(){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();AC.resume();musNext=AC.currentTime+.1;clearInterval(musT);musT=setInterval(musicLoop,300)}catch(e){}}
+function musicStop(){clearInterval(musT);musT=null;try{AC&&AC.suspend()}catch(e){}}
+let armed=false;function musicArm(){if(musT||armed)return;armed=true;const go=()=>{document.removeEventListener('pointerdown',go,true);armed=false;if(musicOn()&&S&&S.winter&&S.winter.design&&!musT)musicStart()};document.addEventListener('pointerdown',go,true)}
+function musicToggle(){const on=!musicOn();try{localStorage.setItem('music',on?'1':'0')}catch(e){}$('musb').textContent=on?'🔊':'🔇';hap('light');if(on)musicStart();else musicStop()}
+document.addEventListener('visibilitychange',()=>{if(document.hidden)musicStop();else if(musicOn()&&S&&S.winter&&S.winter.design)musicArm()});
 // ===================== tabs
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{hap('light');document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===b));
- document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id==='v_'+b.dataset.v));scrollTo(0,0);});
+ document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id==='v_'+b.dataset.v));scrollTo(0,0);if(b.dataset.v==='tree'&&S)safe(renderTree);});
 // ===================== demo (outside Telegram)
 let D=null;
 function demoState(){const now=Date.now();return{me:{id:'2',name:'Марія',gems:67,balance:533,streak:9,done:21,norm:30},
@@ -1144,6 +1296,7 @@ function demoState(){const now=Date.now();return{me:{id:'2',name:'Марія',ge
  people:[{id:'2',name:'Марія',look:{av:'🦄',bg:'rose',fr:'rainbow',ti:'Королева грядок'}},{id:'1',name:'Тато',look:{av:'🐻',bg:'sky',fr:'gold',ti:''},owner:true}],
  looks:{av:['🙂','🐱','🐶','🦄','🧚','🐲','👑','🔮'].map((k,i)=>({key:k,price:i<3?0:15+i*5,own:i<4})),bg:['sand','sky','mint','rose','ocean','sunset','galaxy','gold'].map((k,i)=>({key:k,label:k,price:i<2?0:15+i*8,own:i<2||k==='rose'})),fr:['none','silver','gold','rainbow','fire','stars'].map((k,i)=>({key:k,label:k,price:[0,30,60,120,150,200][i],own:i===0||k==='rainbow'})),ti:[['','Без титулу'],['farmer','Фермерка'],['queen','Королева грядок'],['legend','Легенда ферми']].map((x,i)=>({key:x[0],label:x[1],price:[0,0,50,150][i],own:i<3}))},
  trades:[{id:'t1',other:'1',sent:true,mine:true,theyAgreed:true,give:[{key:'gem',n:5,icon:'💎',label:'Кристали',unit:'💎',pct:null}],get:[{key:'uah',n:10,icon:'💰',label:'Гривні',unit:'грн',pct:null}],myHave:[{key:'gem',n:67,icon:'💎',label:'Кристали',unit:'💎',step:1},{key:'uah',n:533,icon:'💰',label:'Гривні',unit:'грн',step:1}],theirHave:[{key:'uah',n:900,icon:'💰',label:'Гривні',unit:'грн',step:1}]}],
+ winter:{design:true,tree:true,styles:true,beta:false,snow:320,rate:10,earn:{harvest:8,norm:40,perGem:2},buyTree:50,lvl:3,max:10,up:900,gifts:2,giftHour:9,pet:{icon:'🐕',name:'Бені'}},
  inv:{food:4},my:{today:{n:2,uah:21},week:{n:9,uah:112},month:{n:41,uah:533},days:[...Array(7)].map((_,i)=>({day:new Date(Date.now()-(6-i)*864e5).toISOString().slice(0,10),uah:[34,12,31,45,0,30,21][i],n:3})),rec:{bestStreak:12,bestDay:7,harvests:241,earned:3120},family:[{id:'1',name:'Тато',uah:140},{id:'2',name:'Марія',uah:112,me:true}],claim:[{key:'first',icon:'🌅',name:'З першого дня'},{key:'0.0',icon:'🌱',name:'Перший урожай'},{key:'0.1',icon:'🧺',name:'Десять кошиків'}],achGem:1,gemUah:.5,ach:{got:7,total:64,first:{key:'first',paid:false},next:[{title:'🚜 Збори',v:41,need:50,icon:'🚜',name:'Справжня фермерка',from:10,unit:['збір','збори','зборів'],done:2,steps:5,claim:{key:'0.1',icon:'🧺',name:'Десять кошиків'}},{title:'🔥 Стрік',v:9,need:14,icon:'🔥',name:'Два тижні',from:7,unit:['день','дні','днів'],done:2,steps:6},{title:'💰 Заробіток',v:533,need:1000,icon:'💎',name:'Тисячниця',from:500,unit:['гривня','гривні','гривень'],done:3,steps:6},{title:'⚡ Рекорд за день',v:4,need:6,icon:'⚡',name:'Робочий день',from:0,unit:['збір','збори','зборів'],done:0,steps:3},{title:'🏁 Перегони',v:1,need:3,icon:'🏁',name:'Чемпіонка',from:1,unit:['перемога','перемоги','перемог'],done:1,steps:4}]},items:[{what:'prize',icon:'🎁',label:'Невідкритий приз',n:1,act:'Відкрити'},{what:'ice',icon:'🍦',label:'Морозиво',n:2,act:'Хочу!'},{what:'cpn_x',icon:'🍽️',label:'Мий за мною посуд',n:1,act:'Використати'},{what:'',icon:'❄️',label:'Заморозка стріку',n:1,note:'спрацює сама'}]},invest:{real:[...Array(10)].map((_,i)=>({day:new Date(Date.now()-(10-i)*864e5).toISOString().slice(0,10),uah:[2.1,3.4,0,4.2,3.8,5.1,4.6,6.2,5.5,7.3][i],mon:i<3?82:i<7?112:150})),hist:[],min:20,balance:533,daily:3.42,wallet:12.5,plots:[{id:'p1',name:'Сонячна',type:'16×16 з будинком',owners:[{id:'1',share:.69},{id:'2',share:.31}],share:.31,my:930,got:12,canSell:true,day:1.14,dayAll:3.68},{id:'p2',name:'Лісова',type:'24×24 з будинком',share:.2,day:2.28,dayAll:11.4}],offers:[{id:'o1',who:[{id:'1',uah:1360},{id:'2',uah:500}],name:'Річкова',type:'16×16 з будинком',price:3000,raised:1860,my:500,dayAll:3.68}]}}}
 function demoCall(a,x){if(DEMO_SLOW)return new Promise(r=>setTimeout(()=>r(demoCall0(a,x)),900));return demoCall0(a,x)}
 let DEMO_SLOW=1;
@@ -1152,6 +1305,7 @@ function demoCall0(a,x){D=D||demoState();let t='',res=null;const now=Date.now();
   D.me.done+=c.uah;D.me.balance+=c.uah;D.me.gems+=c.gem;k.due=now+k.cycle*60000;D.farm.now=now;if(D.me.done>=D.me.norm&&!D.farm.week[6].ok){D.farm.week[6].ok=true;D.me.streak++}t='+'+c.uah+' грн · +'+c.gem+' 💎'}
  if(a==='task'){const T=[...D.tasks.ar,...D.tasks.wow].find(t=>t.id===x.id);T.wait++;D.tasks.waitN++;D.tasks.waitGems+=T.gems;t='⏳ Надіслано на підтвердження: +'+T.gems+' 💎'}
  if(a==='buy'){const i=D.shop.items.find(i=>i.id===x.item);if(D.me.gems<i.price)return Promise.resolve({ok:true,toast:'Не вистачає 💎',state:D});D.me.gems-=i.price;i.times++;i.price=Math.round(i.price*1.3);t=i.icon+' куплено!'}
+ if(a==='tree'){const W=D.winter;if(x.op==='up'&&W.snow>=W.up){W.snow-=W.up;W.lvl++;W.up=[0,400,650,900,1150,1400,1700,2000,2300,2600][W.lvl]||0;t='🎄 Рівень '+W.lvl}if(x.op==='snowBuy'){D.me.gems-=x.gems;W.snow+=x.gems*10;t='❄️ +'+x.gems*10}if(x.op==='gift'){W.gifts--;res={gift:Math.random()<.3?{icon:'☃️',text:'Зимовий стиль: аватар ☃️',rare:true}:{icon:'❄️',text:'+120 сніжинок',rare:false}}}if(x.op==='buy'){W.lvl=1;t='🎄'}}
  if(a==='claim'){const n=x.key==='all'?D.my.claim.length:1;D.me.gems+=n;D.my.claim=x.key==='all'?[]:D.my.claim.filter(c=>c.key!==x.key);t='🏅 +'+n+' 💎'}
  if(a==='pledge'){const o=D.invest.offers.find(o=>o.id===x.oid),v=x.amt==='all'?D.invest.balance:+x.amt;o.raised+=v;o.my+=v;D.invest.balance-=v;D.me.balance-=v;t='💼 +'+v+' грн'}
  if(a==='ivtake'){D.me.balance+=D.invest.wallet;t='💰 +'+D.invest.wallet;D.invest.wallet=0}
