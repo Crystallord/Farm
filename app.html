@@ -1,0 +1,1034 @@
+<!DOCTYPE html><html lang="uk"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<title>Ферма</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fff7ec;--card:#fff;--ink:#3b2a1a;--mute:#9a8570;--gold:#ffb020;--fire:#ff6a2b;--green:#3cc46a;--gem:#7b5cff;--ring:#f3e9dc}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0}
+body{background:radial-gradient(120% 60% at 50% 0,#ffe7c4,var(--bg) 60%);color:var(--ink);font-family:Nunito,system-ui,sans-serif;min-height:100vh;padding:14px 14px 30px;overflow-x:hidden}
+.wrap{max-width:440px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
+.card{background:var(--card);border-radius:22px;box-shadow:0 2px 0 #f0dcc0,0 10px 24px rgba(160,110,50,.10);padding:14px}
+/* streak */
+.streak{display:flex;align-items:center;gap:12px}
+.flame{font-size:40px;line-height:1;filter:drop-shadow(0 4px 8px rgba(255,106,43,.45));transition:transform .4s}
+.flame.dim{filter:grayscale(.65) opacity(.6)}
+.flame.pop{animation:pop .7s cubic-bezier(.3,1.6,.5,1)}
+.sk{flex:1}
+.sk b{font-size:22px;font-weight:900}.sk small{display:block;color:var(--mute);font-weight:700;font-size:12.5px;margin-top:1px}
+.sk small.warn{color:#e2552b}
+.days{display:flex;gap:5px;margin-top:8px}
+.d{flex:1;text-align:center;font-size:10px;font-weight:800;color:var(--mute)}
+.d i{display:block;height:9px;border-radius:5px;background:#f2e6d6;margin-bottom:3px}
+.d.on i{background:linear-gradient(90deg,#ffb020,#ff6a2b)}
+.d.today i{background:#fff;border:2px dashed #ff9a4a;animation:blink 1.4s infinite}
+.d.today.on i{border:0;background:linear-gradient(90deg,#ffb020,#ff6a2b);animation:none}
+@keyframes blink{50%{opacity:.35}}
+/* balances */
+.bal{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.bal .card{display:flex;align-items:center;gap:10px;padding:12px 14px}
+.bi{width:40px;height:40px;border-radius:14px;display:grid;place-items:center;font-size:21px}
+.bi.uah{background:linear-gradient(135deg,#ffe08a,#ffb020);color:#7a4a00;font-weight:900}
+.bi.gem{background:linear-gradient(135deg,#c9b8ff,#7b5cff)}
+.bv{font-size:21px;font-weight:900;font-variant-numeric:tabular-nums}
+.bl{font-size:11.5px;color:var(--mute);font-weight:800}
+.bump{animation:bump .5s}
+@keyframes bump{40%{transform:scale(1.18)}}
+/* hero ring */
+.hero{display:flex;flex-direction:column;align-items:center;padding:18px 14px 16px;position:relative}
+.hero h3{font-size:13px;font-weight:900;color:var(--mute);letter-spacing:.06em;text-transform:uppercase}
+.ringbox{position:relative;width:230px;height:230px;margin:10px 0 6px}
+.ringbox svg{width:100%;height:100%;transform:rotate(-90deg);overflow:visible}
+.track{fill:none;stroke:var(--ring);stroke-width:20}
+.prog{fill:none;stroke:url(#g);stroke-width:20;stroke-linecap:round;transition:stroke-dashoffset 1.1s cubic-bezier(.2,.9,.25,1.15);filter:drop-shadow(0 0 6px rgba(255,150,40,.45))}
+.tick{stroke:#fff;stroke-width:3}
+.ghost{fill:none;stroke:rgba(255,176,32,.35);stroke-width:20;stroke-linecap:round;transition:stroke-dashoffset .3s}
+.center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.pct{font-size:50px;font-weight:900;line-height:1;font-variant-numeric:tabular-nums}
+.pct span{font-size:24px}
+.of{font-weight:800;color:var(--mute);font-size:14px;margin-top:4px;font-variant-numeric:tabular-nums}
+.left{margin-top:8px;font-weight:900;font-size:13px;background:#fff1dc;color:#b35a00;padding:5px 11px;border-radius:999px}
+.left.done{background:#dff7e6;color:#1d8a45}
+.ms{display:flex;gap:8px;margin-top:4px}
+.chip{font-size:12px;font-weight:800;padding:6px 10px;border-radius:12px;background:#f7efe3;color:var(--mute);display:flex;gap:5px;align-items:center;transition:.3s}
+.chip.got{background:#e9ffef;color:#1d8a45}
+/* harvest */
+.hv{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.crop{display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 10px 12px;position:relative;overflow:hidden}
+.crop .t{font-weight:900;font-size:15px}
+.mini{position:relative;width:86px;height:86px}
+.mini svg{width:100%;height:100%;transform:rotate(-90deg)}
+.mini .tr{fill:none;stroke:#eef7e8;stroke-width:9}
+.mini .pr{fill:none;stroke:var(--green);stroke-width:9;stroke-linecap:round;transition:stroke-dashoffset 1s linear}
+.mini .ic{position:absolute;inset:0;display:grid;place-items:center;font-size:34px;transition:transform .3s}
+.crop.ready .mini .ic{animation:wig 1.6s infinite}
+@keyframes wig{0%,60%,100%{transform:rotate(0)}70%{transform:rotate(-10deg) scale(1.1)}80%{transform:rotate(10deg) scale(1.1)}90%{transform:rotate(-5deg)}}
+.rw{font-size:12px;font-weight:800;color:var(--mute)}
+.btn{width:100%;border:0;border-radius:16px;padding:13px 8px;font:900 15px Nunito,sans-serif;color:#fff;cursor:pointer;
+ background:linear-gradient(#53d97f,#2fb45c);box-shadow:0 4px 0 #23914a,0 8px 16px rgba(47,180,92,.35);transition:transform .08s,box-shadow .08s}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 #23914a}
+.crop.ready .btn{animation:breathe 1.6s infinite}
+@keyframes breathe{50%{box-shadow:0 4px 0 #23914a,0 0 0 8px rgba(83,217,127,.25)}}
+.crop:not(.ready) .btn{background:#f1e9de;color:var(--mute);box-shadow:0 4px 0 #e0d2bf;font-variant-numeric:tabular-nums}
+.float{position:fixed;pointer-events:none;font-weight:900;z-index:50;will-change:transform,opacity}
+.plus{position:fixed;pointer-events:none;font:900 22px Nunito;color:#2fb45c;z-index:60;text-shadow:0 2px 0 #fff;animation:rise 1.1s forwards}
+@keyframes rise{to{transform:translateY(-70px);opacity:0}}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.6) rotate(-8deg)}100%{transform:scale(1)}}
+canvas#cf{position:fixed;left:0;top:0;width:100vw;height:100vh;pointer-events:none;z-index:70;display:none}
+.toast{position:fixed;left:50%;top:18px;transform:translate(-50%,-140%);background:#fff;padding:12px 18px;border-radius:18px;font-weight:900;
+ box-shadow:0 12px 30px rgba(0,0,0,.18);z-index:80;transition:transform .45s cubic-bezier(.3,1.5,.5,1);white-space:nowrap}
+.toast{visibility:hidden;opacity:0;transition:transform .45s cubic-bezier(.3,1.5,.5,1),opacity .2s,visibility .45s}
+.toast.show{transform:translate(-50%,0);visibility:visible;opacity:1;transition:transform .45s cubic-bezier(.3,1.5,.5,1),opacity .2s}
+.demo{text-align:center;font-size:11px;color:var(--mute);font-weight:700}
+
+/* one-off */
+.sect{display:flex;align-items:baseline;justify-content:space-between;margin:10px 4px -2px}
+.sect b{font-size:15px;font-weight:900}.sect small{font-size:12px;color:var(--mute);font-weight:700}
+.once{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.ob{border:0;background:#fff;border-radius:18px;padding:12px 6px 10px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;
+ box-shadow:0 3px 0 #eddcc4,0 8px 18px rgba(160,110,50,.08);font-family:inherit;color:var(--ink);transition:transform .08s,box-shadow .08s}
+.ob:active{transform:translateY(3px);box-shadow:0 0 0 #eddcc4}
+.ob .e{font-size:28px;line-height:1.1}.ob .n{font-weight:900;font-size:13.5px}.ob .r{font-weight:800;font-size:11.5px;color:#2fb45c}
+.ob .x{font-weight:800;font-size:10.5px;color:var(--mute)}
+/* nav */
+body{padding-bottom:96px}
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:40;padding:8px 12px calc(10px + env(safe-area-inset-bottom));background:#fff7ec;border-top:1px solid #f0dcc0}
+.nav .in{max-width:440px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.tab{border:0;background:none;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:2px;font-weight:900;font-size:12px;color:var(--mute);cursor:pointer;position:relative;padding:4px 0}
+.tab .ti{font-size:25px;transition:transform .25s;filter:grayscale(.7) opacity(.7)}
+.tab.on{color:var(--ink)}.tab.on .ti{transform:translateY(-3px) scale(1.12);filter:none}
+.tab .dot{position:absolute;top:0;left:calc(50% + 8px);background:linear-gradient(#ff6b5b,#e23b2e);color:#fff;font-size:11px;font-weight:900;min-width:19px;height:19px;border-radius:10px;display:grid;place-items:center;padding:0 5px;border:2px solid #fff7ec}
+.view{display:none}.view.on{display:flex;animation:fadeup .35s}
+@keyframes fadeup{from{opacity:0;transform:translateY(8px)}}
+/* tasks */
+.th{display:flex;align-items:center;gap:14px}
+.th .mini{width:78px;height:78px}
+.th .mini .pr{stroke:var(--gem)}.th .mini .tr{stroke:#efe9ff}
+.th b{font-size:19px;font-weight:900;display:block}.th small{color:var(--mute);font-weight:800;font-size:12.5px}
+.pend{display:inline-flex;margin-top:6px;font-size:12px;font-weight:900;background:#f1ecff;color:#5b3fd6;padding:4px 10px;border-radius:999px}
+.seg{display:flex;background:#f3e8d8;border-radius:14px;padding:4px;gap:4px}
+.seg button{flex:1;border:0;border-radius:11px;padding:9px;font:900 14px Nunito,sans-serif;color:var(--mute);background:none;cursor:pointer}
+.seg button.on{background:#fff;color:var(--ink);box-shadow:0 2px 6px rgba(0,0,0,.08)}
+.task{display:flex;align-items:center;gap:12px;padding:12px 12px 12px 14px;transition:opacity .4s,transform .4s}
+.task .e{font-size:30px;width:40px;text-align:center}
+.task .tx{flex:1;min-width:0}.task .tx b{font-weight:900;font-size:15px;display:block}.task .tx small{color:var(--mute);font-weight:700;font-size:12px}
+.gemchip{font-weight:900;font-size:14px;color:#5b3fd6;background:#f1ecff;border-radius:12px;padding:6px 9px;white-space:nowrap}
+.gemchip.big{background:linear-gradient(135deg,#c9b8ff,#7b5cff);color:#fff}
+.do{border:0;border-radius:14px;padding:10px 12px;font:900 13.5px Nunito,sans-serif;color:#fff;background:linear-gradient(#9d85ff,#6a48f0);box-shadow:0 3px 0 #5034c7;cursor:pointer;white-space:nowrap}
+.do:active{transform:translateY(2px);box-shadow:0 1px 0 #5034c7}
+.task.wait .do{background:#f1ecff;color:#5b3fd6;box-shadow:none}
+.task.done{opacity:.55}.task.done .do{background:#e3f7e9;color:#1d8a45;box-shadow:none}
+.gl{font-size:12px;font-weight:900;color:var(--mute);margin:6px 4px -4px;text-transform:uppercase;letter-spacing:.05em}
+/* shop */
+.sh{display:flex;align-items:center;justify-content:space-between}
+.sh b{font-size:19px;font-weight:900}.sh small{display:block;color:var(--mute);font-weight:800;font-size:12.5px}
+.timer{display:flex;align-items:center;gap:8px;font-weight:900;font-size:13px;color:#b35a00;background:#fff1dc;padding:7px 11px;border-radius:14px;font-variant-numeric:tabular-nums}
+.items{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.item{display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 12px 12px;position:relative;text-align:center}
+.item .e{font-size:46px;line-height:1.1;transition:transform .3s}
+.item b{font-weight:900;font-size:14.5px;line-height:1.15}
+.item .afford{width:100%;height:8px;background:#f1ecff;border-radius:5px;overflow:hidden}
+.item .afford i{display:block;height:100%;background:linear-gradient(90deg,#9d85ff,#6a48f0);border-radius:5px;transition:width .8s}
+.item .need{font-size:11.5px;font-weight:900;color:#5b3fd6;min-height:15px}
+.buy{width:100%;border:0;border-radius:14px;padding:11px 6px;font:900 15px Nunito,sans-serif;color:#fff;background:linear-gradient(#9d85ff,#6a48f0);box-shadow:0 4px 0 #5034c7;cursor:pointer}
+.buy:active{transform:translateY(3px);box-shadow:0 1px 0 #5034c7}
+.buy:disabled{background:#efe9ff;color:#a596e0;box-shadow:0 4px 0 #e0d8fb}
+.rise{position:absolute;top:10px;right:10px;font-size:10.5px;font-weight:900;color:#e2552b;background:#ffece4;padding:3px 7px;border-radius:9px}
+.hot{position:absolute;top:10px;left:10px;font-size:10.5px;font-weight:900;color:#fff;background:linear-gradient(#ff8a4a,#ff5d2b);padding:3px 7px;border-radius:9px}
+.item.lock{background:repeating-linear-gradient(135deg,#fff,#fff 10px,#fbf4ea 10px,#fbf4ea 20px)}
+.item.lock .e{filter:brightness(0) opacity(.18)}
+.item.lock .buy{background:#f3e8d8;color:var(--mute);box-shadow:none}
+.food{display:flex;align-items:center;gap:12px}
+.food .e{font-size:34px}.food .tx{flex:1}.food .tx b{font-weight:900;display:block}.food .tx small{font-weight:700;color:var(--mute);font-size:12px}
+.food .buy{width:auto;padding:10px 14px;font-size:14px}
+
+.task .cnt{font-size:11.5px;font-weight:900;color:#1d8a45}.task .wt{font-size:11.5px;font-weight:900;color:#5b3fd6}
+.task .list{margin-top:4px;font-size:11.5px;color:var(--mute);font-weight:700;line-height:1.35}
+.err{background:#fff;border-radius:18px;padding:18px;text-align:center;font-weight:800;color:#b3402b}
+.loading{opacity:.55;pointer-events:none}
+.lockinfo{font-size:11.5px;font-weight:900;color:#b35a00}
+
+/* compact top */
+.top{padding:12px 14px}
+.top .streak{display:flex;align-items:center;gap:10px}
+.top .flame{font-size:32px}
+.top .sk b{font-size:18px}.top .sk small{font-size:11.5px}
+.bals{text-align:right;line-height:1.15}
+.bv2{font-size:19px;font-weight:900;font-variant-numeric:tabular-nums;white-space:nowrap}.bv2.g{color:#5b3fd6;font-size:16px}
+.top .days{margin-top:10px}
+/* norm bar */
+.normc{padding:12px 14px}
+.nh{display:flex;justify-content:space-between;align-items:baseline;font-weight:800;color:var(--mute);font-size:13px}
+.nh b{color:var(--ink)}.nh span b{font-size:17px;font-variant-numeric:tabular-nums}
+.bar{position:relative;height:26px;border-radius:13px;background:#f3e9dc;margin:8px 0 8px;overflow:hidden}
+.bar i{position:absolute;left:0;top:0;bottom:0;border-radius:13px;transition:width 1.1s cubic-bezier(.2,.9,.25,1.1)}
+.bar .fl{background:linear-gradient(90deg,#ffcf3a,#ff6a2b);box-shadow:0 0 10px rgba(255,150,40,.5)}
+.bar .gh{background:rgba(255,176,32,.45);transition:width .25s}.bar .gh.pulse{animation:gpulse 1.6s ease-in-out infinite}
+@keyframes gpulse{0%,100%{opacity:.35}50%{opacity:1}}
+.bar .tk{position:absolute;top:0;bottom:0;width:3px;background:#fff;opacity:.9}
+.bar .pc{position:absolute;right:10px;top:0;line-height:26px;font-weight:900;font-size:13px;color:#7a4a00}
+.nf{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.nf .left{margin:0;font-size:12.5px}.nx{font-size:12px;font-weight:900;color:var(--mute);white-space:nowrap}
+.crop{padding:12px 10px}.mini{width:70px;height:70px}.mini .ic{font-size:28px}
+.items{align-items:stretch}.item .need{margin-top:auto}.item b{min-height:2.3em;display:flex;align-items:center}
+/* invest */
+.ihero{text-align:center;padding:18px 14px;background:linear-gradient(160deg,#1f6f4a,#0f4a33);color:#eafff3;box-shadow:0 10px 24px rgba(15,74,51,.35)}
+.ihero small{font-weight:800;opacity:.8;font-size:12.5px}
+.tick{font-size:44px;font-weight:900;font-variant-numeric:tabular-nums;margin:6px 0 10px;letter-spacing:-.5px;text-shadow:0 0 18px rgba(120,255,180,.35)}
+.tick .dec{font-size:26px;opacity:.85}.tick .cur{font-size:26px}
+.irow{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.irow div{background:rgba(255,255,255,.1);border-radius:14px;padding:8px 4px}
+.irow b{display:block;font-size:17px;font-weight:900;font-variant-numeric:tabular-nums}.irow small{font-size:11px}
+.inote{margin-top:10px;font-size:11px;opacity:.6;font-weight:700}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tile{padding:13px;display:flex;flex-direction:column;gap:6px;position:relative;overflow:hidden}
+.tile .tn{font-weight:900;font-size:15px}.tile .tt{font-size:11.5px;color:var(--mute);font-weight:800}
+.tile .pie{position:absolute;right:10px;top:10px;width:38px;height:38px;border-radius:50%}
+.tile .pie span{position:absolute;inset:6px;border-radius:50%;background:#fff;display:grid;place-items:center;font-size:10px;font-weight:900}
+.tile .mo{font-size:22px;font-weight:900;color:#1d8a45;margin-top:4px;font-variant-numeric:tabular-nums}.tile .mo small{font-size:12px;color:var(--mute)}
+.stk{display:flex}.stk .ava{margin-right:-6px;box-shadow:0 0 0 2px #fff;border-radius:50%}
+.tile .dd{font-size:12px;font-weight:800;color:var(--mute)}
+.tile.raise .mo{color:#b35a00}
+.pbar{height:9px;border-radius:5px;background:#f3e9dc;overflow:hidden}.pbar i{display:block;height:100%;background:linear-gradient(90deg,#ffcf3a,#ff6a2b);border-radius:5px}
+.empty{grid-column:1/-1;text-align:center;font-weight:800;color:var(--mute);padding:18px}
+
+.tab{font-size:11px}
+.mehd{display:flex;flex-direction:column;gap:10px}
+.mehd b{font-size:20px;font-weight:900}.mehd small{display:block;color:var(--mute);font-weight:800;font-size:12.5px}
+.trio{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.trio div{background:#fff7ec;border-radius:14px;padding:9px 6px;text-align:center}
+.trio b{display:block;font-size:17px;font-variant-numeric:tabular-nums}.trio small{font-size:11px}
+.itm{padding:12px;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center}
+.itm .e{font-size:34px}.itm b{font-size:13.5px;font-weight:900;line-height:1.2;min-height:2.4em;display:flex;align-items:center}
+.itm .n{font-size:12px;font-weight:900;color:#5b3fd6}.itm .note{font-size:11.5px;color:var(--mute);font-weight:800}
+.itm .buy{margin-top:auto;padding:9px 6px;font-size:13.5px}
+.chart{display:flex;align-items:flex-end;gap:8px;height:170px;padding:14px 14px 10px;position:relative}
+.chart .col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:4px}
+.chart .v{font-size:10.5px;font-weight:900;color:var(--mute);font-variant-numeric:tabular-nums}
+.chart .b{width:100%;border-radius:8px 8px 4px 4px;background:#f3e9dc;transition:height .8s cubic-bezier(.2,.9,.25,1.1);min-height:4px}
+.chart .b.ok{background:linear-gradient(#ffcf3a,#ff8a2b)}.chart .col.today .b{box-shadow:0 0 0 2px #ff9a4a}
+.chart .l{font-size:11px;font-weight:900;color:var(--mute)}
+.chart .nl{position:absolute;left:14px;right:14px;border-top:2px dashed #ffb27a}
+.chart .nl span{position:absolute;right:0;top:-17px;font-size:10px;font-weight:900;color:#e2552b;background:#fff;padding:0 4px}
+.fr{display:flex;align-items:center;gap:10px;padding:7px 0}.fr+.fr{border-top:1px solid #f3e9dc}
+.fr .rk{width:22px;font-weight:900;color:var(--mute);text-align:center}.fr .nm{flex:1;font-weight:900;white-space:nowrap}
+.fr .fb{flex:2;height:10px;border-radius:5px;background:#f3e9dc;overflow:hidden}.fr .fb i{display:block;height:100%;background:linear-gradient(90deg,#53d97f,#2fb45c);border-radius:5px}
+.fr .fv{width:68px;text-align:right;font-weight:900;font-variant-numeric:tabular-nums;font-size:13.5px}
+.fr.me .nm{color:#1d8a45}
+.ach{display:flex;align-items:center;gap:12px;padding:12px 14px}
+.ach .e{font-size:30px;filter:grayscale(.3)}.ach .tx{flex:1}.ach b{font-weight:900;font-size:14.5px}.ach small{display:block;font-size:11.5px;color:var(--mute);font-weight:800}
+.ach .ab{height:9px;border-radius:5px;background:#f3e9dc;overflow:hidden;margin-top:6px}.ach .ab i{display:block;height:100%;background:linear-gradient(90deg,#ffcf3a,#ff6a2b)}
+.ach .av{font-size:12px;font-weight:900;color:#b35a00;white-space:nowrap;font-variant-numeric:tabular-nums}
+.more{border:0;background:none;font:900 13px Nunito,sans-serif;color:var(--mute);padding:6px;cursor:pointer}
+.recs{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.recs div{background:#fff;border-radius:18px;padding:12px;box-shadow:0 2px 0 #f0dcc0;text-align:center}
+.recs b{display:block;font-size:20px;font-weight:900;font-variant-numeric:tabular-nums}.recs small{font-size:11.5px;color:var(--mute);font-weight:800}
+
+.claimc{background:linear-gradient(135deg,#fff3c4,#ffe08a);box-shadow:0 2px 0 #f0c860,0 10px 24px rgba(255,176,32,.3)}
+.claimc h4{margin:0 0 8px;font-size:16px;font-weight:900}
+.cl{display:flex;align-items:center;gap:10px;padding:6px 0}.cl+.cl{border-top:1px dashed rgba(122,74,0,.2)}
+.cl .e{font-size:24px}.cl b{flex:1;font-size:14px}.cl button{border:0;border-radius:12px;padding:7px 10px;font:900 12.5px Nunito,sans-serif;background:#fff;color:#7a4a00;box-shadow:0 2px 0 #e0b84a;cursor:pointer}
+.claimall{width:100%;margin-top:10px;border:0;border-radius:16px;padding:13px;font:900 16px Nunito,sans-serif;color:#fff;background:linear-gradient(#ffb020,#ff7a1a);box-shadow:0 4px 0 #d9620a;cursor:pointer;animation:breathe2 1.6s infinite}
+@keyframes breathe2{50%{box-shadow:0 4px 0 #d9620a,0 0 0 8px rgba(255,176,32,.3)}}
+.gx{display:flex;flex-direction:column;gap:10px}.gx .h{display:flex;justify-content:space-between;align-items:baseline}.gx b{font-weight:900;font-size:15px}.gx small{color:var(--mute);font-weight:800;font-size:12px}
+.chips{display:flex;gap:8px}.chips button{flex:1;border:0;border-radius:14px;padding:10px 4px;font:900 14px Nunito,sans-serif;background:#f1ecff;color:#5b3fd6;cursor:pointer;box-shadow:0 3px 0 #ddd3ff}
+.chips button:active{transform:translateY(2px);box-shadow:0 1px 0 #ddd3ff}.chips button:disabled{opacity:.4}
+.chips.uah button{background:#e9ffef;color:#1d8a45;box-shadow:0 3px 0 #c8efd4}
+.appr h4{margin:0 0 6px;font-size:15px;font-weight:900}
+.ap{display:flex;align-items:center;gap:8px;padding:7px 0}.ap+.ap{border-top:1px solid #f3e9dc}
+.ap .tx{flex:1;font-size:13px;font-weight:800}.ap .tx small{display:block;color:var(--mute);font-size:11.5px}
+.ap button{border:0;border-radius:11px;width:38px;height:36px;font-size:17px;cursor:pointer;background:#e9ffef}.ap button.no{background:#ffece4}
+.take{margin-top:12px;width:100%;border:0;border-radius:16px;padding:12px;font:900 15px Nunito,sans-serif;color:#0f4a33;background:#b9ffd6;box-shadow:0 4px 0 #6fd59b;cursor:pointer}
+.tile{cursor:pointer}.tile .go{font-size:11.5px;font-weight:900;color:#1d8a45;margin-top:2px}
+.shade{position:fixed;inset:0;background:rgba(40,25,10,.45);z-index:90;display:none;align-items:flex-end}
+.shade.on{display:flex;animation:fadein .2s}@keyframes fadein{from{opacity:0}}
+.sheet{max-height:90vh;overflow:auto;width:100%;max-width:480px;margin:0 auto;background:var(--bg);border-radius:24px 24px 0 0;padding:18px 16px calc(22px + env(safe-area-inset-bottom));animation:up .3s cubic-bezier(.2,.9,.3,1.1)}
+@keyframes up{from{transform:translateY(100%)}}
+.sheet h3{margin:0;font-size:19px;font-weight:900}.sheet p{margin:6px 0 12px;color:var(--mute);font-weight:800;font-size:13px}
+.sheet .kv{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}.sheet .kv div{background:#fff;border-radius:14px;padding:10px}
+.sheet .kv b{display:block;font-size:17px;font-weight:900}.sheet .kv small{font-size:11.5px;color:var(--mute);font-weight:800}
+.sheet .big{width:100%;margin-top:10px}.sheet .ghostb{width:100%;margin-top:10px;border:0;background:none;font:900 14px Nunito,sans-serif;color:var(--mute);padding:8px;cursor:pointer}
+
+/* avatars */
+.ava{--s:40px;position:relative;width:var(--s);height:var(--s);border-radius:50%;display:inline-grid;place-items:center;flex:none;vertical-align:middle}
+.ava::before{content:"";position:absolute;inset:0;border-radius:50%;background:var(--bgc,#f6e3c6);z-index:1}
+.ava i{font-style:normal;font-size:calc(var(--s)*.56);line-height:1;position:relative;z-index:2}
+.ava::after{content:"";position:absolute;inset:calc(var(--s)*-.09);border-radius:50%;z-index:0;background:var(--frc,transparent)}
+.bg-sand{--bgc:#f6e3c6}.bg-sky{--bgc:#cfe8ff}.bg-mint{--bgc:#c8f2dc}.bg-peach{--bgc:#ffd6bf}.bg-lavender{--bgc:#e3d6ff}.bg-rose{--bgc:#ffd0de}
+.bg-ocean{--bgc:linear-gradient(135deg,#7fd3ff,#2f7bd8)}.bg-sunset{--bgc:linear-gradient(135deg,#ffc16b,#ff5d8f)}
+.bg-galaxy{--bgc:radial-gradient(circle at 30% 30%,#9b7bff,#2a1a6a 60%,#120b33)}.bg-gold{--bgc:linear-gradient(135deg,#fff0a8,#ffb020)}
+.fr-silver{--frc:linear-gradient(135deg,#f4f6fa,#9aa3b5,#eef1f6)}.fr-gold{--frc:linear-gradient(135deg,#fff3b0,#e0a100,#fff3b0)}
+.fr-rainbow{--frc:conic-gradient(#ff5d5d,#ffb020,#ffe14a,#4ad66d,#3cb4ff,#7b5cff,#ff5d8f,#ff5d5d)}.fr-rainbow::after{animation:spin 3s linear infinite}
+.fr-fire{--frc:conic-gradient(#ff3b1f,#ffb020,#ff6a2b,#ffe14a,#ff3b1f)}.fr-fire::after{animation:spin 1.6s linear infinite;filter:blur(1px)}.fr-fire{filter:drop-shadow(0 0 6px rgba(255,100,30,.6))}
+.fr-stars{--frc:conic-gradient(#fff,#ffe58a,#7b5cff,#fff,#ffe58a,#3cb4ff,#fff)}.fr-stars::after{animation:spin 4s linear infinite}.fr-stars{filter:drop-shadow(0 0 7px rgba(255,230,120,.8))}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ttl{display:inline-block;font-size:10.5px;font-weight:900;padding:2px 8px;border-radius:9px;background:linear-gradient(90deg,#ffe58a,#ffb020);color:#6a3a00;margin-left:2px;vertical-align:middle}
+.who{display:inline-flex;align-items:center;gap:7px;font-weight:900}
+.top .streak{gap:12px}.top .sk b#tname{font-size:16px}.sline{font-weight:800;font-size:13px;color:var(--ink)}.sline b{font-size:15px}.top .flame{font-size:16px}
+.tapme{cursor:pointer}
+.pro{display:flex;align-items:center;gap:14px}.pro b{font-size:21px}
+.style{border:0;border-radius:14px;padding:10px;font:900 14px Nunito,sans-serif;color:#fff;background:linear-gradient(90deg,#ff8ac0,#9d85ff);box-shadow:0 3px 0 #7a5fe0;cursor:pointer}
+.newtr{border:2px dashed #e6d3b8;background:none;border-radius:16px;padding:11px;font:900 14px Nunito,sans-serif;color:#b35a00;cursor:pointer}
+.trc{display:flex;align-items:center;gap:12px;padding:12px;cursor:pointer}.trc .tx{flex:1;min-width:0}.trc b{font-weight:900}.trc small{display:block;color:var(--mute);font-weight:800;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.st{font-size:11.5px;font-weight:900;padding:4px 9px;border-radius:10px;background:#f3e9dc;color:var(--mute);white-space:nowrap}.st.my{background:#ffece4;color:#e2552b}
+.ach .cb{border:0;border-radius:12px;padding:9px 11px;font:900 13px Nunito,sans-serif;color:#fff;background:linear-gradient(#ffb020,#ff7a1a);box-shadow:0 3px 0 #d9620a;cursor:pointer;white-space:nowrap;animation:breathe2 1.6s infinite}
+.ach .got{color:#b35a00!important}.ach .got b{font-size:12px}
+.ach.cl{background:linear-gradient(135deg,#fffaf0,#fff1cc)}.ach .lv{font-size:10.5px;color:var(--mute);font-weight:900}
+.ach .rt{text-align:right}.ach .rt small{display:block;font-size:10.5px;color:var(--mute);font-weight:800;margin-top:2px}
+@keyframes breathe2{50%{box-shadow:0 3px 0 #d9620a,0 0 0 7px rgba(255,176,32,.3)}}
+.own{display:flex;align-items:center;gap:10px;padding:7px 0}.own+.own{border-top:1px solid #f3e9dc}.own .nm{flex:1;font-weight:900}.own .pc{font-weight:900;color:#1d8a45}
+.sides{display:grid;grid-template-columns:1fr;gap:10px;margin:8px 0}
+.sidec{background:#fff;border-radius:16px;padding:10px 12px}.sidec h5{margin:0 0 6px;font-size:13px;font-weight:900;display:flex;align-items:center;gap:8px}
+.ti2{display:flex;align-items:center;gap:8px;padding:6px 0}.ti2+.ti2{border-top:1px solid #f6efe5}.ti2 .nm{flex:1;font-weight:800;font-size:13.5px}
+.ti2 .val{font-weight:900;min-width:64px;text-align:center;font-variant-numeric:tabular-nums}
+.ti2 button,.add{border:0;border-radius:10px;min-width:34px;height:32px;font:900 13px Nunito,sans-serif;background:#f3e9dc;color:var(--ink);cursor:pointer}
+.add{width:100%;margin-top:6px;background:none;border:2px dashed #e6d3b8;color:#b35a00}
+.vs{display:flex;align-items:center;justify-content:center;gap:12px;margin:4px 0 2px}.vs .x{font-size:22px}
+.pick{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:10px 0}.pick button{border:0;background:#fff;border-radius:16px;padding:12px 6px;display:flex;flex-direction:column;align-items:center;gap:6px;font:900 13px Nunito,sans-serif;cursor:pointer}
+.stabs{display:flex;gap:6px;margin:10px 0}.stabs button{flex:1;border:0;border-radius:12px;padding:8px 4px;font:900 13px Nunito,sans-serif;background:#f3e9dc;color:var(--mute);cursor:pointer}.stabs button.on{background:#fff;color:var(--ink);box-shadow:0 2px 6px rgba(0,0,0,.08)}
+.sgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;max-height:46vh;overflow:auto;padding:4px}
+.sgrid button{border:0;background:#fff;border-radius:16px;padding:10px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:5px;font:900 11.5px Nunito,sans-serif;color:var(--ink);cursor:pointer;position:relative}
+.sgrid button.on{box-shadow:0 0 0 3px #9d85ff}.sgrid .pr{color:#5b3fd6}.sgrid .ok{color:#1d8a45}.sgrid .lk{opacity:.55}
+.sgrid.ti{grid-template-columns:1fr 1fr}
+.prev{display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:4px}
+
+.hdr{position:sticky;top:0;z-index:45;display:flex;align-items:center;gap:10px;padding:16px 14px 10px;background:#fff3e2;border-bottom:1px solid #f0dcc0;margin:-14px -14px 12px;box-shadow:0 4px 14px rgba(160,110,50,.08)}
+.hn{flex:1;min-width:0;line-height:1.15}.hn b{display:block;font-size:16px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.hn .ttl{margin:2px 0 0}
+.hb{display:flex;gap:6px;align-items:center}
+.hb>span{background:#fff;border-radius:12px;padding:5px 8px;font-size:13px;font-weight:900;white-space:nowrap;box-shadow:0 2px 0 #f0dcc0;font-variant-numeric:tabular-nums}
+.hb .hg{color:#5b3fd6}.hb .hs{color:#e2552b}.hb .flame{font-size:13px;filter:none}.hb .flame.dim{filter:grayscale(1) opacity(.5)}
+.bigfl{font-size:34px;line-height:1}.bigfl.dim{filter:grayscale(.65) opacity(.6)}
+.top .sline{font-size:14px}.top .sline b{font-size:19px}
+
+.lnk{color:#b35a00;font-weight:900;text-decoration:none}
+.fsb{border:0;border-radius:16px;padding:13px;font:900 15px Nunito,sans-serif;color:#fff;background:linear-gradient(90deg,#ffb020,#ff6a2b);box-shadow:0 4px 0 #d9620a;cursor:pointer}
+.pod{display:flex;align-items:flex-end;justify-content:center;gap:10px;margin:14px 0 8px}
+.pod .pc{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;max-width:110px}
+.pod .pl{width:100%;border-radius:14px 14px 6px 6px;display:grid;place-items:center;font-weight:900;font-size:20px;color:#fff}
+.pod .p1 .pl{height:84px;background:linear-gradient(#ffd84a,#ffb020)}.pod .p2 .pl{height:62px;background:linear-gradient(#e4e8ef,#aab3c2)}.pod .p3 .pl{height:46px;background:linear-gradient(#ffc49a,#d9823f)}
+.pod b{font-size:13px}.pod small{font-size:12px;font-weight:900;color:var(--mute)}
+.cats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+.cat{background:#fff;border-radius:14px;padding:10px;display:flex;flex-direction:column;gap:6px}.cat small{font-size:11.5px;font-weight:900;color:var(--mute)}
+.cat .w{display:flex;align-items:center;gap:6px;font-weight:900;font-size:13px}.cat .w span{margin-left:auto;color:#b35a00}
+.lb{background:#fff;border-radius:16px;padding:6px 12px;margin:8px 0}
+.mc{display:flex;gap:6px;margin:8px 0}.mc button{flex:1;border:0;border-radius:11px;padding:8px 2px;font:900 12.5px Nunito,sans-serif;background:#f3e9dc;color:var(--mute);cursor:pointer}.mc button.on{background:#fff;color:var(--ink);box-shadow:0 2px 6px rgba(0,0,0,.08)}
+.gch{display:flex;align-items:flex-end;gap:3px;height:130px;background:#fff;border-radius:16px;padding:12px 10px 8px}
+.gch .gd{flex:1;display:flex;align-items:flex-end;gap:1px;height:100%;position:relative}.gch .gd i{flex:1;border-radius:3px 3px 0 0;min-height:2px}
+.gch .gd small{position:absolute;bottom:-16px;left:0;right:0;text-align:center;font-size:9px;font-weight:900;color:var(--mute)}
+.lg{display:flex;gap:12px;flex-wrap:wrap;margin:22px 0 6px;font-weight:900;font-size:12.5px}.lg span{display:flex;align-items:center;gap:5px}.lg i{width:12px;height:12px;border-radius:4px;display:inline-block}
+.ftot{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0}.ftot div{background:#fff;border-radius:14px;padding:10px 4px;text-align:center}.ftot b{display:block;font-size:16px;font-weight:900}.ftot small{font-size:11px;font-weight:800;color:var(--mute)}
+
+.ava.aura{animation:auraP 2.2s ease-in-out infinite}@keyframes auraP{0%,100%{filter:drop-shadow(0 0 3px #ffe27a) drop-shadow(0 0 6px #ff9ad5)}50%{filter:drop-shadow(0 0 8px #ffe27a) drop-shadow(0 0 14px #ff9ad5)}}
+.ava.sparkle::before{background:linear-gradient(120deg,#fff6c9,#ffd34d,#fffdf0,#ffb020,#fff6c9);background-size:300% 300%;animation:shine 3s linear infinite}
+@keyframes shine{0%{background-position:0% 50%}100%{background-position:300% 50%}}
+.ava .crw{position:absolute;top:calc(var(--s)*-.36);left:50%;transform:translateX(-50%) rotate(-10deg);font-size:calc(var(--s)*.42);z-index:3;line-height:1}
+.rbn{background:linear-gradient(90deg,#ff5d5d,#ffb020,#4ad66d,#3cb4ff,#b26bff,#ff5d5d);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 4s linear infinite}
+.cont{padding:12px 14px;background:linear-gradient(160deg,#fffaf0,#fff)}
+.cont .ch{display:flex;justify-content:space-between;align-items:baseline}.cont .ch b{font-size:16px;font-weight:900}.cont .ch small{font-size:12px;font-weight:900;color:#b35a00;font-variant-numeric:tabular-nums}
+.cz{display:flex;align-items:center;gap:8px;background:linear-gradient(135deg,#fff3c4,#ffe08a);border-radius:14px;padding:8px 10px;margin-top:8px}
+.cz .tx{flex:1;font-size:12.5px;font-weight:800}.cz .tx b{display:block;font-size:14px}
+.cz button{border:0;border-radius:12px;padding:8px 11px;font:900 13px Nunito,sans-serif;color:#fff;background:linear-gradient(#ffb020,#ff7a1a);box-shadow:0 3px 0 #d9620a;cursor:pointer;animation:breathe2 1.6s infinite}
+.cr{margin-top:10px;padding-top:10px;border-top:1px dashed #f0dcc0}
+.cr .ct{display:flex;align-items:center;gap:8px}.cr .tg{font-size:10.5px;font-weight:900;padding:3px 7px;border-radius:8px;white-space:nowrap}
+.tg.earn{background:#e3f7e9;color:#1d8a45}.tg.spend{background:#f1ecff;color:#5b3fd6}
+.cr .lb2{flex:1;font-weight:900;font-size:13.5px;line-height:1.2}.cr .pz{font-size:11.5px;font-weight:900;color:#b35a00;white-space:nowrap}
+.brd{display:flex;gap:10px;margin-top:8px;flex-wrap:wrap}.brd span{display:flex;align-items:center;gap:5px;font-weight:900;font-size:13px;padding:3px 8px 3px 3px;border-radius:20px;background:#f7efe3}
+.brd span.lead{background:linear-gradient(90deg,#ffe08a,#fff3c4)}
+.cw{margin-top:10px;font-size:12px;font-weight:800;color:var(--mute);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.exl{display:flex;flex-direction:column;gap:10px;margin:6px 0}.exr{display:flex;align-items:center;gap:12px;background:#fff;border-radius:16px;padding:10px 12px}
+.exr .tx{flex:1}.exr b{font-weight:900}.exr small{display:block;font-size:12px;color:var(--mute);font-weight:800}
+.exr .buy{width:auto;padding:9px 12px;font-size:13.5px}
+
+#hbst{display:inline-flex;gap:3px;margin-left:4px;vertical-align:middle}#hbst span{font-size:11px;font-weight:900;background:#fff;border-radius:8px;padding:1px 5px;box-shadow:0 1px 0 #f0dcc0;animation:bpulse 2s infinite}
+@keyframes bpulse{50%{box-shadow:0 0 0 3px rgba(255,176,32,.35)}}
+.bst{display:flex;align-items:center;gap:12px;padding:12px 14px}.bst .e{font-size:30px}.bst .tx{flex:1}.bst b{font-weight:900;font-size:15px}.bst small{display:block;font-size:12px;color:var(--mute);font-weight:800;line-height:1.3}
+.bst .buy{width:auto;padding:10px 14px;font-size:14px}.bst.on{background:linear-gradient(135deg,#fff8e1,#ffeab0)}.bst .act{font-size:12px;font-weight:900;color:#b35a00;white-space:nowrap;text-align:right}
+
+.race{background:linear-gradient(160deg,#2a1c63,#5b3fd6 70%,#7b5cff);color:#fff;padding:14px;cursor:pointer;box-shadow:0 10px 26px rgba(91,63,214,.35)}
+.race .rh{display:flex;justify-content:space-between;align-items:center}.race .rh b{font-size:18px;font-weight:900}
+.cdp{background:rgba(255,255,255,.16);border-radius:12px;padding:5px 10px;font-weight:900;font-size:13.5px;font-variant-numeric:tabular-nums}
+.rc{margin-top:12px}.rt2{display:flex;justify-content:space-between;align-items:center;gap:8px;font-weight:900;font-size:13.5px}
+.pzp{background:#ffd84a;color:#5a3a00;border-radius:10px;padding:3px 8px;font-size:12px;white-space:nowrap}
+.lane{position:relative;height:38px;margin:6px 0;border-radius:19px;background:rgba(255,255,255,.1);overflow:visible}
+.lane::before{content:"";position:absolute;left:12px;right:36px;top:50%;border-top:2px dashed rgba(255,255,255,.28)}
+.lane.lead{background:rgba(255,216,74,.22);box-shadow:inset 0 0 0 2px rgba(255,216,74,.6)}
+.lane.me .runner b{background:#fff;color:#5b3fd6}
+.runner{position:absolute;top:50%;transform:translateY(-50%);display:flex;align-items:center;gap:5px;transition:left 1.2s cubic-bezier(.2,.9,.25,1.1);z-index:2}
+.runner b{font-size:12px;font-weight:900;background:rgba(0,0,0,.25);border-radius:9px;padding:2px 6px;white-space:nowrap}
+.fin{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:18px}
+.race .cz{color:#3b2a1a}
+.rf{display:flex;justify-content:space-between;align-items:center;margin-top:12px;font-size:12.5px;font-weight:800;gap:8px}.rf b{font-weight:900}.more2{font-weight:900;color:#ffd84a;white-space:nowrap}
+.rsh{text-align:center}.bigcd{font-size:34px;font-weight:900;font-variant-numeric:tabular-nums;color:#5b3fd6;margin:4px 0}
+.rbox{background:linear-gradient(160deg,#2a1c63,#5b3fd6);color:#fff;border-radius:18px;padding:12px;margin:10px 0}
+.rbox .lane{height:48px}.pzbig{display:inline-block;margin:6px 0 2px;background:#ffd84a;color:#5a3a00;border-radius:10px;padding:4px 10px;font-weight:900;font-size:13px}
+.hint{font-size:12.5px;font-weight:800;opacity:.85;margin-top:6px}.gob{margin-top:8px;width:100%;border:0;border-radius:12px;padding:10px;font:900 14px Nunito,sans-serif;background:#fff;color:#5b3fd6;cursor:pointer}
+.rbox.tb{background:linear-gradient(135deg,#fff3c4,#ffe08a);color:#3b2a1a;display:flex;flex-direction:column;gap:6px}.rbox.tb small{font-weight:800;color:#7a4a00}
+.rbox.small{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 12px;font-size:12.5px;font-weight:800;background:#fff;color:var(--ink)}.rbox.small .win{display:flex;align-items:center;gap:4px;font-weight:900;white-space:nowrap}
+.bst .old{text-decoration:line-through;opacity:.6;font-size:12px;margin-right:4px}.bst .sale{display:inline-block;background:#ff5d5d;color:#fff;border-radius:8px;padding:1px 6px;font-size:11px;font-weight:900;margin-left:6px}
+
+.pzp{display:inline-flex;align-items:center;gap:4px}.pzp .ava{margin:-4px 0}
+.pprev{display:flex;align-items:center;gap:14px;background:rgba(255,255,255,.12);border-radius:14px;padding:12px;margin:8px 0}
+.pprev b{display:block;font-weight:900;font-size:14px}.pprev small{font-size:12px;opacity:.85;font-weight:800}
+.pprev.light{background:#fff;color:var(--ink)}.pprev.light small{color:var(--mute)}
+.cat .w.oth{font-size:12px;color:var(--mute);padding-top:5px;border-top:1px dashed #f0dcc0}.cat .w.oth span{color:var(--mute)}.cat .w.me{color:#1d8a45}.cat .w.oth.me{color:#2fa55a}
+.wh{display:block;font-size:11px;font-weight:800;color:#1d8a45;margin-top:1px}
+
+.petc{display:flex;flex-direction:column;gap:10px;padding:12px 14px}
+.pt{display:flex;align-items:center;gap:12px}.pt .pf{font-size:40px;line-height:1;position:relative}.pt .pf.hungry{animation:wig 1.6s infinite}
+.pt .tx{flex:1;min-width:0}.pt b{font-size:16px;font-weight:900}.pt small{display:block;font-size:11.5px;color:var(--mute);font-weight:800}
+.pbr{position:relative;height:12px;border-radius:6px;background:#f3e9dc;overflow:hidden;margin-top:5px}.pbr i{display:block;height:100%;border-radius:6px;transition:width .8s}
+.pbr.fed i{background:linear-gradient(90deg,#ffb27a,#ff7a1a)}.pbr.fed.ok i{background:linear-gradient(90deg,#7ee08f,#2fb45c)}.pbr.xp i{background:linear-gradient(90deg,#c9b8ff,#7b5cff)}
+.pbr .mk{position:absolute;top:0;bottom:0;width:2px;background:#3b2a1a;opacity:.45}
+.pl2{display:flex;justify-content:space-between;font-size:11px;font-weight:900;color:var(--mute);margin-top:2px}
+.pbt{display:flex;gap:8px;flex-wrap:wrap}.pbt button{flex:1;min-width:120px;border:0;border-radius:14px;padding:10px 6px;font:900 13.5px Nunito,sans-serif;cursor:pointer;background:#fff1dc;color:#b35a00;box-shadow:0 3px 0 #f0d3a8}
+.pbt button.go{background:linear-gradient(#53d97f,#2fb45c);color:#fff;box-shadow:0 3px 0 #23914a;animation:breathe 1.6s infinite}
+.pbt button:active{transform:translateY(2px)}
+.bv{font-size:15px;font-weight:800;line-height:1.45;margin:4px 0 12px;white-space:pre-line}.bv b{font-weight:900}
+.vbtn{display:flex;flex-direction:column;gap:8px}.vbtn .row{display:flex;gap:8px}.vbtn button{flex:1;border:0;border-radius:14px;padding:12px 8px;font:900 14px Nunito,sans-serif;cursor:pointer;background:#fff;color:var(--ink);box-shadow:0 3px 0 #eddcc4}
+.vbtn button.pri{background:linear-gradient(#53d97f,#2fb45c);color:#fff;box-shadow:0 3px 0 #23914a}
+
+body.busy::before{content:"";position:fixed;left:0;top:0;height:3px;width:40%;z-index:100;background:linear-gradient(90deg,#ffb020,#ff6a2b);animation:load 1s ease-in-out infinite;border-radius:2px}
+@keyframes load{0%{left:-40%}100%{left:100%}}
+body.busy button:not(.pending),body.busy .tile,body.busy .ob{opacity:.6;transition:opacity .2s}
+.pending{position:relative;color:transparent!important;pointer-events:none;animation:none!important}
+.pending>*{visibility:hidden}
+.pending::after{content:"";position:absolute;left:50%;top:50%;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;border:3px solid rgba(0,0,0,.15);border-top-color:#ff7a1a;animation:spin .7s linear infinite;visibility:visible}
+.tile.pending,.trc.pending,.race.pending,.ob.pending{color:inherit!important}.tile.pending>*,.trc.pending>*,.race.pending>*,.ob.pending>*{visibility:visible;opacity:.4}
+
+/* equal cards: every grid stretches its cards, the action sits at the bottom */
+.hv,.tiles,.items,.once,.cats,.recs,.trio,.ftot{align-items:stretch}
+.crop,.tile,.item,.itm,.ob,.cat{height:100%}
+.crop .btn,.item .buy,.itm .buy,.tile .go{margin-top:auto}
+.crop .rw.sub{margin-top:-6px;min-height:1.3em;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.tile{display:flex;flex-direction:column}.cat{justify-content:flex-start}
+
+.rg{background:#fff7ec;border-radius:14px;padding:10px 12px;margin:8px 0}.rg.big{background:#fff;padding:14px}
+.rgh{display:flex;align-items:center;gap:8px}.rgh .nm{flex:1;font-weight:900;font-size:13.5px}.rv{font-weight:900;font-variant-numeric:tabular-nums;text-align:right;color:#5b3fd6}.rv .wh{text-align:right}
+.rx{border:0;background:none;color:var(--mute);font-size:14px;cursor:pointer;padding:2px 4px}
+.rg input[type=range]{width:100%;margin:10px 0 2px;accent-color:#7b5cff;height:28px}
+.rgl{display:flex;justify-content:space-between;font-size:11px;font-weight:800;color:var(--mute)}
+.adds{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.chipadd{border:2px dashed #e6d3b8;background:none;border-radius:12px;padding:6px 9px;font:900 12.5px Nunito,sans-serif;color:#b35a00;cursor:pointer}
+
+.growb{border:0;border-radius:16px;padding:12px;font:900 14.5px Nunito,sans-serif;color:#1d8a45;background:#e9ffef;box-shadow:0 3px 0 #c8efd4;cursor:pointer}
+.gsec{background:#fff;border-radius:16px;padding:12px;margin:10px 0}.gsec h5{margin:0 0 4px;font-size:14px;font-weight:900}.gsec>small{display:block;color:var(--mute);font-weight:800;font-size:12px;margin-bottom:8px}
+.cpick{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.cpick button{border:0;border-radius:14px;padding:10px 4px;background:#f7efe3;font:900 12.5px Nunito,sans-serif;color:var(--ink);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;height:100%}
+.cpick button .e{font-size:24px}.cpick button small{font-size:10.5px;color:var(--mute);font-weight:800}.cpick button.on{background:#e9ffef;box-shadow:0 0 0 3px #2fb45c}
+.split{display:flex;height:14px;border-radius:7px;overflow:hidden;margin:6px 0}.split i{display:block;height:100%}.split .b{background:#ffb020}.split .c{background:#c08a5a}
+.gsave{position:sticky;bottom:0;padding-top:6px;background:linear-gradient(transparent,var(--bg) 30%)}
+.stp{display:flex;gap:6px;margin-top:8px}.stp button{flex:1;border:0;border-radius:10px;padding:7px 0;font:900 13px Nunito,sans-serif;background:#fff;color:#5b3fd6;box-shadow:0 2px 0 #e6dcff;cursor:pointer}
+
+.growrow{display:grid;grid-template-columns:1fr 1fr;gap:10px}.growb.ref{color:#5b3fd6;background:#f1ecff;box-shadow:0 3px 0 #ddd3ff}
+.cmp{background:#fff;border-radius:16px;padding:10px 12px;margin:10px 0}.cmp h5{margin:0 0 6px;font-size:14px;font-weight:900}
+.cr2{display:flex;align-items:center;gap:8px;padding:6px 0;font-weight:800;font-size:13px}.cr2+.cr2{border-top:1px solid #f6efe5}.cr2 .nm{flex:1;min-width:0}
+.cr2 .a{color:var(--mute);font-variant-numeric:tabular-nums}.cr2 .b{font-weight:900;font-variant-numeric:tabular-nums;min-width:64px;text-align:right}
+.up{color:#e2552b}.dn{color:#1d8a45}.same{color:var(--ink)}
+.refload{opacity:.45;transition:opacity .2s}
+</style></head><body>
+<header class="hdr" id="hdr"><span id="hava" class="tapme"></span><div class="hn"><b id="hname">…</b><span id="httl"></span><span id="hbst"></span></div>
+  <div class="hb"><span class="hs"><span class="flame dim" id="flame">🔥</span><b id="hst">0</b></span><span class="hm"><b id="uah">0</b> ₴</span><span class="hg"><b id="gem">0</b> 💎</span></div></header>
+<div class="wrap view on" id="v_farm">
+  <div class="card top">
+    <div class="streak"><span class="bigfl dim" id="flame2">🔥</span>
+      <div class="sk"><div class="sline"><b><span id="sd">0</span> <span id="sdw">днів</span></b> поспіль</div><small id="sw" class="warn"></small></div></div>
+    <div class="days" id="days"></div>
+  </div>
+  <div class="card normc" id="rb">
+    <div class="nh"><b>Норма сьогодні</b><span><b id="earn">0</b> / <span id="norm">0</span> ₴</span></div>
+    <div class="bar"><i class="gh" id="ghost"></i><i class="fl" id="prog"></i><div id="ticks"></div><span class="pc"><span id="pv">0</span>%</span></div>
+    <div class="nf"><span class="left" id="left">…</span><span class="nx" id="ms"></span></div>
+  </div>
+  <div class="hv" id="hv"></div>
+  <div class="growrow"><button class="growb" id="growb">🌱 Що росте</button><button class="growb ref" id="refb">📐 Еталон ферми</button></div>
+  <div class="card petc" id="petc"></div>
+  <div class="card cont" id="cont"></div>
+  <div class="sect" style="margin-top:22px"><b>Посадила щось інше?</b><small>разовий збір</small></div>
+  <div class="once" id="once"></div>
+  <div class="demo dm"></div>
+</div>
+<div class="wrap view" id="v_tasks">
+  <div class="card th"><div class="mini"><svg viewBox="0 0 86 86"><circle class="tr" cx="43" cy="43" r="37"/><circle class="pr" id="tpr" cx="43" cy="43" r="37"/></svg><div class="ic">💎</div></div>
+    <div><b id="tt1">Сьогодні +0 💎</b><small id="tt2"></small><div class="pend" id="tpend" style="display:none"></div></div></div>
+  <div class="card appr" id="appr" style="display:none"></div>
+  <div class="seg" id="gseg"><button data-g="ar" class="on">⚔️ ArcheRage</button><button data-g="wow">🐉 WoW</button></div>
+  <div id="tlist" style="display:flex;flex-direction:column;gap:10px"></div>
+</div>
+<div class="wrap view" id="v_shop">
+  <div class="card sh"><div><b>Крамниця дня</b><small>у тебе <span id="sg">0</span> 💎</small></div><div class="timer">🔄 <span id="stm">--:--:--</span></div></div>
+  <div class="sect"><b>⚡ Бусти</b><small>діють одразу</small></div>
+  <div id="boosts" style="display:flex;flex-direction:column;gap:10px"></div>
+  <div class="sect"><b>🛍️ Товари дня</b></div>
+  <div class="items" id="items"></div>
+  <div class="sect"><b>Скоро відкриється</b><small id="rest"></small></div>
+  <div class="items" id="tomorrow"></div>
+  <div class="sect"><b>Корм для улюбленця</b><small id="foodn"></small></div>
+  <div id="foods" style="display:flex;flex-direction:column;gap:10px"></div>
+  <div class="demo dm"></div>
+</div>
+<div class="wrap view" id="v_inv">
+  <div class="card ihero"><small>Твої ділянки заробили сьогодні</small>
+    <div class="tick"><span id="ti">0</span><span class="dec" id="td">,00000</span> <span class="cur">₴</span></div>
+    <div class="irow"><div><b id="iday">0</b><small>₴ на день</small></div><div><b id="imon">0</b><small>₴ на місяць</small></div><div><b id="iwal">0</b><small>₴ до виплати</small></div></div>
+    <div class="inote">якщо базова ферма збирає на 100%</div><button class="take" id="itake" style="display:none"></button></div>
+  <div id="offs"></div>
+  <div class="sect"><b>Мої ділянки</b><small id="icnt"></small></div>
+  <div class="tiles" id="tiles"></div>
+  <div class="demo dm"></div>
+</div>
+<div class="wrap view" id="v_me">
+  <div class="card mehd"><div class="pro"><span id="mava"></span><div><b id="mname">Я</b><div id="mtitle"></div><small id="machs"></small></div></div>
+    <button class="style" id="stylebtn">🎨 Мій стиль</button><div class="trio" id="trio"></div></div>
+  <div class="sect"><b>🔁 Торгівля</b><small id="trn"></small></div>
+  <div id="trades" style="display:flex;flex-direction:column;gap:10px"></div>
+  <button class="newtr" id="trnew">➕ Нова угода</button>
+  <div class="sect"><b>🎒 Мої речі</b><small id="icount"></small></div>
+  <div class="tiles" id="mitems"></div>
+  <div id="gx" style="display:none"></div>
+  <div class="sect"><b>📊 Останні 7 днів</b><small id="wtot"></small></div>
+  <div class="card chart" id="chart"></div>
+  <div class="sect"><b>👨‍👩‍👧 Родина цього тижня</b><small><a href="#" id="fsbtn" class="lnk">Уся статистика ›</a></small></div>
+  <div class="card" id="fam"></div>
+  <button class="fsb" id="fsbtn2">📊 Повна статистика ферми · хто кращий?</button>
+  <div class="sect"><b>🏅 Досягнення</b><small id="achn"></small></div>
+  <div id="achs" style="display:flex;flex-direction:column;gap:10px"></div>
+  <button class="more" id="achmore">Показати всі</button>
+  <div class="sect"><b>🏆 Рекорди</b></div>
+  <div class="recs" id="recs"></div>
+  <div class="demo dm"></div>
+</div>
+<nav class="nav"><div class="in">
+  <button class="tab on" data-v="farm"><span class="ti">🌾</span>Ферма</button>
+  <button class="tab" data-v="tasks"><span class="ti">📜</span>Завдання<span class="dot" id="tdot" style="display:none">0</span></button>
+  <button class="tab" data-v="inv"><span class="ti">💼</span>Інвест.</button>
+  <button class="tab" data-v="shop"><span class="ti">🛍️</span>Крамниця<span class="dot" id="sdot" style="display:none">0</span></button>
+  <button class="tab" data-v="me"><span class="ti">👤</span>Я<span class="dot" id="mdot" style="display:none">0</span></button>
+</div></nav>
+<div class="shade" id="shade"><div class="sheet" id="sheet"></div></div><canvas id="cf"></canvas><div class="toast" id="toast"></div>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script>
+// ===================== setup
+const TG=window.Telegram&&Telegram.WebApp; try{TG.ready();TG.expand();TG.setHeaderColor&&TG.setHeaderColor('#ffe7c4');TG.setBackgroundColor&&TG.setBackgroundColor('#fff7ec')}catch(e){}
+const qs=new URLSearchParams(location.search), API=qs.get('api')||window.FARM_API||'', DEMO=qs.get('demo')==='1'||!(TG&&TG.initData);
+const quiet=()=>{const h=new Date().getHours();return h<8}; // 00:00–08:00: no vibration
+const hap=t=>{if(quiet())return;try{t==='ok'?TG.HapticFeedback.notificationOccurred('success'):t==='err'?TG.HapticFeedback.notificationOccurred('error'):TG.HapticFeedback.impactOccurred(t||'medium')}catch(e){}};
+const $=id=>document.getElementById(id), R=95, C=2*Math.PI*R;
+const fmt=v=>(+v).toLocaleString('uk-UA',{minimumFractionDigits:(+v)%1?2:0,maximumFractionDigits:2});
+const plural=(n,f)=>{n=Math.abs(n)%100;const b=n%10;return n>10&&n<20?f[2]:b===1?f[0]:b>=2&&b<=4?f[1]:f[2]};
+let S=null, OFF=0, busy=false, game='ar';
+const P=id=>(S&&S.people||[]).find(p=>p.id===String(id))||{id,name:'?',look:{av:'🙂',bg:'sand',fr:'none',ti:''}};
+const ava=(look,s)=>`<span class="ava bg-${look.bg} fr-${look.fr}${look.aura?' aura':''}${look.sparkle?' sparkle':''}" style="--s:${s||40}px"><i>${look.av}</i>${look.crown?'<b class="crw">👑</b>':''}</span>`;
+const nm=p=>p.look&&p.look.rainbow?`<span class="rbn">${p.name}</span>`:p.name;
+const who=(id,s,title)=>{const p=P(id);return `<span class="who">${ava(p.look,s)}<span>${nm(p)}${title&&p.look.ti?` <span class="ttl">${p.look.ti}</span>`:''}</span></span>`};
+document.querySelectorAll('.dm').forEach(e=>e.textContent=DEMO?'демо-режим (відкрито не з Telegram)':'');
+// ===================== server
+async function call(action,args){
+  if(DEMO) return demoCall(action,args||{});
+  const r=await fetch(API+(API.indexOf('?')<0?'?':'&')+'app=1',{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({initData:TG.initData,action,args:args||{}})});
+  return r.json();
+}
+// ⏳ pending: the tapped button shows a spinner, everything else waits (no double taps)
+let lastTap=null;
+document.addEventListener('pointerdown',e=>{lastTap=e.target.closest('button,.tile,.trc,.ob,.race')},true);
+document.addEventListener('click',e=>{if(busy&&e.target.closest('button,.tile,.trc,.ob,.race,.tab')){e.stopPropagation();e.preventDefault();hap('light')}},true);
+function pend(on){const b=lastTap;document.body.classList.toggle('busy',on);
+  if(on&&b&&b.isConnected){b.classList.add('pending');b.dataset.pw=b.style.minWidth;b.style.minWidth=b.offsetWidth+'px'}
+  if(!on)document.querySelectorAll('.pending').forEach(x=>{x.classList.remove('pending');x.style.minWidth=x.dataset.pw||''})}
+async function act(action,args){
+  if(busy) return null; busy=true;pend(true);
+  try{const r=await call(action,args);
+    if(r.error){toast(r.msg||'Помилка');hap('err');return r}
+    if(r.state) apply(r.state);
+    if(r.toast) toast(r.toast);
+    return r;
+  }catch(e){toast('Немає зв’язку з ботом 😕 '+(e&&e.message?e.message.slice(0,60):''));hap('err');return null}finally{busy=false;pend(false)}
+}
+function apply(st){S=st;OFF=(st.farm&&st.farm.now?st.farm.now-Date.now():0);render()}
+// ===================== helpers
+function countTo(el,to,dec,ms=900){const from=+el.dataset.v||0;el.dataset.v=to;const t0=performance.now();
+ (function f(t){const k=Math.min(1,(t-t0)/ms),e=1-Math.pow(1-k,3),v=from+(to-from)*e;el.textContent=dec?fmt(+v.toFixed(2)):Math.round(v);if(k<1)requestAnimationFrame(f)})(t0)}
+function bump(e){const p=e.closest('.card')||e.closest('span')||e;p.classList.remove('bump');void p.offsetWidth;p.classList.add('bump')}
+let tt;function toast(t){const e=$('toast');e.textContent=t;e.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>e.classList.remove('show'),2600)}
+function plus(el,txt,col){const r=el.getBoundingClientRect(),p=document.createElement('div');p.className='plus';p.textContent=txt;if(col)p.style.color=col;
+ p.style.left=(r.left+r.width/2-30)+'px';p.style.top=(r.top-10)+'px';document.body.appendChild(p);setTimeout(()=>p.remove(),1200)}
+function fly(from,to,char,n,done){const a=from.getBoundingClientRect(),b=to.getBoundingClientRect();let k=0;
+ for(let i=0;i<n;i++){const s=document.createElement('div');s.className='float';s.textContent=char;s.style.fontSize=(18+Math.random()*10)+'px';document.body.appendChild(s);
+  const x0=a.left+a.width/2+(Math.random()-.5)*60,y0=a.top+a.height/2,x1=b.left+b.width/2,y1=b.top+b.height/2,cx=(x0+x1)/2+(Math.random()-.5)*160,cy=Math.min(y0,y1)-80-Math.random()*80;
+  const d=550+Math.random()*350,t0=performance.now()+i*45;
+  (function f(t){let u=(t-t0)/d;if(u<0){requestAnimationFrame(f);return}if(u>1){s.remove();if(++k===n&&done)done();return}
+   const e=u<.5?2*u*u:1-Math.pow(-2*u+2,2)/2,x=(1-e)*(1-e)*x0+2*(1-e)*e*cx+e*e*x1,y=(1-e)*(1-e)*y0+2*(1-e)*e*cy+e*e*y1;
+   s.style.transform=`translate(${x-12}px,${y-12}px) scale(${1-.4*e})`;s.style.opacity=1-.3*e;requestAnimationFrame(f)})(performance.now())}}
+function confetti(){const cv=$('cf');cv.style.display='block';const x=cv.getContext('2d');cv.width=innerWidth*devicePixelRatio;cv.height=innerHeight*devicePixelRatio;x.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+ const cols=['#ffb020','#ff6a2b','#3cc46a','#7b5cff','#ff5d8f','#2bb5ff'],P=[...Array(140)].map(()=>({x:innerWidth/2,y:innerHeight*.38,vx:(Math.random()-.5)*14,vy:-Math.random()*14-4,r:Math.random()*6+4,c:cols[Math.random()*6|0],a:Math.random()*6,va:(Math.random()-.5)*.4}));
+ const t0=performance.now();(function f(t){x.clearRect(0,0,innerWidth,innerHeight);for(const p of P){p.vy+=.35;p.vx*=.99;p.x+=p.vx;p.y+=p.vy;p.a+=p.va;
+  x.save();x.translate(p.x,p.y);x.rotate(p.a);x.fillStyle=p.c;x.fillRect(-p.r/2,-p.r/4,p.r,p.r/2);x.restore()}
+  if(t-t0<2600)requestAnimationFrame(f);else{x.clearRect(0,0,innerWidth,innerHeight);cv.style.display='none';cv.width=1;cv.height=1}})(t0)}
+function confirmTG(text){return new Promise(res=>{try{TG.showConfirm(text,ok=>res(ok))}catch(e){res(confirm(text))}})}
+// ===================== render: farm
+const WD=['Нд','Пн','Вт','Ср','Чт','Пт','Сб'];
+function safe(f){try{f()}catch(e){console.error(e);toast('⚠️ '+(e&&e.message||e))}}
+function render(){if(!S)return;safe(()=>{renderTop()});safe(()=>{renderRing()});safe(()=>{renderCrops()});safe(()=>{renderOnce()});safe(()=>{renderTasks()});safe(()=>{renderShop()});safe(()=>{if(S.invest)renderInvest()});safe(()=>{renderMe()});safe(()=>{renderClaim()});safe(()=>{renderAppr()});safe(()=>{renderContest()});safe(()=>{renderBoosts()});safe(()=>{renderPet()});}
+function renderTop(){const me=S.me,w=S.farm.week,done=w[w.length-1].ok,mp=P(me.id);
+ $('hava').innerHTML=ava(mp.look,40);$('hname').innerHTML=nm(mp);$('httl').innerHTML=mp.look.ti?`<span class="ttl">${mp.look.ti}</span>`:'';$('hava').onclick=styleSheet;$('hst').textContent=me.streak;
+ $('flame2').classList.toggle('dim',!done);
+ $('sd').textContent=me.streak;$('sdw').textContent=plural(me.streak,['день','дні','днів']);
+ $('flame').classList.toggle('dim',!done);
+ $('days').innerHTML=w.map((d,i)=>`<div class="d ${d.ok?'on':''} ${i===w.length-1?'today':''}"><i></i>${i===w.length-1?'Сьог.':WD[new Date(d.day+'T12:00:00').getDay()]}</div>`).join('');
+ countTo($('uah'),me.balance,1);countTo($('gem'),me.gems,1);streakWarn()}
+function streakWarn(){if(!S)return;const w=S.farm.week,el=$('sw');
+ if(w[w.length-1].ok){el.textContent='Вогник горить! Завтра буде '+(S.me.streak+1);el.className='';return}
+ const n=new Date(),h=23-n.getHours(),m=59-n.getMinutes();el.textContent=`Ще ${h} год ${m} хв, щоб зберегти вогник`;el.className='warn'}
+function ticks(){const g=$('ticks');g.innerHTML='';if(!S.me.norm)return;const step=Math.min(...S.farm.crops.map(c=>c.uah||99))/S.me.norm;if(!(step>0.04))return;
+ for(let a=step;a<.999;a+=step)g.insertAdjacentHTML('beforeend',`<span class="tk" style="left:calc(${a*100}% - 1px)"></span>`)}
+function renderRing(){const me=S.me,p=me.norm?Math.min(1,me.done/me.norm):0;ticks();
+ $('prog').style.width=(p*100)+'%';ghostSet(readyUah());
+ countTo($('pv'),Math.floor(p*100));countTo($('earn'),me.done,1);$('norm').textContent=fmt(me.norm);
+ const rest=me.norm-me.done,L=$('left'),step=Math.max(...S.farm.crops.map(c=>c.uah));
+ if(rest<=0){L.textContent='Норму виконано! 🎉';L.className='left done'}
+ else{const n=Math.ceil(rest/step);L.textContent=n<=1?'Ще 1 збір — і норма!':`Ще ${fmt(+rest.toFixed(2))} ₴ · ~${n} ${plural(n,['збір','збори','зборів'])}`;L.className='left'}
+ $('ms').textContent=p>=1?'🔥 зараховано':'🏁 → 🔥 '+(me.streak+1)}
+function readyUah(){return S.farm.crops.filter(c=>!leftMs(c)).reduce((a,c)=>a+c.uah,0)}
+let previewing=0;
+function preview(uah){if(!S||!S.me.norm)return;previewing=uah?1:0;ghostSet(uah||readyUah())}
+function ghostSet(add){const g=$('ghost'),p=Math.min(1,(S.me.done+add)/S.me.norm);g.style.width=(p*100)+'%';const on=add>0&&S.me.done<S.me.norm;
+ if(on!==g.classList.contains('pulse')){g.classList.toggle('pulse',on);g.style.animationDelay=-(Date.now()%1600)+'ms'}}
+function leftMs(c){const at=c.ripe||c.due;return at?Math.max(0,at-(Date.now()+OFF)):0} // ripe: real growth end; due: the reminder (may be moved to the morning)
+function renderCrops(){$('hv').innerHTML=S.farm.crops.map(c=>`<div class="card crop" id="c_${c.id}"><div class="t">${c.icon} ${c.name}</div><div class="rw sub">${c.crop||'&nbsp;'}</div>
+ <div class="mini"><svg viewBox="0 0 86 86"><circle class="tr" cx="43" cy="43" r="37"/><circle class="pr" cx="43" cy="43" r="37"/></svg><div class="ic">${c.icon.split(/(?=[\uD800-\uDBFF])/)[0]}</div></div>
+ <div class="rw">+${fmt(c.uah)} ₴ · +${fmt(c.gem)} 💎</div><button class="btn"></button></div>`).join('');
+ for(const c of S.farm.crops){const el=$('c_'+c.id),b=el.querySelector('button');b.onclick=()=>harvest(c,el.querySelector('.mini'));
+  b.onpointerenter=()=>preview(c.uah);b.onpointerleave=()=>preview();b.ontouchstart=()=>preview(c.uah)}
+ tickCrops()}
+function tickCrops(){if(!S)return;for(const c of S.farm.crops){const el=$('c_'+c.id);if(!el)continue;const pr=el.querySelector('.pr'),b=el.querySelector('button'),cc=2*Math.PI*37,l=leftMs(c);
+ const night=false; // the countdown always shows real ripening (ripe); the reminder time does not matter here
+ pr.style.strokeDasharray=cc;pr.style.strokeDashoffset=night?0:cc*Math.min(1,l/(c.cycle*60000));
+ if(!l!==el.classList.contains('ready')){el.classList.toggle('ready',!l);b.style.animationDelay=-(Date.now()%1600)+'ms'}const s=Math.ceil(l/1000);
+ if(night){const d=new Date(c.due-OFF);b.textContent='🌙 нагадаю о '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');continue}
+ b.textContent=!l?'Зібрав(ла) ✓':'⏳ '+(s>=3600?Math.floor(s/3600)+':'+String(Math.floor(s%3600/60)).padStart(2,'0')+':':Math.floor(s/60)+':')+String(s%60).padStart(2,'0')}}
+setInterval(()=>{document.querySelectorAll('.cdn').forEach(e=>e.textContent=cdn());tickCrops();streakWarn();if(S&&S.me.norm&&!previewing)ghostSet(readyUah())},1000);
+function renderOnce(){const beds=S.farm.crops.find(c=>c.id==='beds');
+ $('once').innerHTML=S.farm.once.map(o=>`<button class="ob" id="o_${o.id}"><span class="e">${o.icon}</span><span class="n">${o.name}</span><span class="r">+${fmt(o.uah)} ₴ · +${fmt(o.gem)} 💎</span><span class="x">↺ таймер «Грядки»</span></button>`).join('');
+ for(const o of S.farm.once){const el=$('o_'+o.id);el.onclick=()=>harvest(Object.assign({},o,{kind:'beds',crop:o.id}),el,true);
+  el.onpointerenter=()=>preview(o.uah);el.onpointerleave=()=>preview();el.ontouchstart=()=>preview(o.uah)}}
+async function harvest(c,el,once){
+ if(busy)return;
+ if(!once&&leftMs(c)>0&&leftMs(c)<=c.cycle*60000+60000&&!(await confirmTG('Ще росте ⏳ Точно вже зібрано?')))return;
+ hap('heavy');const before=S.me.done,norm=S.me.norm;
+ plus(el,'+'+fmt(c.uah)+' ₴');
+ let landed=0,resp=null;const finish=()=>{if(++landed<2||!resp)return;
+   if(resp.state){apply(resp.state);hap('medium');bump($('uah'));if(before<norm&&resp.state.me.done>=norm)celebrate()}};
+ fly(el,$('rb'),'🪙',6,finish);fly(el,$('uah'),'₴',4);fly(el,$('gem'),'💎',3);
+ resp=await act('harvest',once?{kind:'beds',crop:c.crop}:{kind:c.id});
+ if(!resp||resp.error){render();return}
+ landed++;finish();landed--; // response may come after the coins landed
+ if(resp.res&&resp.res.view)setTimeout(()=>botView(resp.res.view),900)
+}
+function celebrate(){hap('ok');const f=$('flame');f.classList.remove('dim');f.classList.remove('pop');void f.offsetWidth;f.classList.add('pop');
+ toast('🔥 Норму виконано! '+S.me.streak+' '+plural(S.me.streak,['день','дні','днів'])+' поспіль');confetti()}
+// ===================== tasks
+function goal(){const it=(S.shop.items||[]).filter(i=>i.id&&i.open).sort((a,b)=>a.price-b.price),g=S.me.gems;return it.find(i=>i.price>g)||it[it.length-1]}
+function renderTasks(){const T=S.tasks,g=goal(),pr=$('tpr'),cc=2*Math.PI*37,k=g?Math.min(1,S.me.gems/g.price):0;
+ pr.style.strokeDasharray=cc;pr.style.strokeDashoffset=cc*(1-k);
+ $('tt1').textContent=`У тебе ${fmt(S.me.gems)} 💎`;
+ $('tt2').textContent=!g?'':S.me.gems>=g.price?`Вистачає на ${g.icon} ${g.label}! 🛍️`:`До ${g.icon} ${g.label} ще ${Math.ceil(g.price-S.me.gems)} 💎`;
+ const p=$('tpend');p.style.display=T.waitN?'inline-flex':'none';p.textContent=`⏳ +${fmt(T.waitGems)} 💎 чекають підтвердження`;
+ document.querySelectorAll('#gseg button').forEach(x=>x.classList.toggle('on',x.dataset.g===game));
+ const L=game==='wow'?T.wow:T.ar;
+ $('tlist').innerHTML=(game==='wow'?`<div class="gl">Альянс · до ${T.maxLvl} рівня · перше +${L[0]?Math.max(...L.map(x=>x.gems)):''} 💎</div>`:'')+L.map(t=>`<div class="card task" id="t_${t.id}"><div class="e">${t.icon}</div>
+  <div class="tx"><b>${t.label}</b><small>${game==='wow'?t.lvl+' рів.'+(t.done?' · пройдено ×'+t.done:''):t.per}</small>
+  ${t.list?`<div class="list">${t.list.join('<br>')}</div>`:''}
+  ${t.today?`<div class="cnt">✓ сьогодні ×${t.today}</div>`:''}${t.wait?`<div class="wt">⏳ на перевірці ×${t.wait}</div>`:''}</div>
+  <span class="gemchip ${t.gems>=20?'big':''}">+${t.gems} 💎</span><button class="do">${game==='wow'?(t.done?'🔁':'Пройдено'):'Зроблено'}</button></div>`).join('');
+ for(const t of L){const el=$('t_'+t.id);el.querySelector('.do').onclick=()=>doTask(t,el)}
+ const n=T.ar.filter(t=>!t.today&&!t.wait).length;$('tdot').textContent=n;$('tdot').style.display='none'}
+async function doTask(t,el){if(busy)return;hap('heavy');const chip=el.querySelector('.gemchip');
+ plus(chip,'+'+t.gems+' 💎','#6a48f0');fly(chip,$('tt1'),'💎',Math.min(8,2+t.gems/5|0));
+ await act('task',{id:t.id})}
+document.querySelectorAll('#gseg button').forEach(b=>b.onclick=()=>{game=b.dataset.g;hap('light');renderTasks()});
+// ===================== shop
+function renderShop(){const sh=S.shop,g=S.me.gems;$('sg').textContent=fmt(g);
+ const on=sh.items.filter(i=>i.id&&i.open),locked=sh.items.filter(i=>!i.open).slice(0,4);
+ $('items').innerHTML=on.length?on.map(i=>{const k=Math.min(1,g/i.price),need=Math.ceil(i.price-g);
+  return `<div class="card item" id="i_${i.id}">${i.times?`<span class="rise">${i.times+1}-й раз · +${sh.rise}%</span>`:''}
+  <div class="e">${i.icon}</div><b>${i.label}</b><div class="afford"><i style="width:${k*100}%"></i></div>
+  <div class="need">${need>0?`ще ${need} 💎 — і твоє!`:`можна купити ✨`}</div>
+  <button class="buy" ${need>0?'disabled':''}>${i.price} 💎</button></div>`}).join(''):'<div class="card" style="grid-column:1/-1;text-align:center;font-weight:800;color:var(--mute)">Сьогодні полиці порожні 🙈</div>';
+ for(const i of on){$('i_'+i.id).querySelector('.buy').onclick=()=>buy(i)}
+ $('rest').textContent='';$('sg').parentNode.innerHTML=`у тебе <span id="sg">${fmt(g)}</span> 💎`+(sh.resting?` · завтра нові товари`:'');
+ $('rest').parentNode.style.display=locked.length?'':'none';$('tomorrow').style.display=locked.length?'':'none';
+ $('tomorrow').innerHTML=locked.map(i=>`<div class="card item lock"><div class="e">🎁</div><b>???</b><div class="lockinfo">🔥 на ${i.need}-й день стріку</div><button class="buy" disabled>${i.price} 💎</button></div>`).join('');
+ $('foodn').textContent=`у тебе ${S.inv.food} 🍖`;
+ const F=sh.food,season=!!sh.season;
+ $('foods').innerHTML=`<div class="card food"><div class="e">🍖</div><div class="tx"><b>Корм ×1</b><small>погодувати один раз</small></div><button class="buy" id="f1" ${g<F.price?'disabled':''}>${F.price} 💎</button></div>
+  <div class="card food"><div class="e">📦</div><div class="tx"><b>Пак ×${F.packN}</b><small>${season?'вигідно лише сьогодні 🔥':'лише в кристальний день'}</small></div><button class="buy" id="f2" ${!season||g<F.pack?'disabled':''}>${season?F.pack+' 💎':'🔒'}</button></div>`;
+ $('f1').onclick=()=>food(false,$('f1'));$('f2').onclick=()=>food(true,$('f2'));
+ $('sdot').textContent=on.filter(i=>i.price<=g).length;$('sdot').style.display=on.some(i=>i.price<=g)?'grid':'none'}
+async function buy(i){if(busy)return;const el=$('i_'+i.id);hap('heavy');el.querySelector('.e').style.transform='scale(1.4) rotate(-8deg)';
+ fly(el.querySelector('.buy'),el.querySelector('.e'),'💎',Math.min(10,3+i.price/20|0));
+ const r=await act('buy',{item:i.id});if(r&&r.ok){hap('ok');confetti()}}
+async function food(pack,btn){if(busy)return;hap('medium');const r=await act('food',{pack:pack});if(r&&r.ok)plus(btn,'🍖','#b35a00')}
+function shopTimer(){const n=new Date(),e=new Date(n);e.setHours(24,0,0,0);const d=Math.max(0,(e-n)/1000|0);
+ $('stm').textContent=[d/3600|0,(d%3600)/60|0,d%60].map(x=>String(x).padStart(2,'0')).join(':')}
+setInterval(shopTimer,1000);shopTimer();
+// ===================== investments
+function renderInvest(){const I=S.invest,mine=I.plots.filter(p=>p.share>0);
+ $('iday').textContent=fmt(+I.daily.toFixed(2));$('imon').textContent=fmt(Math.round(I.daily*30));$('iwal').textContent=fmt(I.wallet);
+ $('icnt').textContent=mine.length?mine.length+' '+plural(mine.length,['ділянка','ділянки','ділянок']):'';
+ $('tiles').innerHTML=mine.length?mine.map(p=>{const pc=Math.round(p.share*100);return `<div class="card tile">
+  <div class="pie" style="background:conic-gradient(#2fb45c ${pc*3.6}deg,#e7f6ec 0)"><span>${pc}%</span></div>
+  <div class="tn">🏡 ${p.name}</div><div class="tt">${p.type}</div><div class="stk">${(p.owners||[]).slice(0,4).map(o=>ava(P(o.id).look,24)).join('')}</div>
+  <div class="mo">+${fmt(Math.round(p.day*30))} <small>₴/міс</small></div><div class="dd">+${fmt(+p.day.toFixed(2))} ₴ на день</div><div class="go">Деталі ›</div></div>`}).join('')
+  :'<div class="card empty">Поки немає частки в жодній ділянці.<br>Вклади у збір нижче — і тут почне капати 🌱</div>';
+ $('offs').innerHTML=I.offers.length?'<div class="sect"><b>🏗 Збір на нову ділянку</b><small>вкладай і володій</small></div><div class="tiles">'+I.offers.map(o=>{const k=Math.min(1,o.raised/o.price);
+  return `<div class="card tile raise" data-o="${o.id}"><div class="tn">🏗 ${o.name}</div><div class="tt">${o.type}</div><div class="stk">${(o.who||[]).slice(0,5).map(w=>ava(P(w.id).look,24)).join('')||'<small style="color:var(--mute);font-weight:800;font-size:11px">будь першою!</small>'}</div><div class="pbar"><i style="width:${k*100}%"></i></div>
+  <div class="dd">${fmt(o.raised)} / ${fmt(o.price)} ₴ · ${Math.round(k*100)}%</div><div class="mo">+${fmt(Math.round(o.dayAll*30))} <small>₴/міс усім</small></div>${o.my?`<div class="dd">твій внесок ${fmt(o.my)} ₴</div>`:''}<div class="go" style="color:#b35a00">Вкласти ›</div></div>`}).join('')+'</div>':'';
+ $('tiles').querySelectorAll('.tile').forEach((el,i)=>el.onclick=()=>plotSheet(mine[i]));
+ $('offs').querySelectorAll('.tile').forEach(el=>el.onclick=()=>offerSheet(I.offers.find(o=>o.id===el.dataset.o)));
+ const tk=$('itake');tk.style.display=I.wallet>0?'':'none';tk.textContent=`💰 Забрати ${fmt(I.wallet)} ₴ на баланс`;tk.onclick=ivtake}
+function tickInvest(){if(!S||!S.invest||!$('v_inv').classList.contains('on'))return;const n=new Date(),sec=(n-new Date(n.getFullYear(),n.getMonth(),n.getDate()))/1000;
+ const v=S.invest.daily*sec/86400,s=v.toFixed(5).split('.');$('ti').textContent=(+s[0]).toLocaleString('uk-UA');$('td').textContent=','+s[1];requestAnimationFrame(tickInvest)}
+// ===================== me: stats + inventory
+let achAll=false;
+function renderMe(){const M=S.my;if(!M)return;const mp=P(S.me.id);
+ $('mava').innerHTML=ava(mp.look,72);$('mtitle').innerHTML=mp.look.ti?`<span class="ttl">${mp.look.ti}</span>`:'';$('stylebtn').onclick=styleSheet;$('mava').onclick=styleSheet;
+ $('mname').innerHTML=nm(P(S.me.id));renderTrades();$('machs').textContent=`🏅 ${M.ach.got} з ${M.ach.total} досягнень · 🔥 ${S.me.streak} ${plural(S.me.streak,['день','дні','днів'])}`;
+ $('trio').innerHTML=[['Сьогодні',M.today],['Тиждень',M.week],['Місяць',M.month]].map(([l,x])=>`<div><b>${fmt(Math.round(x.uah))} ₴</b><small>${l} · ${x.n} ${plural(x.n,['збір','збори','зборів'])}</small></div>`).join('');
+ // inventory
+ const I=M.items||[],act=I.filter(i=>i.act);$('icount').textContent=I.length?'':'';
+ $('mitems').innerHTML=I.length?I.map((i,k)=>`<div class="card itm"><div class="e">${i.icon}</div><b>${i.label}</b><div class="n">${i.unit?fmt(i.n)+' '+i.unit:'×'+i.n}</div>
+  ${i.act?`<button class="buy" data-k="${k}">${i.act}</button>`:`<div class="note">${i.note||''}</div>`}</div>`).join('')
+  :'<div class="card empty">Поки порожньо 🎒<br>Купуй у Крамниці або вигравай перегони</div>';
+ $('mitems').querySelectorAll('.buy').forEach(b=>b.onclick=()=>useIt(I[+b.dataset.k],b));
+ $('mdot').textContent=act.length;$('mdot').style.display=act.length?'grid':'none';
+ // chart
+ const D=M.days,max=Math.max(S.me.norm*1.25,...D.map(d=>d.uah),1),nl=S.me.norm/max;
+ $('wtot').textContent=fmt(Math.round(D.reduce((a,d)=>a+d.uah,0)))+' ₴ за 7 днів';
+ $('chart').innerHTML=(S.me.norm?`<div class="nl" style="bottom:calc(10px + 17px + (100% - 44px) * ${nl})"><span>норма ${fmt(S.me.norm)}</span></div>`:'')+D.map((d,i)=>`<div class="col ${i===6?'today':''}"><div class="v">${d.uah?fmt(Math.round(d.uah)):''}</div>
+  <div class="b ${S.me.norm&&d.uah>=S.me.norm?'ok':''}" style="height:calc((100% - 44px) * ${d.uah/max})"></div><div class="l">${i===6?'Сьог.':WD[new Date(d.day+'T12:00:00').getDay()]}</div></div>`).join('');
+ // family
+ const F=M.family,fm=Math.max(...F.map(f=>f.uah),1);
+ $('fam').innerHTML=F.map((f,i)=>`<div class="fr ${f.me?'me':''}"><span class="rk">${['🥇','🥈','🥉'][i]||i+1}</span><span class="nm">${who(f.id,30)}</span><span class="fb"><i style="width:${f.uah/fm*100}%"></i></span><span class="fv">${fmt(Math.round(f.uah))} ₴</span></div>`).join('');
+ // achievements: one card per kind; what can be taken is on the right of its card, then the closest ones
+ const A=M.ach.next.map(a=>Object.assign({k:a.need?Math.max(0,Math.min(1,(a.v-a.from)/(a.need-a.from))):1},a)).sort((a,b)=>(!!b.claim-!!a.claim)||(!!b.need-!!a.need)||b.k-a.k);
+ if(M.ach.first&&!M.ach.first.paid)A.unshift({title:'Особливий',claim:{key:'first',icon:'🌅',name:'З першого дня'},k:1,done:1,steps:1});
+ const cn=A.filter(a=>a.claim).length;$('achn').textContent=cn?`🎁 ${cn} ${plural(cn,['нагорода','нагороди','нагород'])} чекає`:`${M.ach.got} з ${M.ach.total}`;
+ $('achs').innerHTML=(achAll?A:A.slice(0,Math.max(4,cn))).map(a=>`<div class="card ach ${a.claim?'cl':''}"><div class="e">${a.claim?a.claim.icon:a.icon}</div>
+  <div class="tx">${a.claim?`<small class="got">🎉 Отримано: <b>${a.claim.name}</b></small>`:''}<b>${a.need?a.name:a.claim?'':'Усе зібрано!'}</b><small>${a.title}${a.steps>1?' · '+a.done+'/'+a.steps:''}${a.need?` · ще ${fmt(Math.ceil(a.need-a.v))} ${plural(Math.ceil(a.need-a.v),a.unit)}`:''}</small>
+  ${a.need?`<div class="ab"><i style="width:${a.k*100}%"></i></div>`:''}</div>
+  ${a.claim?`<button class="cb" data-k="${a.claim.key}">+${M.achGem} 💎</button>`:`<div class="rt"><span class="av">${a.need?fmt(Math.floor(a.v))+' / '+fmt(a.need):'✓'}</span></div>`}</div>`).join('');
+ $('achs').querySelectorAll('.cb').forEach(b=>b.onclick=()=>claim(b.dataset.k,b));
+ $('achmore').style.display=A.length>Math.max(4,cn)?'':'none';$('achmore').textContent=achAll?'Згорнути':'Показати всі ('+A.length+')';
+ const R=M.rec;$('recs').innerHTML=`<div><b>🔥 ${R.bestStreak}</b><small>найдовший стрік</small></div><div><b>⚡ ${R.bestDay}</b><small>зборів за день</small></div>
+  <div><b>🚜 ${fmt(R.harvests)}</b><small>зборів усього</small></div><div><b>💰 ${fmt(Math.round(R.earned))} ₴</b><small>зароблено</small></div>`}
+$('achmore').onclick=()=>{achAll=!achAll;renderMe()};
+async function useIt(i,btn){if(busy)return;hap('heavy');const r=await act('item',{what:i.what});if(r&&r.ok){plus(btn,i.icon);hap('ok');if(i.what==='prize')confetti()}}
+// ===================== bottom sheet
+function sheet(html){$('sheet').innerHTML=html;$('shade').classList.add('on')}
+function unsheet(){$('shade').classList.remove('on')}
+$('shade').onclick=e=>{if(e.target.id==='shade')unsheet()};
+// ===================== claim achievements, exchange
+function renderClaim(){const M=S.my,C=M.claim||[],el={style:{},querySelectorAll:()=>[]};
+ if(true){}else{
+ el.innerHTML=`<h4>🎁 Нагороди за досягнення</h4>`+C.slice(0,6).map(c=>`<div class="cl"><span class="e">${c.icon}</span><b>${c.name}</b><button data-k="${c.key}">+${M.achGem} 💎</button></div>`).join('')+
+  (C.length>6?`<div class="cl"><b style="text-align:center;color:#7a4a00">…і ще ${C.length-6}</b></div>`:'')+`<button class="claimall" id="clall">Забрати все · +${C.length*M.achGem} 💎</button>`;
+ }
+ const md=$('mdot'),n=C.length+(M.items||[]).filter(i=>i.act).length+(S.trades||[]).filter(x=>x.mine&&x.sent).length;md.textContent=n;md.style.display=n?'grid':'none';
+ const g=S.me.gems,r=M.gemUah;
+ $('gx').innerHTML=`<div class="h"><b>💱 Кристали → ₴</b><small id="mgemw">є ${fmt(g)} 💎 · 1 💎 = ${fmt(r)} ₴</small></div><div class="chips">${[10,50].map(v=>`<button data-n="${v}" ${g<v?'disabled':''}>${v} 💎 → ${fmt(v*r)} ₴</button>`).join('')}<button data-n="all" ${g<1?'disabled':''}>Усі ${fmt(Math.floor(g))}</button></div>`;
+ $('gx').querySelectorAll('button').forEach(b=>b.onclick=()=>exchange(b.dataset.n,b))}
+async function claim(key,btn){if(busy)return;hap('heavy');plus(btn,'+💎','#6a48f0');fly(btn,$('mava'),'💎',4);const r=await act('claim',{key});if(r&&r.ok){hap('ok');confetti()}}
+async function exchange(n,btn){if(busy)return;const k=n==='all'?Math.floor(S.me.gems):+n;
+ if(!(await confirmTG(`Обміняти ${k} 💎 на ${fmt(k*S.my.gemUah)} ₴?`)))return;hap('heavy');fly(btn,$('mava'),'₴',5);await act('gemx',{n:String(n)})}
+// ===================== owner approvals
+function renderAppr(){const A=S.tasks.approve,el=$('appr');if(!A||!A.length){el.style.display='none';return}el.style.display='';
+ el.innerHTML=`<h4>✅ На перевірку · ${A.length}</h4>`+A.map(x=>`<div class="ap">${ava(P(x.uid).look,30)}<div class="tx">${x.icon} ${x.who}: ${x.label}<small>+${x.gems} 💎 · ${x.at}</small></div><button data-ok="1" data-id="${x.id}">✅</button><button class="no" data-ok="" data-id="${x.id}">❌</button></div>`).join('')+
+  (A.length>1?`<button class="buy" style="margin-top:8px" data-ok="1" data-id="all">✅ Підтвердити всі (${A.length})</button>`:'');
+ el.querySelectorAll('button').forEach(b=>b.onclick=async()=>{hap('medium');await act('decide',{ok:!!b.dataset.ok,which:b.dataset.id})})}
+// ===================== invest actions
+function plotSheet(p){const I=S.invest,pc=Math.round(p.share*100);
+ sheet(`<h3>🏡 ${p.name}</h3><p>${p.type} · твоя частка ${pc}% (${fmt(p.my)} ₴)</p>
+ <div class="kv"><div><b>+${fmt(Math.round(p.day*30))} ₴</b><small>на місяць тобі</small></div><div><b>+${fmt(+p.day.toFixed(2))} ₴</b><small>на день тобі</small></div>
+ <div><b>${fmt(p.got)} ₴</b><small>уже отримано</small></div><div><b>+${fmt(Math.round(p.dayAll*30))} ₴</b><small>ділянка всім/міс</small></div></div>
+ <div class="sidec" style="margin-bottom:10px"><h5>👥 Власники</h5>${(p.owners||[]).map(o=>`<div class="own"><span class="nm">${who(o.id,32,true)}</span><span class="pc">${Math.round(o.share*1000)/10}%</span></div>`).join('')}</div>
+ ${p.canSell?`<button class="buy big" id="sell" style="background:linear-gradient(#ff8a6a,#e2552b);box-shadow:0 4px 0 #b3402b">↩️ Продати частку за ${fmt(p.my)} ₴</button>`:(p.my&&!p.canSell&&p.sellFrom?`<p>Продати частку можна з ${p.sellFrom.slice(8)}.${p.sellFrom.slice(5,7)} 🌱</p>`:'')}
+ <button class="ghostb" onclick="unsheet()">Закрити</button>`);
+ if($('sell'))$('sell').onclick=async()=>{if(!(await confirmTG(`Продати частку «${p.name}» за ${fmt(p.my)} ₴? Дохід з неї припиниться.`)))return;const r=await act('sell',{pid:p.id});if(r&&r.ok)unsheet()}}
+function offerSheet(o){const I=S.invest,left=Math.max(0,o.price-o.raised),bal=I.balance,k=Math.min(1,o.raised/o.price);
+ const amts=[20,50,100,200].filter(a=>a<left);
+ sheet(`<h3>🏗 ${o.name}</h3><p>${o.type} · зібрано ${fmt(o.raised)} з ${fmt(o.price)} ₴</p>
+ <div class="pbar" style="height:14px;margin-bottom:12px"><i style="width:${k*100}%"></i></div>
+ <div class="kv"><div><b>${fmt(bal)} ₴</b><small>у тебе на балансі</small></div><div><b>${fmt(o.my)} ₴</b><small>твій внесок</small></div>
+ <div><b>+${fmt(Math.round(o.dayAll*30))} ₴</b><small>ділянка власникам/міс</small></div><div><b>${fmt(left)} ₴</b><small>лишилось зібрати</small></div></div>
+ ${(o.who||[]).length?`<div class="sidec" style="margin-bottom:10px"><h5>👥 Уже вклали</h5>${o.who.map(w=>`<div class="own"><span class="nm">${who(w.id,30,true)}</span><span class="pc">${fmt(w.uah)} ₴</span></div>`).join('')}</div>`:''}
+ ${Math.min(bal,left)>=1?`<div class="rg big"><div class="rgh"><span class="nm">💼 Вкласти</span><span class="rv" id="plv"></span></div><input type="range" id="pl" min="1" max="${Math.floor(Math.min(bal,left))}" step="1" value="${Math.min(Math.floor(Math.min(bal,left)),Math.max(I.min||1,20))}"><div class="rgl"><span>1 ₴</span><span>${bal>=left?'закрити збір':'увесь баланс'} · ${fmt(Math.floor(Math.min(bal,left)))} ₴</span></div></div><button class="buy big" id="plgo"></button>`:'<p>На балансі поки немає гривень для внеску</p>'}
+ ${o.my?`<button class="ghostb" id="back" style="color:#e2552b">↩️ Забрати свій внесок (${fmt(o.my)} ₴)</button>`:''}
+ <button class="ghostb" onclick="unsheet()">Закрити</button>`);
+ if($('pl')){let v=+$('pl').value;const sh=()=>{$('plv').textContent=fmt(v)+' ₴ · '+fmt(+(v/o.price*100).toFixed(1))+'% ділянки';$('plgo').textContent=`💼 Вкласти ${fmt(v)} ₴ (≈ +${fmt(Math.round(o.dayAll*30*v/o.price))} ₴/міс)`};sh();
+  $('pl').oninput=e=>{v=+e.target.value;sh()};$('pl').onchange=()=>hap('light');
+  $('plgo').onclick=async()=>{hap('heavy');const r=await act('pledge',{oid:o.id,amt:String(v)});if(r&&r.ok){confetti();const n=S.invest.offers.find(x=>x.id===o.id);if(n)offerSheet(n);else unsheet()}}}
+ if($('back'))$('back').onclick=async()=>{if(!(await confirmTG(`Повернути ${fmt(o.my)} ₴ на баланс?`)))return;const r=await act('pledge',{oid:o.id,amt:'back'});if(r&&r.ok)unsheet()}}
+async function ivtake(){if(busy)return;hap('heavy');fly($('itake'),$('itake'),'₴',5);const r=await act('ivtake');if(r&&r.ok)confetti()}
+// ===================== 🔁 trades
+function trLine(items){return items.length?items.map(i=>`${i.icon} ${i.pct!=null?i.pct+'% (≈'+fmt(i.worth)+' ₴)':fmt(i.n)}${i.unit==='грн'?' ₴':i.unit==='💎'?' 💎':''}`).join(' + '):'нічого'}
+function renderTrades(){const T=S.trades||[];$('trn').textContent=T.length?T.length+' '+plural(T.length,['угода','угоди','угод']):'';
+ $('trades').innerHTML=T.map(x=>`<div class="card trc" data-t="${x.id}">${ava(P(x.other).look,40)}<div class="tx"><b>${P(x.other).name}</b><small>📤 ${trLine(x.give)} · 📥 ${trLine(x.get)}</small></div>
+  <span class="st ${x.mine?'my':''}">${!x.sent?'чернетка':x.mine?(x.theyAgreed?'прийми!':'твоя черга'):'чекаємо'}</span></div>`).join('');
+ $('trades').querySelectorAll('.trc').forEach(el=>el.onclick=()=>tradeSheet(el.dataset.t));
+ $('trnew').onclick=()=>{const others=(S.people||[]).filter(p=>p.id!==String(S.me.id));
+  sheet(`<h3>🔁 Нова угода</h3><p>З ким міняємось?</p><div class="pick"><button id="trbank"><span class="ava bg-gold" style="--s:52px"><i>🏦</i></span>Бот<small style="color:var(--mute);font-size:11px">💎 → ₴</small></button>${others.map(p=>`<button data-u="${p.id}">${ava(p.look,52)}${p.name}</button>`).join('')}</div><button class="ghostb" onclick="unsheet()">Закрити</button>`);
+  $('trbank').onclick=bankSheet;
+  $('sheet').querySelectorAll('.pick button[data-u]').forEach(b=>b.onclick=()=>{TD={tid:null,to:b.dataset.u,mine:{},theirs:{}};tradeEdit()})}}
+// a slider row: native range, no server calls while you drag
+const unitOf=i=>i.pct!=null?'%':i.unit==='грн'?' ₴':i.unit==='💎'?' 💎':' шт';
+function rngRow(it,val,side){const isPlot=it.pct!=null,price=isPlot?it.n/(it.pct/100):0,step=isPlot?price/100:(it.unit==='шт'?1:it.unit==='💎'?1:1);
+ const max=isPlot?Math.floor(it.n/step)*step:it.n,show=v=>isPlot?`${fmt(+(v/price*100).toFixed(1))}%<small class="wh">≈ ${fmt(Math.round(v))} ₴ · +${fmt(Math.round(it.month*v/it.n))} ₴/міс</small>`:fmt(v)+unitOf(it);
+ return `<div class="rg" data-side="${side}" data-k="${it.key}"><div class="rgh"><span class="nm">${it.icon} ${it.label}</span><span class="rv">${show(val)}</span><button class="rx" title="прибрати">✕</button></div>
+  <input type="range" min="0" max="${max}" step="${step}" value="${Math.min(val,max)}"><div class="rgl"><span>0</span><span>${isPlot?'уся частка':'усе'} · ${show(max).replace(/<small.*$/,'')}</span></div></div>`}
+function bindRanges(root,onChange){root.querySelectorAll('.rg').forEach(r=>{const inp=r.querySelector('input'),it=r._it;
+ inp.oninput=()=>{const v=+inp.value;onChange(r.dataset.side,r.dataset.k,v);const isPlot=it&&it.pct!=null;
+  r.querySelector('.rv').innerHTML=isPlot?`${fmt(+(v/(it.n/(it.pct/100))*100).toFixed(1))}%<small class="wh">≈ ${fmt(Math.round(v))} ₴ · +${fmt(Math.round(it.month*v/it.n))} ₴/міс</small>`:fmt(v)+unitOf(it)};
+ inp.onchange=()=>hap('light')})}
+let TD=null;
+function tradeSheet(tid){const x=(S.trades||[]).find(t=>t.id===tid);if(!x){unsheet();return}
+ if(x.mine){const m={},th={};x.give.forEach(i=>m[i.key]=i.n);x.get.forEach(i=>th[i.key]=i.n);TD={tid,to:x.other,mine:m,theirs:th};tradeEdit();return}
+ const o=x.other,me=S.me.id;
+ sheet(`<div class="vs">${ava(P(me).look,52)}<span class="x">⇄</span>${ava(P(o).look,52)}</div><h3 style="text-align:center">Угода з ${P(o).name}</h3><p style="text-align:center">⏳ Чекаємо відповідь ${P(o).name}.</p>
+ <div class="sides"><div class="sidec"><h5>📤 Ти віддаєш</h5><div class="ti2"><span class="nm">${trLine(x.give)}</span></div></div><div class="sidec"><h5>📥 Ти отримуєш</h5><div class="ti2"><span class="nm">${trLine(x.get)}</span></div></div></div>
+ <button class="ghostb" id="trno" style="color:#e2552b">❌ Скасувати угоду</button><button class="ghostb" onclick="unsheet()">Закрити</button>`);
+ $('trno').onclick=async()=>{if(!(await confirmTG('Скасувати угоду?')))return;const r=await act('tr',{op:'no',tid});if(r&&r.ok)unsheet()}}
+function tradeEdit(){const D=TD,me=String(S.me.id),o=D.to,x=D.tid?(S.trades||[]).find(t=>t.id===D.tid):null,inv=S.trInv||{};
+ const myInv=inv[me]||[],thInv=inv[o]||[],agreed=x&&x.sent&&x.theyAgreed,orig=x?JSON.stringify([x.give.map(i=>[i.key,i.n]),x.get.map(i=>[i.key,i.n])]):'';
+ const rows=(side,invL,sel)=>Object.keys(sel).map(k=>{const it=invL.find(i=>i.key===k);return it?rngRow(it,sel[k],side):''}).join('')||'<div class="ti2"><span class="nm" style="color:var(--mute)">нічого</span></div>';
+ const addable=(invL,sel)=>invL.filter(i=>!(i.key in sel)&&i.n>0);
+ sheet(`<div class="vs">${ava(P(me).look,52)}<span class="x">⇄</span>${ava(P(o).look,52)}</div><h3 style="text-align:center">Угода з ${P(o).name}</h3>
+ <p style="text-align:center">${agreed?`${P(o).name} згоджується на це. Приймеш — і все переміститься одразу. Змінив повзунок — це вже нова пропозиція.`:'Тягни повзунки — нічого не відправиться, поки не натиснеш «Надіслати».'}</p>
+ <div class="sides"><div class="sidec" id="sm"><h5>📤 Ти віддаєш</h5>${rows('m',myInv,D.mine)}<div class="adds">${addable(myInv,D.mine).map(i=>`<button class="chipadd" data-side="m" data-k="${i.key}">+ ${i.icon} ${i.label}</button>`).join('')}</div></div>
+ <div class="sidec" id="so"><h5>📥 Ти отримуєш від ${who(o,22)}</h5>${rows('o',thInv,D.theirs)}<div class="adds">${addable(thInv,D.theirs).map(i=>`<button class="chipadd" data-side="o" data-k="${i.key}">+ ${i.icon} ${i.label}</button>`).join('')}</div></div></div>
+ <button class="buy big" id="trgo" ${agreed?'style="background:linear-gradient(#53d97f,#2fb45c);box-shadow:0 4px 0 #23914a"':''}>${agreed?'🤝 Прийняти угоду':'📨 Надіслати '+P(o).name}</button>
+ ${D.tid?`<button class="ghostb" id="trno" style="color:#e2552b">${x&&x.sent?'❌ Відмовитись від угоди':'🗑 Видалити чернетку'}</button>`:''}<button class="ghostb" onclick="unsheet()">Закрити</button>`);
+ const sel=s=>s==='m'?D.mine:D.theirs,invOf=s=>s==='m'?myInv:thInv;
+ $('sheet').querySelectorAll('.rg').forEach(r=>{r._it=invOf(r.dataset.side).find(i=>i.key===r.dataset.k);r.querySelector('.rx').onclick=()=>{delete sel(r.dataset.side)[r.dataset.k];tradeEdit()}});
+ const dirty=()=>JSON.stringify([Object.entries(D.mine).filter(e=>e[1]>0),Object.entries(D.theirs).filter(e=>e[1]>0)])!==orig;
+ const upd=()=>{const g=$('trgo');if(!agreed)return;const d=dirty();g.textContent=d?'📨 Надіслати нову пропозицію':'🤝 Прийняти угоду';g.style.background=d?'':'linear-gradient(#53d97f,#2fb45c)'};
+ bindRanges($('sheet'),(s,k,v)=>{sel(s)[k]=v;upd()});
+ $('sheet').querySelectorAll('.chipadd').forEach(b=>b.onclick=()=>{const it=invOf(b.dataset.side).find(i=>i.key===b.dataset.k);sel(b.dataset.side)[b.dataset.k]=it.pct!=null?Math.min(it.n,it.n/(it.pct/100)/10):Math.min(it.n,it.step||1);hap('light');tradeEdit()});
+ $('trgo').onclick=async()=>{const clean=o=>Object.fromEntries(Object.entries(o).filter(e=>e[1]>0));
+  if(agreed&&!dirty()){hap('heavy');const r=await act('tr',{op:'ok',tid:D.tid});if(r&&r.ok){unsheet();confetti()}return}
+  if(!Object.keys(clean(D.mine)).length&&!Object.keys(clean(D.theirs)).length){toast('Додай, що міняєте');hap('err');return}
+  hap('heavy');const r=await act('tr',{op:'offer',tid:D.tid,to:D.to,mine:clean(D.mine),theirs:clean(D.theirs)});if(r&&r.ok&&!/Додай/.test(r.toast||''))unsheet()};
+ if($('trno'))$('trno').onclick=async()=>{if(!(await confirmTG(x&&x.sent?'Відмовитись від угоди?':'Видалити чернетку?')))return;const r=await act('tr',{op:'no',tid:D.tid});if(r&&r.ok)unsheet()}}
+function bankSheet(){const g=Math.floor(S.me.gems),r=S.my.gemUah,me=S.me.id;let n=Math.min(g,10);
+ sheet(`<div class="vs">${ava(P(me).look,52)}<span class="x">⇄</span><span class="ava bg-gold" style="--s:52px"><i>🏦</i></span></div><h3 style="text-align:center">Обмін із ботом</h3>
+ <p style="text-align:center">1 💎 = ${fmt(r)} ₴ · у тебе ${fmt(S.me.gems)} 💎</p>
+ ${g<1?'<p style="text-align:center">Поки немає кристалів для обміну</p>':`<div class="rg big"><div class="rgh"><span class="nm">💎 → ₴</span><span class="rv" id="bxv"></span></div><input type="range" id="bx" min="1" max="${g}" step="1" value="${n}"><div class="rgl"><span>1</span><span>усі ${g}</span></div></div>
+ <button class="buy big" id="bxgo"></button>`}<button class="ghostb" onclick="unsheet()">Закрити</button>`);
+ if(g<1)return;const sh=()=>{$('bxv').textContent=`${n} 💎 → ${fmt(+(n*r).toFixed(2))} ₴`;$('bxgo').textContent=`💱 Обміняти ${n} 💎 на ${fmt(+(n*r).toFixed(2))} ₴`};sh();
+ $('bx').oninput=e=>{n=+e.target.value;sh()};$('bx').onchange=()=>hap('light');
+ $('bxgo').onclick=async()=>{hap('heavy');fly($('bxgo'),$('uah'),'₴',5);const res=await act('gemx',{n:String(n)});if(res&&res.ok)bankSheet()}}
+// ===================== 🎨 style studio
+let stab='av';
+function styleSheet(){const L=S.looks,mp=P(S.me.id),cur=mp.look,tabs=[['av','Аватар'],['bg','Фон'],['fr','Рамка'],['ti','Титул'],['ex','✨ Екскл.']];
+ const wornKey={av:cur.av,bg:cur.bg,fr:cur.fr,ti:((S.looks.ti.find(x=>x.label===cur.ti)||{}).key)||''};
+ const prev=k=>Object.assign({},cur,{[stab]:k});
+ sheet(`<div class="prev">${ava(cur,96)}<b style="font-size:19px">${S.me.name}</b>${cur.ti?`<span class="ttl">${cur.ti}</span>`:''}<small style="color:var(--mute);font-weight:800">у тебе ${fmt(S.me.gems)} 💎</small></div>
+ <div class="stabs">${tabs.map(([k,l])=>`<button data-t="${k}" class="${k===stab?'on':''}">${l}</button>`).join('')}</div>
+ ${stab==='ex'?`<p>Тиждень лише в однієї людини на всю родину. Купиш — і в інших такого не буде 7 днів.</p><div class="exl">${(S.excl||[]).map(e=>{const mine=e.holder===String(S.me.id),busy2=e.holder&&!mine,d=new Date(e.until);const dd=String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0');
+  const pv=e.key==='crown'?ava(Object.assign({},cur,{crown:true}),46):e.key==='sparkle'?ava(Object.assign({},cur,{sparkle:true}),46):`<b class="rbn" style="font-size:17px">${S.me.name}</b>`;
+  return `<div class="exr">${pv}<div class="tx"><b>${e.icon} ${e.label}</b><small>${mine?'твоє до '+dd:busy2?'зайнято: '+P(e.holder).name+' до '+dd:'вільне · 7 днів'}</small></div>${busy2?'':`<button class="buy" data-x="${e.key}">${mine?'+7 днів · ':''}${e.price} 💎</button>`}</div>`}).join('')}</div>`:`<div class="sgrid ${stab==='ti'?'ti':''}">${L[stab].map(o=>{const on=wornKey[stab]===o.key,pv=stab==='av'?ava(Object.assign({},cur,{av:o.key}),46):stab==='bg'?ava(Object.assign({},cur,{bg:o.key}),46):stab==='fr'?ava(Object.assign({},cur,{fr:o.key}),46):`<span class="ttl" style="font-size:12px">${o.label||'—'}</span>`;
+  return `<button data-k="${o.key}" class="${on?'on':''}">${pv}${stab!=='av'&&stab!=='ti'?`<span>${o.label}</span>`:''}<span class="${on?'ok':o.own?'ok':'pr'}">${on?'✓ вдягнуто':o.own?'є':o.price+' 💎'}</span></button>`}).join('')}</div>`}
+ <button class="ghostb" onclick="unsheet()">Готово</button>`);
+ $('sheet').querySelectorAll('.stabs button').forEach(b=>b.onclick=()=>{stab=b.dataset.t;styleSheet()});
+ $('sheet').querySelectorAll('.exr .buy').forEach(b=>b.onclick=async()=>{const e=S.excl.find(x=>x.key===b.dataset.x);if(S.me.gems<e.price){toast(`Потрібно ще ${Math.ceil(e.price-S.me.gems)} 💎`);hap('err');return}
+  if(!(await confirmTG(`${e.icon} ${e.label} на 7 днів за ${e.price} 💎?`)))return;hap('heavy');const r=await act('excl',{key:e.key});if(r&&r.ok){confetti();styleSheet()}});
+ $('sheet').querySelectorAll('.sgrid button').forEach(b=>b.onclick=async()=>{const o=L[stab].find(x=>x.key===b.dataset.k);
+  if(!o.own){if(S.me.gems<o.price){toast(`Потрібно ще ${Math.ceil(o.price-S.me.gems)} 💎 — заробляй у Завданнях!`);hap('err');return}
+   if(!(await confirmTG(`Купити за ${o.price} 💎?`)))return}
+  hap('heavy');const r=await act('look',{kind:stab,key:o.key});if(r&&r.ok){if(!o.own)confetti();styleSheet()}})}
+// ===================== 📊 full farm stats
+let fsPer='week',fsMet='uah';
+const PCOL=['#ff8a2b','#7b5cff','#2fb45c','#2b9bff','#ff5d8f','#c9a227'];
+function fullStats(){const F=S.fstats;if(!F)return;const pp=F.people,per=fsPer,met=fsMet,val=p=>met==='gin'?(p.fun[per]||{}).gin||0:(p[per]||{}).uah||0;
+ const rank=[...pp].sort((a,b)=>val(b)-val(a)),mx=Math.max(1,...pp.map(val)),u=met==='uah'?' ₴':' 💎';
+ const pods=[rank[1],rank[0],rank[2]].map((p,i)=>p?`<div class="pc p${[2,1,3][i]}">${ava(P(p.id).look,[46,60,40][i])}<b>${P(p.id).name}</b><small>${fmt(Math.round(val(p)))}${u}</small><div class="pl">${[2,1,3][i]}</div></div>`:'').join('');
+ const best=(f,lab,fmtv)=>{const r=[...pp].sort((a,b)=>(f(b)||0)-(f(a)||0)),top=f(r[0])||0;if(!(top>0))return '';const me=String(S.me.id);
+ return `<div class="cat"><small>${lab}</small>${r.map((w,i)=>{const v=f(w)||0,win=v===top;return `<div class="w ${win?'win':'oth'} ${w.id===me?'me':''}">${ava(P(w.id).look,win?24:18)}${P(w.id).name}${win?' 🥇':''}<span>${fmtv(v)}</span></div>`}).join('')}</div>`};
+ sheet(`<h3>📊 Статистика ферми</h3><p>Хто сьогодні король урожаю? 👑</p>
+ <div class="mc">${[['today','Сьогодні'],['yday','Вчора'],['week','Тиждень'],['lweek','Мин. тиждень']].map(([k,l])=>`<button data-p="${k}" class="${k===per?'on':''}">${l}</button>`).join('')}</div>
+ <div class="mc">${[['month','Місяць'],['all','Весь час']].map(([k,l])=>`<button data-p="${k}" class="${k===per?'on':''}">${l}</button>`).join('')}</div>
+ <div class="mc">${[['uah','💰 Гривні'],['gin','💎 Кристали']].map(([k,l])=>`<button data-m="${k}" class="${k===met?'on':''}">${l}</button>`).join('')}</div>
+ ${pp.every(p=>!val(p))?'<div class="rbox small"><span>За цей період ще немає даних 🌱</span></div>':`<div class="pod">${pods}</div>`}
+ <div class="lb">${rank.map((p,i)=>`<div class="fr ${p.id===String(S.me.id)?'me':''}"><span class="rk">${['🥇','🥈','🥉'][i]||i+1}</span><span class="nm">${who(p.id,28)}</span><span class="fb"><i style="width:${val(p)/mx*100}%"></i></span><span class="fv">${fmt(Math.round(val(p)))}${u}</span></div>`).join('')}</div>
+ <div class="sect" style="margin:14px 2px 0"><b>🏆 Хто в чому найкращий</b><small>${{today:'сьогодні',yday:'вчора',week:'цього тижня',lweek:'минулого тижня',month:'цього місяця',all:'за весь час'}[per]}</small></div>
+ <div class="cats">${per!=='all'&&per!=='month'||true?'':''}${best(p=>p.fun[per].gin,'💎 Заробили кристалів',v=>fmt(v))}${best(p=>p.fun[per].gout,'🛍️ Витратили кристалів',v=>fmt(v))}
+  ${best(p=>p.fun[per].looks,'🎨 Куплено стилю',v=>v)}${best(p=>p.fun[per].xp,'🐾 Досвід улюбленця',v=>'+'+v)}${best(p=>p.fun[per].inv,'💼 Вкладено в землю',v=>fmt(v)+' ₴')}${per==='today'?best(p=>p.normPct,'🎯 Норма сьогодні',v=>v+'%'):per==='yday'?best(p=>p.normPctY,'🎯 Норма вчора',v=>v+'%'):''}
+  ${best(p=>((p.per||{})[per]||{}).bestDay,per==='today'||per==='yday'?'⚡ Зборів':'⚡ Найбільше зборів за день',v=>v)}${best(p=>((p.per||{})[per]||{}).tasks,'📋 Завдань',v=>v)}${best(p=>((p.per||{})[per]||{}).ach,'🏅 Досягнень',v=>v)}${best(p=>p.land,'🏡 Найбільший землевласник',v=>fmt(Math.round(v))+' ₴')}</div>
+ <div class="sect" style="margin:6px 2px 6px"><b>📈 Останні 14 днів</b></div>
+ <div class="gch">${F.days.map((d,k)=>{const m=Math.max(1,...pp.flatMap(p=>p.days));return `<div class="gd">${pp.map((p,j)=>`<i style="height:${p.days[k]/m*100}%;background:${PCOL[j%6]}"></i>`).join('')}${k%2?'':`<small>${+d.slice(8)}</small>`}</div>`}).join('')}</div>
+ <div class="lg">${pp.map((p,j)=>`<span><i style="background:${PCOL[j%6]}"></i>${P(p.id).name}</span>`).join('')}</div>
+ <div class="sect" style="margin:10px 2px 6px"><b>🌾 Уся ферма</b></div>
+ <div class="ftot"><div><b>${fmt(Math.round(F.farm.week.uah))} ₴</b><small>за тиждень</small></div><div><b>${fmt(Math.round(F.farm.month.uah))} ₴</b><small>за місяць</small></div><div><b>${fmt(F.farm.all.n)}</b><small>зборів усього</small></div>
+  <div><b>${fmt(Math.round(F.farm.all.uah))} ₴</b><small>зароблено</small></div><div><b>${fmt(F.farm.bank)} ₴</b><small>🐷 скарбничка</small></div><div><b>${F.farm.plots}</b><small>🏡 ділянок</small></div></div>
+ <button class="ghostb" onclick="unsheet()">Закрити</button>`);
+ $('sheet').querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{fsPer=b.dataset.p;hap('light');fullStats()});
+ $('sheet').querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{fsMet=b.dataset.m;hap('light');fullStats()})}
+$('fsbtn').onclick=e=>{e.preventDefault();fullStats()};$('fsbtn2').onclick=fullStats;
+// ===================== 🏁 race of the day
+function cdn(){if(!S||!S.contest)return '';const l=Math.max(0,S.contest.ends-(Date.now()+OFF));return [l/3600000|0,(l%3600000)/60000|0,(l%60000)/1000|0].map(x=>String(x).padStart(2,'0')).join(':')}
+function lanes(c,big){const mx=Math.max(0,...c.board.map(x=>x.v)),me=String(S.me.id);
+ return c.board.map((x,i)=>{const pos=mx>0?3+(big?66:58)*x.v/mx:3,lead=mx>0&&x.v===mx;
+  return `<div class="lane ${big?'big':''} ${lead?'lead':''} ${x.id===me?'me':''}"><span class="runner" data-pos="${pos}" style="left:3%">${ava(P(x.id).look,big?40:30)}<b>${fmt(x.v)}${lead?' 🥇':''}</b></span><span class="fin">🏁</span></div>`}).join('')}
+function renderContest(){const C=S.contest,el=$('cont');if(!C){el.style.display='none';return}el.style.display='';el.className='card race';
+ el.innerHTML=`<div class="rh"><b>🏁 Гонка дня</b><span class="cdp">⏱ <span class="cdn">${cdn()}</span></span></div>`+
+ C.prizes.map(z=>`<div class="cz"><span style="font-size:24px">${z.icon}</span><div class="tx"><b>${z.text}</b>${z.label}</div><button data-z="${z.id}">Забрати</button></div>`).join('')+
+ C.list.map(c=>`<div class="rc"><div class="rt2"><span>${c.icon} ${c.label}</span><span class="pzp">${pzPrev(c.pz,22)||'🎁'} ${c.prize}</span></div>${lanes(c)}</div>`).join('')+
+ `<div class="rf"><span>🏆 Тиждень: ${C.week.map(w=>`${ava(P(w.id).look,20)} <b>${w.wins}</b>`).join(' · ')}</span><span class="more2">Деталі ›</span></div>`;
+ el.querySelectorAll('.cz button').forEach(b=>b.onclick=async e=>{e.stopPropagation();hap('heavy');plus(b,'🎁');const r=await act('prize',{id:b.dataset.z});if(r&&r.ok){hap('ok');confetti()}});
+ el.onclick=e=>{if(e.target.closest('.cz'))return;raceSheet()};runRace(el)}
+function runRace(root){requestAnimationFrame(()=>setTimeout(()=>root.querySelectorAll('.runner').forEach(r=>{const w=r.dataset.pos;if(r.style.left!==w+'%')r.style.left=w+'%'}),60))}
+function pzPrev(pz,s){if(!pz)return'';const me=P(S.me.id).look;
+ if(pz.t==='aura')return ava(Object.assign({},me,{aura:true}),s);if(pz.t==='crown')return ava(Object.assign({},me,{crown:true}),s);
+ if(pz.t==='rainbow')return `<b class="rbn">${S.me.name}</b>`;return ''}
+function prizeBox(c){const pz=c.pz||{};const me=P(S.me.id).look;
+ const look=pz.t==='aura'?`<div class="pprev">${ava(Object.assign({},me,{aura:true}),64)}<div><b>Ось так сяятимеш ти ✨</b><small>Аура світиться навколо аватара всюди: у хедері, гонці, статистиці, торгівлі — 3 дні</small></div></div>`
+  :pz.t==='crown'?`<div class="pprev">${ava(Object.assign({},me,{crown:true}),64)}<div><b>Корона над тобою 👑</b><small>Усі бачитимуть її 7 днів</small></div></div>`
+  :pz.t==='food'?`<div class="pprev"><span style="font-size:46px">🍖</span><div><b>${pz.n} порцій корму</b><small>Годуй улюбленця скільки хочеш</small></div></div>`
+  :pz.t==='gem'?`<div class="pprev"><span style="font-size:46px">💎</span><div><b>+${pz.n} кристалів</b><small>Одразу на баланс</small></div></div>`
+  :pz.t==='cash'?`<div class="pprev"><span style="font-size:46px">💸</span><div><b>Кешбек ${pz.pct}%</b><small>Повернемо ${pz.pct}% витраченого сьогодні, до ${pz.max} 💎</small></div></div>`:'';
+ return look}
+function goTo(v){unsheet();if(v==='style'){styleSheet();return}const b=document.querySelector('.tab[data-v="'+v+'"]');if(b)b.click()}
+function raceSheet(){const C=S.contest;if(!C)return;const wk=[...C.week].sort((a,b)=>b.wins-a.wins);
+ const turbo=(S.boosts||[]).find(b=>b.key==='turbo');
+ sheet(`<div class="rsh"><h3>🏁 Гонка дня</h3><div class="bigcd">⏱ <span class="cdn">${cdn()}</span></div><p>до фінішу · переможець отримує приз, нічия — приз обом</p></div>
+ ${C.list.map(c=>`<div class="rbox"><div class="rt2"><b>${c.icon} ${c.label}</b></div><div class="pzbig">🎁 Приз: ${c.prize}</div>${prizeBox(c)}${lanes(c,true)}
+  <div class="hint">💡 ${c.hint}</div><button class="gob" data-go="${c.go}">Піти ›</button></div>`).join('')}
+ ${turbo&&!C.turbo?`<div class="rbox tb"><b>⚡ Хочеш обігнати?</b><small>Турбо: усе, що зробиш далі сьогодні, рахується ×1,5</small><button class="buy" id="rturbo">⚡ Турбо · ${turbo.price} 💎</button></div>`:C.turbo?`<div class="rbox tb"><b>⚡ Турбо увімкнено!</b><small>Усе, що робиш зараз, рахується ×1,5</small></div>`:''}
+ <div class="sect" style="margin:14px 2px 6px"><b>🏆 Перемоги тижня</b><small>у неділю чемпіон отримує 👑 корону і 🍦</small></div>
+ <div class="pprev light">${ava(Object.assign({},P(S.me.id).look,{crown:true}),64)}<div><b>Так виглядатиме чемпіон 👑</b><small>Корона над аватаром 7 днів — у хедері й скрізь, де тебе видно</small></div></div>
+ ${wk.every(w=>!w.wins)?'<div class="rbox small"><span>Цього тижня ще ніхто не виграв — будь першою! 🏁</span></div>':''}<div class="pod" style="${wk.every(w=>!w.wins)?'display:none':''}">${[wk[1],wk[0],wk[2]].map((w,i)=>w?`<div class="pc p${[2,1,3][i]}">${ava(P(w.id).look,[46,60,40][i])}<b>${nm(P(w.id))}</b><small>${w.wins} ${plural(w.wins,['перемога','перемоги','перемог'])}</small><div class="pl">${[2,1,3][i]}</div></div>`:'').join('')}</div>
+ ${C.last?`<div class="sect" style="margin:14px 2px 6px"><b>📜 Вчора</b><small>${C.last.day.slice(8)}.${C.last.day.slice(5,7)}</small></div>${C.last.list.map(c=>{const w=c.board[0]&&c.board[0].v>0?c.board.filter(x=>x.v===c.board[0].v):[];
+  return `<div class="rbox small"><span>${c.icon} ${c.label}</span><span class="win">${w.length?w.map(x=>ava(P(x.id).look,26)+' '+P(x.id).name).join(', ')+' · '+fmt(w[0].v):'ніхто 😴'}</span></div>`}).join('')}`:''}
+ <button class="ghostb" onclick="unsheet()">Закрити</button>`);
+ $('sheet').querySelectorAll('.gob').forEach(b=>b.onclick=()=>goTo(b.dataset.go));runRace($('sheet'));
+ if($('rturbo'))$('rturbo').onclick=async()=>{if(!(await confirmTG(`⚡ Турбо за ${turbo.price} 💎?`)))return;hap('heavy');const r=await act('boost',{key:'turbo'});if(r&&r.ok){confetti();raceSheet()}}}
+// ===================== ⚡ boosts
+function bleft(u){const l=Math.max(0,u-(Date.now()+OFF)),h=Math.floor(l/3600000),m=Math.floor(l%3600000/60000);return h?h+' год '+m+' хв':m+' хв'}
+function renderBoosts(){const B=S.boosts||[];
+ $('boosts').innerHTML=B.map(b=>`<div class="card bst ${b.until?'on':''}"><div class="e">${b.icon}</div><div class="tx"><b>${b.label}${b.price<b.base?`<span class="sale">−${b.base-b.price} 💎</span>`:''}</b><small>${b.desc}</small></div>
+  ${b.until&&!b.canBuy?`<div class="act">діє ще<br>${bleft(b.until)}</div>`:`<button class="buy" data-b="${b.key}" ${S.me.gems<b.price?'disabled':''}>${b.until?'+24 год · ':''}${b.price<b.base?`<span class="old">${b.base}</span>`:''}${b.price} 💎</button>`}</div>`).join('');
+ $('boosts').querySelectorAll('.buy').forEach(x=>x.onclick=async()=>{const b=B.find(y=>y.key===x.dataset.b);
+  if(!(await confirmTG(`${b.icon} ${b.label} за ${b.price} 💎?`)))return;hap('heavy');const r=await act('boost',{key:b.key});if(r&&r.ok){hap('ok');confetti()}});
+ $('hbst').innerHTML=B.filter(b=>b.until).map(b=>`<span>${b.icon}</span>`).join('')}
+// ===================== 🐾 pet
+function botView(v){if(!v)return;const rows=(v.buttons||[]).filter(r=>r.some(b=>/^pet:/.test(b.data)));
+ sheet(`<div class="bv">${v.text}</div><div class="vbtn">${rows.map(r=>`<div class="row">${r.filter(b=>/^pet:/.test(b.data)).map(b=>`<button class="${/take|dar:|rescue|feed|start|treat/.test(b.data)?'pri':''}" data-d="${b.data}">${b.label}</button>`).join('')}</div>`).join('')}</div>
+  <button class="ghostb" onclick="unsheet()">Закрити</button>`);
+ $('sheet').querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>petDo(b.dataset.d,b))}
+async function petDo(data,btn){if(busy)return;hap('medium');const r=await act('pet',{data});if(!r||r.error)return;
+ if(/take|treat/.test(data)){hap('ok');confetti()}else if(/feed|rescue/.test(data))plus(btn||$('petc'),'🍖','#b35a00');
+ if(r.res&&r.res.view)botView(r.res.view);else unsheet()}
+function renderPet(){const el=$('petc'),pe=S.pet;
+ if(!pe){const st=S.petStage;el.innerHTML=`<div class="pt"><span class="pf">🐾</span><div class="tx"><b>${st==='none'?'Улюбленець чекає на тебе':'Квест улюбленця'}</b><small>${st==='none'?'Заведи цуценя чи кошеня — воно допомагатиме на фермі':'Продовж квест, щоб познайомитись'}</small></div></div>
+  <div class="pbt"><button class="go" data-d="${st==='none'?'pet:start':'pet:card'}">${st==='none'?'🐾 Почати':'▶️ Продовжити'}</button></div>`;
+  el.querySelector('button').onclick=e=>petDo(e.target.dataset.d,e.target);return}
+ const hungry=pe.fed<pe.min,xk=pe.xpTo?Math.min(1,(pe.xp-pe.xpFrom)/(pe.xpTo-pe.xpFrom)):1;
+ el.innerHTML=`<div class="pt"><span class="pf ${hungry?'hungry':''}">${pe.icon}</span><div class="tx"><b>${pe.name} · ${pe.level} рів.</b>
+  <small>${hungry?`🥺 ${pe.female?'голодна':'голодний'} — нагодуй до ${pe.min}%, щоб ${pe.female?'допомагала':'допомагав'}`:pe.help?`🐾 ${pe.female?'допомагає':'допомагає'}: знахідки до ${pe.help}% від збору хробаків`:'📚 ще вчиться'}</small>
+  <div class="pbr fed ${hungry?'':'ok'}"><i style="width:${pe.fed}%"></i><span class="mk" style="left:${pe.min}%"></span></div><div class="pl2"><span>🍖 ситість ${pe.fed}%</span><span>⭐ ${pe.xp}${pe.xpTo?' / '+pe.xpTo:''}</span></div>
+  <div class="pbr xp"><i style="width:${xk*100}%"></i></div></div></div>
+ <div class="pbt">${pe.find?`<button class="go" data-d="pet:take">🎁 Забрати знахідку ${fmt(pe.find)} ₴</button>`:''}${pe.miss?`<button class="go" data-d="pet:rescue">🍖 Нагодувати й забрати знахідку</button>`:''}
+  ${pe.ask?`<button class="go" data-d="pet:dar:-1">🐾 Так, я ${S.me.female?'була':'був'} в дару</button>`:''}
+  <button data-d="pet:feed" ${pe.fed>=100?'disabled':''}>🍖 Погодувати${pe.food?` (є ${pe.food})`:` · ${S.shop.food.price} 💎`}</button><button data-d="pet:wardrobe">👕 Гардероб</button></div>`;
+ el.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>petDo(b.dataset.d,b))}
+// ===================== 🌱 what grows
+let GD=null;
+function growSheet(){const G=S.grow;if(!G)return;if(!GD)GD={bedCrop:G.bedCrop,bundleCrop:G.bundleCrop,bundles:G.bundles,nbundles:G.nbundles,neutral:G.neutral};const D=GD,ro=!G.edit;
+ const bc=G.bcrops.find(x=>x.key===D.bundleCrop)||G.bcrops[0],own=Math.min(D.bundles,G.spots),comps=G.spots-own;
+ const plotMin=(own+D.nbundles>0&&comps+D.neutral>0)?Math.max(90,bc.min):(own+D.nbundles>0?bc.min:90),gold=(own+D.nbundles)*bc.gold+(comps+D.neutral)*G.compGold;
+ const dirty=['bedCrop','bundleCrop','bundles','nbundles','neutral'].some(k=>D[k]!==G[k]);
+ const dur=m=>m>=60?Math.floor(m/60)+' год'+(m%60?' '+m%60+' хв':''):m+' хв';
+ sheet(`<h3>🌱 Що росте</h3><p>${ro?'Змінює власник ферми — тут можна подивитись.':'Обери — і натисни «Зберегти». Таймери перерахуються самі.'}</p>
+ <div class="gsec"><h5>🏠 Грядки в будинках · ${G.beds}</h5><small>Що посаджено на грядках</small>
+  <div class="cpick">${G.crops.map(c=>`<button data-bed="${c.key}" class="${c.key===D.bedCrop?'on':''}" ${ro?'disabled':''}><span class="e">${c.icon}</span>${c.label}<small>${dur(c.min)} · ${fmt(c.uah)} ₴</small></button>`).join('')}</div></div>
+ <div class="gsec"><h5>📦 Бандли — яка культура</h5><small>Для бандлів і на своїй, і на нейтральній землі</small>
+  <div class="cpick" style="grid-template-columns:repeat(4,1fr)">${G.bcrops.map(c=>`<button data-bc="${c.key}" class="${c.key===D.bundleCrop?'on':''}" ${ro?'disabled':''}><span class="e">📦</span>${c.label}<small>${dur(c.min)}</small></button>`).join('')}</div></div>
+ <div class="gsec"><h5>🏡 Своя земля · ${G.spots} місць</h5><small>Бандл займає місце компостера</small>
+  <div class="split"><i class="b" style="width:${G.spots?own/G.spots*100:0}%"></i><i class="c" style="width:${G.spots?comps/G.spots*100:0}%"></i></div>
+  <div class="rg"><div class="rgh"><span class="nm">📦 бандлів ${bc.label}</span><span class="rv" id="gv1">${own} · 🪱 ${comps}</span></div><input type="range" id="g1" min="0" max="${G.spots}" step="1" value="${own}" ${ro?'disabled':''}></div></div>
+ <div class="gsec"><h5>🌍 Нейтральна земля</h5><small>Скільки в середньому стоїть (бо крадуть)</small>
+  ${[['g2','nbundles','📦 бандлів'],['g3','neutral','🪱 компостерів']].map(([i,k,l])=>`<div class="rg"><div class="rgh"><span class="nm">${l}</span><span class="rv" id="v${i}">${D[k]}</span></div>
+   ${ro?'':`<div class="stp">${[-5,-1,1,5,10].map(d=>`<button data-k="${k}" data-d="${d}">${d>0?'+':''}${d}</button>`).join('')}</div>`}
+   <input type="range" id="${i}" min="0" max="${Math.max(k==='neutral'?60:40,D[k]+20)}" step="1" value="${D[k]}" ${ro?'disabled':''}></div>`).join('')}
+  ${ro?'':'<small style="display:block;color:var(--mute);font-weight:800;font-size:11.5px;margin-top:4px">Посадив нові — тисни +1 / +5. Вкрали — −1.</small>'}</div>
+ <div class="gsec"><h5>🪱 Хробаки: збір кожні ${dur(plotMin)}</h5><small>≈ ${fmt(Math.round(gold))}g за збір · зараз ${fmt(G.plotsUah)} ₴</small></div>
+ ${ro?'':`<div class="gsave"><button class="buy big" id="gsave" ${dirty?'':'disabled'}>💾 Зберегти</button></div>`}<button class="ghostb" onclick="GD=null;unsheet()">Закрити</button>`);
+ const keep=()=>{const sc=$('sheet').scrollTop;growSheet();$('sheet').scrollTop=sc};
+ $('sheet').querySelectorAll('[data-bed]').forEach(b=>b.onclick=()=>{D.bedCrop=b.dataset.bed;hap('light');keep()});
+ $('sheet').querySelectorAll('[data-bc]').forEach(b=>b.onclick=()=>{D.bundleCrop=b.dataset.bc;hap('light');keep()});
+ [['g1','bundles'],['g2','nbundles'],['g3','neutral']].forEach(([i,k])=>{const el=$(i);el.oninput=()=>{D[k]=+el.value;
+  if(k==='bundles')$('gv1').textContent=`${D.bundles} · 🪱 ${G.spots-D.bundles}`;else $('v'+i).textContent=D[k];const g=$('gsave');if(g)g.disabled=false};el.onchange=()=>{hap('light');keep()}});
+ $('sheet').querySelectorAll('.stp button').forEach(b=>b.onclick=()=>{const k=b.dataset.k;D[k]=Math.max(0,D[k]+ +b.dataset.d);hap('light');keep()});
+ if($('gsave'))$('gsave').onclick=async()=>{hap('heavy');const r=await act('grow',D);if(r&&r.ok){GD=null;unsheet();confetti()}}}
+$('growb').onclick=()=>{GD=null;growSheet()};
+// ===================== 📐 reference day
+let RD=null,RI=null,rtm=null,rseq=0;
+async function refCall(args){const my=++rseq;
+ if(DEMO){const n=JSON.parse(JSON.stringify(RI.now));const k=(args.runs||RI.ref.runs)/RI.ref.runs*(args.bedCrop==='mr'?1.1:1);n.max=Math.round(n.max*k);n.people.forEach(p=>p.norm=Math.round(p.norm*k/5)*5);n.plotsInv.forEach(p=>{p.all=Math.round(p.all*k);p.mine=Math.round(p.mine*k)});return {res:Object.assign({},RI,{next:n})}}
+ const r=await call('refPreview',args);return my===rseq?r:null}
+async function refSheet(){if(!RI){const r=DEMO?{res:{ref:{bedCrop:'tc',bundleCrop:'clover',bundleShare:2/3,runs:6},def:{bedCrop:'tc',bundleCrop:'clover',bundleShare:2/3,runs:6},edit:true,
+   now:{max:126,beds:12,plots:9,over:5,people:[{id:'1',share:50,norm:65},{id:'2',share:30,norm:40}],plotsInv:[{id:'p1',name:'Сонячна',all:110,mine:34}],offers:[{id:'o1',name:'Річкова',all:110}]},
+   crops:[['narcissus','Narcissus',30],['clover','Clover',30],['corn','Corn',60],['mr','Mint / Rosemary',90],['tc','Cactus / Turmeric',120]].map(x=>({key:x[0],label:x[1],min:x[2]})),
+   bcrops:[['clover','Clover',90],['narcissus','Narcissus',170],['rose','Rose',170],['corn','Corn',180]].map(x=>({key:x[0],label:x[1],min:x[2]}))}}:await call('refPreview',{});
+  if(!r||!r.res){toast('Немає зв’язку з ботом 😕');return}RI=r.res;RD=Object.assign({},RI.ref)}
+ refDraw()}
+function refDraw(){const I=RI,D=RD,ro=!I.edit,N=I.next||I.now,O=I.now,ic={narcissus:'🌼',clover:'🍀',corn:'🌽',mr:'🌿',tc:'🌵'};
+ const dirty=['bedCrop','bundleCrop','runs'].some(k=>D[k]!==I.ref[k])||Math.abs(D.bundleShare-I.ref.bundleShare)>.001;
+ const row=(nm,a,b,u,goodUp)=>{const d=b-a,c=!dirty||Math.abs(d)<.01?'same':(d>0)===!!goodUp?'dn':'up';return `<div class="cr2"><span class="nm">${nm}</span>${dirty&&Math.abs(d)>=.01?`<span class="a">${fmt(a)}${u} →</span>`:''}<span class="b ${c}">${fmt(b)}${u}</span></div>`};
+ const sc=$('sheet').scrollTop;
+ sheet(`<h3>📐 Еталон ферми</h3><p>Еталонний день — від нього рахуються норми, кристали понад норму та дохід інвестицій. ${ro?'Змінює власник ферми.':'Тягни — і одразу бачиш, що зміниться. Нічого не збережеться, поки не натиснеш «Зберегти».'}</p>
+ <div class="gsec"><h5>🏠 Грядки в еталоні</h5><div class="cpick">${I.crops.map(c=>`<button data-bed="${c.key}" class="${c.key===D.bedCrop?'on':''}" ${ro?'disabled':''}><span class="e">${ic[c.key]||'🌱'}</span>${c.label}</button>`).join('')}</div></div>
+ <div class="gsec"><h5>📦 Бандли в еталоні</h5><div class="cpick" style="grid-template-columns:repeat(4,1fr)">${I.bcrops.map(c=>`<button data-bc="${c.key}" class="${c.key===D.bundleCrop?'on':''}" ${ro?'disabled':''}><span class="e">📦</span>${c.label}</button>`).join('')}</div>
+  <div class="rg"><div class="rgh"><span class="nm">Частка місць під бандли</span><span class="rv" id="rsv">${Math.round(D.bundleShare*100)}% · 🪱 ${100-Math.round(D.bundleShare*100)}%</span></div><input type="range" id="rs" min="0" max="100" step="5" value="${Math.round(D.bundleShare*100)}" ${ro?'disabled':''}></div></div>
+ <div class="gsec"><h5>🔁 Зборів за день</h5><div class="rg"><div class="rgh"><span class="nm">грядки і хробаки</span><span class="rv" id="rrv">${D.runs}</span></div><input type="range" id="rr" min="1" max="12" step="1" value="${D.runs}" ${ro?'disabled':''}></div></div>
+ <div id="refres" class="">
+ <div class="cmp"><h5>🌾 Еталонний день ферми</h5>${row('Уся ферма за день',O.max,N.max,' ₴',1)}${row('🌱 Грядки за збір',O.beds,N.beds,' ₴',1)}${row('🪱 Хробаки за збір',O.plots,N.plots,' ₴',1)}${row('💎 +1 кристал понад норму за кожні',O.over,N.over,' ₴',0)}</div>
+ <div class="cmp"><h5>🎯 Норми</h5>${N.people.map((p,i)=>row(`${who(p.id,24)} <small style="color:var(--mute)">${p.share}%</small>`,O.people[i].norm,p.norm,' ₴',0)).join('')}</div>
+ ${N.plotsInv.length?`<div class="cmp"><h5>💼 Інвестиції, на місяць</h5>${N.plotsInv.map((p,i)=>row(`🏡 ${p.name} · тобі`,O.plotsInv[i].mine,p.mine,' ₴',1)+row(`<small style="color:var(--mute)">усім власникам</small>`,O.plotsInv[i].all,p.all,' ₴',1)).join('')}${N.offers.map((o,i)=>row(`🏗 ${o.name} (збір)`,O.offers[i].all,o.all,' ₴',1)).join('')}</div>`:''}
+ </div>
+ ${ro?'':`<div class="gsave"><button class="buy big" id="rsave" ${dirty?'':'disabled'}>💾 Зберегти еталон</button></div><button class="ghostb" id="rdef">↺ Як було спочатку (кактус · 2/3 Clover · 6 зборів)</button>`}
+ <button class="ghostb" onclick="RI=null;unsheet()">Закрити</button>`);
+ $('sheet').scrollTop=sc;
+ const go=()=>{clearTimeout(rtm);$('refres').classList.add('refload');rtm=setTimeout(async()=>{const r=await refCall(RD);if(r&&r.res){RI.next=r.res.next;refDraw()}},350)};
+ $('sheet').querySelectorAll('[data-bed]').forEach(b=>b.onclick=()=>{D.bedCrop=b.dataset.bed;hap('light');refDraw();go()});
+ $('sheet').querySelectorAll('[data-bc]').forEach(b=>b.onclick=()=>{D.bundleCrop=b.dataset.bc;hap('light');refDraw();go()});
+ $('rs').oninput=e=>{D.bundleShare=+e.target.value/100;$('rsv').textContent=`${e.target.value}% · 🪱 ${100-e.target.value}%`;go()};
+ $('rr').oninput=e=>{D.runs=+e.target.value;$('rrv').textContent=D.runs;go()};
+ if($('rdef'))$('rdef').onclick=()=>{Object.assign(D,I.def);hap('light');refDraw();go()};
+ if($('rsave'))$('rsave').onclick=async()=>{if(!(await confirmTG('Зберегти еталон? Норми й дохід інвестицій перерахуються.')))return;hap('heavy');const r=await act('refSave',D);if(r&&r.ok){RI=null;unsheet();confetti()}}}
+$('refb').onclick=()=>{RI=null;refSheet()};
+// ===================== tabs
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{hap('light');document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===b));
+ document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id==='v_'+b.dataset.v));scrollTo(0,0);if(b.dataset.v==='inv')tickInvest()});
+// ===================== demo (outside Telegram)
+let D=null;
+function demoState(){const now=Date.now();return{me:{id:'2',name:'Марія',gems:67,balance:533,streak:9,done:21,norm:30},
+ farm:{now,week:[...Array(7)].map((_,i)=>({day:new Date(now-(6-i)*864e5).toISOString().slice(0,10),ok:i<6&&i!==1})),
+  crops:[{id:'beds',name:'Грядки',icon:'🌱',uah:14,gem:1,cycle:120,due:0},{id:'plots',name:'Хробаки',icon:'🪱',uah:13,gem:1,cycle:90,due:now+25*60000}],
+  once:[{id:'narcissus',icon:'🌼',name:'Narcissus',uah:6,gem:.5},{id:'clover',icon:'🍀',name:'Clover',uah:6,gem:.5},{id:'mr',icon:'🌿',name:'Mint',uah:16,gem:1}]},
+ tasks:{ar:[{id:'alt',icon:'🧑‍🌾',label:'Прокачати альта й поставити пугало',per:'за альта',gems:50,today:0,wait:0},{id:'restock',icon:'📦',label:'Поповнити запаси ферми',per:'за раз',gems:10,today:0,wait:0},{id:'daily',icon:'☀️',label:'Щоденні справи',per:'за персонажа',gems:5,today:1,wait:1,list:['📅 Нагорода в календарі','🫘 Боб з ринку']},{id:'gift',icon:'🎁',label:'Забрати подарунок',per:'за персонажа',gems:1,today:0,wait:0}],
+  wow:[{id:'wd_dm',icon:'🏰',label:'The Deadmines',lvl:'18-23',gems:30,done:0,wait:0},{id:'wd_wc',icon:'🏰',label:'Wailing Caverns',lvl:'17-25',gems:20,done:1,wait:0}],waitGems:5,waitN:1,maxLvl:35},
+ shop:{season:null,rise:30,resting:4,items:[{id:'ice',icon:'🍦',label:'Морозиво',open:true,price:40,times:0},{id:'cart',icon:'🎬',label:'Мультик +30 хв',open:true,price:33,times:1},{id:'toy',icon:'🧸',label:'Нова іграшка',open:true,price:90,times:0},{id:null,open:false,need:12,price:60},{id:null,open:false,need:14,price:80}],food:{price:1,pack:10,packN:12}},
+ people:[{id:'2',name:'Марія',look:{av:'🦄',bg:'rose',fr:'rainbow',ti:'Королева грядок'}},{id:'1',name:'Тато',look:{av:'🐻',bg:'sky',fr:'gold',ti:''},owner:true}],
+ looks:{av:['🙂','🐱','🐶','🦄','🧚','🐲','👑','🔮'].map((k,i)=>({key:k,price:i<3?0:15+i*5,own:i<4})),bg:['sand','sky','mint','rose','ocean','sunset','galaxy','gold'].map((k,i)=>({key:k,label:k,price:i<2?0:15+i*8,own:i<2||k==='rose'})),fr:['none','silver','gold','rainbow','fire','stars'].map((k,i)=>({key:k,label:k,price:[0,30,60,120,150,200][i],own:i===0||k==='rainbow'})),ti:[['','Без титулу'],['farmer','Фермерка'],['queen','Королева грядок'],['legend','Легенда ферми']].map((x,i)=>({key:x[0],label:x[1],price:[0,0,50,150][i],own:i<3}))},
+ trades:[{id:'t1',other:'1',sent:true,mine:true,theyAgreed:true,give:[{key:'gem',n:5,icon:'💎',label:'Кристали',unit:'💎',pct:null}],get:[{key:'uah',n:10,icon:'💰',label:'Гривні',unit:'грн',pct:null}],myHave:[{key:'gem',n:67,icon:'💎',label:'Кристали',unit:'💎',step:1},{key:'uah',n:533,icon:'💰',label:'Гривні',unit:'грн',step:1}],theirHave:[{key:'uah',n:900,icon:'💰',label:'Гривні',unit:'грн',step:1}]}],
+ inv:{food:4},my:{today:{n:2,uah:21},week:{n:9,uah:112},month:{n:41,uah:533},days:[...Array(7)].map((_,i)=>({day:new Date(Date.now()-(6-i)*864e5).toISOString().slice(0,10),uah:[34,12,31,45,0,30,21][i],n:3})),rec:{bestStreak:12,bestDay:7,harvests:241,earned:3120},family:[{id:'1',name:'Тато',uah:140},{id:'2',name:'Марія',uah:112,me:true}],claim:[{key:'first',icon:'🌅',name:'З першого дня'},{key:'0.0',icon:'🌱',name:'Перший урожай'},{key:'0.1',icon:'🧺',name:'Десять кошиків'}],achGem:1,gemUah:.5,ach:{got:7,total:64,first:{key:'first',paid:false},next:[{title:'🚜 Збори',v:41,need:50,icon:'🚜',name:'Справжня фермерка',from:10,unit:['збір','збори','зборів'],done:2,steps:5,claim:{key:'0.1',icon:'🧺',name:'Десять кошиків'}},{title:'🔥 Стрік',v:9,need:14,icon:'🔥',name:'Два тижні',from:7,unit:['день','дні','днів'],done:2,steps:6},{title:'💰 Заробіток',v:533,need:1000,icon:'💎',name:'Тисячниця',from:500,unit:['гривня','гривні','гривень'],done:3,steps:6},{title:'⚡ Рекорд за день',v:4,need:6,icon:'⚡',name:'Робочий день',from:0,unit:['збір','збори','зборів'],done:0,steps:3},{title:'🏁 Перегони',v:1,need:3,icon:'🏁',name:'Чемпіонка',from:1,unit:['перемога','перемоги','перемог'],done:1,steps:4}]},items:[{what:'prize',icon:'🎁',label:'Невідкритий приз',n:1,act:'Відкрити'},{what:'ice',icon:'🍦',label:'Морозиво',n:2,act:'Хочу!'},{what:'cpn_x',icon:'🍽️',label:'Мий за мною посуд',n:1,act:'Використати'},{what:'',icon:'❄️',label:'Заморозка стріку',n:1,note:'спрацює сама'}]},invest:{min:20,balance:533,daily:3.42,wallet:12.5,plots:[{id:'p1',name:'Сонячна',type:'16×16 з будинком',owners:[{id:'1',share:.69},{id:'2',share:.31}],share:.31,my:930,got:12,canSell:true,day:1.14,dayAll:3.68},{id:'p2',name:'Лісова',type:'24×24 з будинком',share:.2,day:2.28,dayAll:11.4}],offers:[{id:'o1',who:[{id:'1',uah:1360},{id:'2',uah:500}],name:'Річкова',type:'16×16 з будинком',price:3000,raised:1860,my:500,dayAll:3.68}]}}}
+function demoCall(a,x){D=D||demoState();let t='',res=null;const now=Date.now();
+ if(a==='harvest'){const c=x.crop?D.farm.once.find(o=>o.id===x.crop):D.farm.crops.find(c=>c.id===x.kind);const k=D.farm.crops.find(c=>c.id===x.kind);
+  D.me.done+=c.uah;D.me.balance+=c.uah;D.me.gems+=c.gem;k.due=now+k.cycle*60000;D.farm.now=now;if(D.me.done>=D.me.norm&&!D.farm.week[6].ok){D.farm.week[6].ok=true;D.me.streak++}t='+'+c.uah+' грн · +'+c.gem+' 💎'}
+ if(a==='task'){const T=[...D.tasks.ar,...D.tasks.wow].find(t=>t.id===x.id);T.wait++;D.tasks.waitN++;D.tasks.waitGems+=T.gems;t='⏳ Надіслано на підтвердження: +'+T.gems+' 💎'}
+ if(a==='buy'){const i=D.shop.items.find(i=>i.id===x.item);if(D.me.gems<i.price)return Promise.resolve({ok:true,toast:'Не вистачає 💎',state:D});D.me.gems-=i.price;i.times++;i.price=Math.round(i.price*1.3);t=i.icon+' куплено!'}
+ if(a==='claim'){const n=x.key==='all'?D.my.claim.length:1;D.me.gems+=n;D.my.claim=x.key==='all'?[]:D.my.claim.filter(c=>c.key!==x.key);t='🏅 +'+n+' 💎'}
+ if(a==='pledge'){const o=D.invest.offers.find(o=>o.id===x.oid),v=x.amt==='all'?D.invest.balance:+x.amt;o.raised+=v;o.my+=v;D.invest.balance-=v;D.me.balance-=v;t='💼 +'+v+' грн'}
+ if(a==='ivtake'){D.me.balance+=D.invest.wallet;t='💰 +'+D.invest.wallet;D.invest.wallet=0}
+ if(a==='food'){D.me.gems-=x.pack?D.shop.food.pack:D.shop.food.price;D.inv.food+=x.pack?12:1;t='🍖 +'+(x.pack?12:1)}
+ return new Promise(r=>setTimeout(()=>r({ok:true,toast:t,res,state:JSON.parse(JSON.stringify(D))}),350))}
+// ===================== start
+if(!DEMO&&!API) document.querySelector('.wrap').insertAdjacentHTML('afterbegin','<div class="err">Не вказано адресу бота. Відкрий застосунок кнопкою «📱 Відкрити ферму» з бота.</div>');
+else act('state');
+</script></body></html>
