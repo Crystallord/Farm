@@ -834,6 +834,7 @@ function today(st, now) { return st.stats['d:' + dayKey(now, st.cfg)] || {}; }
 // The farm's reference day (еталон), the base of norms, plot income and payback: Cactus/Turmeric in the seedbeds,
 // 2/3 of the composter spots as Clover bundles and 1/3 as composters (worms), 6 harvests of each a day. It does not
 // depend on what is planted today, only on the land: more plots or neutral land -> more pay per harvest -> a bigger norm.
+const BOT_VER = '24.11.1107'; // set by bump.sh on every push
 const REF_DEF = { bedCrop: 'tc', bundleCrop: 'clover', bundleShare: 2 / 3, runs: 6 };
 let REF_OVR = null; // the owner's reference day (st.cfg.ref), set when the state is loaded
 const REF = {
@@ -4022,7 +4023,7 @@ function appState(st, id) {
     inv: { food: x.food, ice: x.ice, vac: x.vac.length, cash: money(x.cash), freeze: x.freeze, gifts: x.gift.length,
       coupons: Object.keys(x.coupons).filter(function (k) { return x.coupons[k] > 0 && shopItem(k); }).map(function (k) { const it = shopItem(k); return { id: k, icon: it.icon, label: it.label, n: x.coupons[k] }; }) },
     gemUah: st.cfg.gemUah,
-    farm: appFarm(st, id, now), tasks: appTasks(st, id), invest: appInvest(st, id), my: appMe(st, id, now), people: appPeople(st), looks: appLooks(st, id), trades: appTrades(st, id),
+    ver: BOT_VER, farm: appFarm(st, id, now), tasks: appTasks(st, id), invest: appInvest(st, id), my: appMe(st, id, now), people: appPeople(st), looks: appLooks(st, id), trades: appTrades(st, id),
     trInv: Object.keys(st.people).reduce(function (o, u) { o[u] = trKeys(st, u).map(function (k) { return Object.assign(trItem(st, k, trHave(st, u, k)), { step: Math.abs(trSteps(st, k).filter(function (x) { return x[0] > 0; })[0][0]) }); }); return o; }, {}), fstats: appFarmStats(st, now), grow: appGrow(st, id), contest: appContest(st, id, now), boosts: boostState(st, id, now), excl: Object.keys(EXCL).map(function (k) { const e = exclHolder(st, k); return { key: k, icon: EXCL[k].icon, label: EXCL[k].label, price: EXCL[k].price, holder: e ? e.uid : null, until: e ? e.until : 0 }; }),
   };
 }

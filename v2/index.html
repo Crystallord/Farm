@@ -422,6 +422,7 @@ body.busy button:not(.pending),body.busy .tile,body.busy .ob{opacity:.6;transiti
 .cr2 .a{color:var(--mute);font-variant-numeric:tabular-nums}.cr2 .b{font-weight:900;font-variant-numeric:tabular-nums;min-width:64px;text-align:right}
 .up{color:#e2552b}.dn{color:#1d8a45}.same{color:var(--ink)}
 .refload{opacity:.45;transition:opacity .2s}
+.nav{position:fixed}.ver{position:absolute;right:10px;top:-15px;font-size:9.5px;font-weight:800;color:#c8b49c;letter-spacing:.02em;pointer-events:none;font-variant-numeric:tabular-nums}
 </style></head><body>
 <header class="hdr" id="hdr"><span id="hava" class="tapme"></span><div class="hn"><b id="hname">…</b><span id="httl"></span><span id="hbst"></span></div>
   <div class="hb"><span class="hs"><span class="flame dim" id="flame">🔥</span><b id="hst">0</b></span><span class="hm"><b id="uah">0</b> ₴</span><span class="hg"><b id="gem">0</b> 💎</span></div></header>
@@ -494,7 +495,7 @@ body.busy button:not(.pending),body.busy .tile,body.busy .ob{opacity:.6;transiti
   <div class="recs" id="recs"></div>
   <div class="demo dm"></div>
 </div>
-<nav class="nav"><div class="in">
+<nav class="nav"><div class="ver" id="ver"></div><div class="in">
   <button class="tab on" data-v="farm"><span class="ti">🌾</span>Ферма</button>
   <button class="tab" data-v="tasks"><span class="ti">📜</span>Завдання<span class="dot" id="tdot" style="display:none">0</span></button>
   <button class="tab" data-v="inv"><span class="ti">💼</span>Інвест.</button>
@@ -509,6 +510,7 @@ const TG=window.Telegram&&Telegram.WebApp; try{TG.ready();TG.expand();TG.setHead
 const qs=new URLSearchParams(location.search), API=qs.get('api')||window.FARM_API||'', DEMO=qs.get('demo')==='1'||!(TG&&TG.initData);
 const quiet=()=>{const h=new Date().getHours();return h<8}; // 00:00–08:00: no vibration
 const hap=t=>{if(quiet())return;try{t==='ok'?TG.HapticFeedback.notificationOccurred('success'):t==='err'?TG.HapticFeedback.notificationOccurred('error'):TG.HapticFeedback.impactOccurred(t||'medium')}catch(e){}};
+const APP_VER='24.11.1107';
 const $=id=>document.getElementById(id), R=95, C=2*Math.PI*R;
 const fmt=v=>(+v).toLocaleString('uk-UA',{minimumFractionDigits:(+v)%1?2:0,maximumFractionDigits:2});
 const plural=(n,f)=>{n=Math.abs(n)%100;const b=n%10;return n>10&&n<20?f[2]:b===1?f[0]:b>=2&&b<=4?f[1]:f[2]};
@@ -540,7 +542,7 @@ async function act(action,args){
     return r;
   }catch(e){toast('Немає зв’язку з ботом 😕 '+(e&&e.message?e.message.slice(0,60):''));hap('err');return null}finally{busy=false;pend(false)}
 }
-function apply(st){S=st;OFF=(st.farm&&st.farm.now?st.farm.now-Date.now():0);render()}
+function apply(st){S=st;$('ver').textContent='v'+APP_VER+(st.ver?' · бот '+st.ver:'');OFF=(st.farm&&st.farm.now?st.farm.now-Date.now():0);render()}
 // ===================== helpers
 function countTo(el,to,dec,ms=900){const from=+el.dataset.v||0;el.dataset.v=to;const t0=performance.now();
  (function f(t){const k=Math.min(1,(t-t0)/ms),e=1-Math.pow(1-k,3),v=from+(to-from)*e;el.textContent=dec?fmt(+v.toFixed(2)):Math.round(v);if(k<1)requestAnimationFrame(f)})(t0)}
