@@ -834,7 +834,7 @@ function today(st, now) { return st.stats['d:' + dayKey(now, st.cfg)] || {}; }
 // The farm's reference day (еталон), the base of norms, plot income and payback: Cactus/Turmeric in the seedbeds,
 // 2/3 of the composter spots as Clover bundles and 1/3 as composters (worms), 6 harvests of each a day. It does not
 // depend on what is planted today, only on the land: more plots or neutral land -> more pay per harvest -> a bigger norm.
-const BOT_VER = '24.11.1416'; // set by bump.sh on every push
+const BOT_VER = '24.11.1419'; // set by bump.sh on every push
 const REF_DEF = { bedCrop: 'tc', bundleCrop: 'clover', bundleShare: 2 / 3, runs: 6 };
 let REF_OVR = null; // the owner's reference day (st.cfg.ref), set when the state is loaded
 const REF = {
@@ -914,7 +914,7 @@ function credit(st, user, kind, uahAmount, now) {
   ['d:' + day, 'w:' + weekKey(day), 'm:' + monthKey(now)].forEach(function (key) {
     const b = st.stats[key] = st.stats[key] || {};
     const r = b[user.id] = b[user.id] || { n: 0, uah: 0 };
-    if (harvest) r.n += 1;
+    if (harvest) { r.n += 1; r.k = r.k || {}; const what = kind === 'beds' ? 'b_' + (st._crop || (nightFirst(st, kind, now) ? 'tc' : st.cfg.bedCrop)) : kind; r.k[what] = (r.k[what] || 0) + 1; } // what was harvested: who likes what
     if (counts) r.g = money((r.g !== undefined ? r.g : r.uah) + gross);
     r.uah += uahAmount;
   });
@@ -3930,6 +3930,10 @@ function appFarmStats(st, now) {
             tasks: Object.keys(st.gemLog || {}).filter(inR).reduce(function (m, d) { const n = ((st.gemLog[d] || {})[u] || {}).n || {}; return m + Object.keys(n).reduce(function (b, q) { return b + n[q]; }, 0); }, 0),
             ach: Object.keys(ach).filter(function (q) { return inR(ach[q]); }).length };
           return o; }, {});
+      })(),
+      kinds: (function () { // harvests by what was harvested, per period
+        const R = { today: ['d:' + day], yday: ['d:' + yd], week: ['w:' + weekKey(day)], lweek: ['w:' + lw], month: ['m:' + monthKey(now)], all: Object.keys(st.stats).filter(function (x) { return x[0] === 'm'; }) };
+        return Object.keys(R).reduce(function (o, k) { const acc = {}; R[k].forEach(function (key) { const kk = (((st.stats[key] || {})[u]) || {}).k || {}; Object.keys(kk).forEach(function (w) { acc[w] = (acc[w] || 0) + kk[w]; }); }); o[k] = acc; return o; }, {});
       })(),
       normPct: p.norm ? Math.round(pick('d:' + day, u).uah / p.norm * 100) : 0, normPctY: p.norm ? Math.round(pick('d:' + yd, u).uah / p.norm * 100) : 0,
       days: days.map(function (d) { return pick('d:' + d, u).uah; }) };

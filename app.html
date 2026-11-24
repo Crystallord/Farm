@@ -471,6 +471,7 @@ body.loading .card *,body.loading .hb>span *,body.loading #hava{visibility:hidde
 body.loading .hn b{border-radius:8px;min-width:90px;display:inline-block}
 body.drag,body.drag *{user-select:none;-webkit-user-select:none}
 .cat .mb{height:6px;border-radius:3px;background:#f6ead8;overflow:hidden;margin:-2px 0 4px}.cat .mb i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,#ffd27a,#ffb020)}.cat .w.me+.mb i{background:linear-gradient(90deg,#9be7b1,#3cc46a)}
+.lk+.lk{margin-top:10px;padding-top:10px;border-top:1px solid #f6efe5}.lkh{display:flex;justify-content:space-between;align-items:center;font-weight:900;font-size:13px}.lkh>span:last-child{color:var(--mute);font-size:12px}
 </style></head><body class="loading">
 <header class="hdr" id="hdr"><span id="hava" class="tapme"></span><div class="hn"><b id="hname">…</b><span id="httl"></span><span id="hbst"></span></div>
   <div class="hb"><span class="hs"><span class="flame dim" id="flame">🔥</span><b id="hst">0</b></span><span class="hm"><b id="uah">0</b> ₴</span><span class="hg"><b id="gem">0</b> 💎</span></div></header>
@@ -559,7 +560,7 @@ const TG=window.Telegram&&Telegram.WebApp; try{TG.ready();TG.expand();TG.setHead
 const qs=new URLSearchParams(location.search), API=qs.get('api')||window.FARM_API||'', DEMO=qs.get('demo')==='1'||!(TG&&TG.initData);
 const quiet=()=>{const h=new Date().getHours();return h<8}; // 00:00–08:00: no vibration
 const hap=t=>{if(quiet())return;try{t==='ok'?TG.HapticFeedback.notificationOccurred('success'):t==='err'?TG.HapticFeedback.notificationOccurred('error'):TG.HapticFeedback.impactOccurred(t||'medium')}catch(e){}};
-const APP_VER='24.11.1416';
+const APP_VER='24.11.1419';
 const $=id=>document.getElementById(id), R=95, C=2*Math.PI*R;
 const fmt=v=>(+v).toLocaleString('uk-UA',{minimumFractionDigits:(+v)%1?2:0,maximumFractionDigits:2});
 const plural=(n,f)=>{n=Math.abs(n)%100;const b=n%10;return n>10&&n<20?f[2]:b===1?f[0]:b>=2&&b<=4?f[1]:f[2]};
@@ -937,6 +938,12 @@ function fullStats(){const F=S.fstats;if(!F)return;const pp=F.people,per=fsPer,m
  <div class="mc">${[['uah','💰 Гривні'],['gin','💎 Кристали']].map(([k,l])=>`<button data-m="${k}" class="${k===met?'on':''}">${l}</button>`).join('')}</div>
  ${pp.every(p=>!val(p))?'<div class="rbox small"><span>За цей період ще немає даних 🌱</span></div>':`<div class="pod">${pods}</div>`}
  <div class="lb bl2">${rank.map((p,i)=>`<div class="br ${p.id===String(S.me.id)?'me':''}"><span class="rk">${['🥇','🥈','🥉'][i]||i+1}</span>${ava(P(p.id).look,28)}<span class="bb"><i style="width:${Math.max(4,val(p)/mx*100)}%"></i><span>${P(p.id).name} · <b>${fmt(Math.round(val(p)))}${u}</b></span></span></div>`).join('')}</div>
+ ${(()=>{const K=[['b_narcissus','🌼','Narcissus','#ffd84a'],['b_clover','🍀','Clover','#9be07a'],['b_corn','🌽','Corn','#f2c14e'],['b_mr','🌿','Mint','#4fc38a'],['b_tc','🌵','Cactus','#ff9a6b'],['plots','🪱','Хробаки','#c08a5a']];
+  const rows=pp.map(p=>{const k=(p.kinds||{})[per]||{},tot=K.reduce((a,x)=>a+(k[x[0]]||0),0);return {p,k,tot}}).filter(r=>r.tot>0);
+  if(!rows.length)return '';const used=K.filter(x=>rows.some(r=>r.k[x[0]]));
+  return `<div class="sect" style="margin:14px 2px 6px"><b>🧺 Хто що любить збирати</b><small>за кількістю зборів</small></div><div class="cmp">${rows.map(r=>`<div class="lk"><div class="lkh">${who(r.p.id,24)}<span>${r.tot} ${plural(r.tot,['збір','збори','зборів'])}</span></div>
+   <div class="cbar">${used.filter(x=>r.k[x[0]]).map(x=>`<i style="flex:${r.k[x[0]]};background:${x[3]}"></i>`).join('')}</div>
+   <div class="lg3">${used.filter(x=>r.k[x[0]]).map(x=>`<span>${x[1]} ${r.k[x[0]]}</span>`).join('')}</div></div>`).join('')}</div>`})()}
  <div class="sect" style="margin:14px 2px 0"><b>🏆 Хто в чому найкращий</b><small>${{today:'сьогодні',yday:'вчора',week:'цього тижня',lweek:'минулого тижня',month:'цього місяця',all:'за весь час'}[per]}</small></div>
  <div class="cats">${per!=='all'&&per!=='month'||true?'':''}${best(p=>p.fun[per].gin,'💎 Заробили кристалів',v=>fmt(v))}${best(p=>p.fun[per].gout,'🛍️ Витратили кристалів',v=>fmt(v))}
   ${best(p=>p.fun[per].looks,'🎨 Куплено стилю',v=>v)}${best(p=>p.fun[per].xp,'🐾 Досвід улюбленця',v=>'+'+v)}${best(p=>p.fun[per].inv,'💼 Вкладено в землю',v=>fmt(v)+' ₴')}${per==='today'?best(p=>p.normPct,'🎯 Норма сьогодні',v=>v+'%'):per==='yday'?best(p=>p.normPctY,'🎯 Норма вчора',v=>v+'%'):''}
