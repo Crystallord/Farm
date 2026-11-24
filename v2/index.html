@@ -510,7 +510,7 @@ const TG=window.Telegram&&Telegram.WebApp; try{TG.ready();TG.expand();TG.setHead
 const qs=new URLSearchParams(location.search), API=qs.get('api')||window.FARM_API||'', DEMO=qs.get('demo')==='1'||!(TG&&TG.initData);
 const quiet=()=>{const h=new Date().getHours();return h<8}; // 00:00–08:00: no vibration
 const hap=t=>{if(quiet())return;try{t==='ok'?TG.HapticFeedback.notificationOccurred('success'):t==='err'?TG.HapticFeedback.notificationOccurred('error'):TG.HapticFeedback.impactOccurred(t||'medium')}catch(e){}};
-const APP_VER='24.11.1124';
+const APP_VER='24.11.1125';
 const $=id=>document.getElementById(id), R=95, C=2*Math.PI*R;
 const fmt=v=>(+v).toLocaleString('uk-UA',{minimumFractionDigits:(+v)%1?2:0,maximumFractionDigits:2});
 const plural=(n,f)=>{n=Math.abs(n)%100;const b=n%10;return n>10&&n<20?f[2]:b===1?f[0]:b>=2&&b<=4?f[1]:f[2]};
@@ -763,8 +763,10 @@ function offerSheet(o){const I=S.invest,left=Math.max(0,o.price-o.raised),bal=I.
   const close=bal>=left?`<button class="buy big" id="plall" style="background:linear-gradient(#53d97f,#2fb45c);box-shadow:0 4px 0 #23914a">🏁 Закрити збір · вкласти ${fmt(left)} ₴</button>`:'';
   if(cap<1)return close||`<button class="buy big" id="plall">💼 Вкласти ${fmt(cap)} ₴</button>`;
   return `<div class="rg big"><div class="rgh"><span class="nm">💼 Вкласти</span><span class="rv" id="plv"></span></div><input type="range" id="pl" min="1" max="${Math.floor(cap)}" step="1" value="${Math.min(Math.floor(cap),Math.max(I.min||1,20))}"><div class="rgl"><span>1 ₴</span><span>${bal>=left?'майже весь залишок':'увесь баланс'} · ${fmt(Math.floor(cap))} ₴</span></div></div><button class="buy big" id="plgo"></button>${close?'<div style="height:8px"></div>'+close:''}`})()}
+ ${o.raised>=o.price-0.005?`<button class="buy big" id="bought" style="background:linear-gradient(#53d97f,#2fb45c);box-shadow:0 4px 0 #23914a">🏡 ${S.me.owner?'Куплено в грі — підтвердити':'Що зміниться після покупки'}</button>`:''}
  ${o.my?`<button class="ghostb" id="back" style="color:#e2552b">↩️ Забрати свій внесок (${fmt(o.my)} ₴)</button>`:''}
  <button class="ghostb" onclick="unsheet()">Закрити</button>`);
+ if($('bought'))$('bought').onclick=()=>buySheet(o);
  if($('plall'))$('plall').onclick=async()=>{hap('heavy');const r=await act('pledge',{oid:o.id,amt:'all'});if(r&&r.ok){confetti();const n=S.invest.offers.find(x=>x.id===o.id);if(n)offerSheet(n);else unsheet()}};
  if($('pl')){let v=+$('pl').value;const sh=()=>{$('plv').textContent=fmt(v)+' ₴ · '+fmt(+(v/o.price*100).toFixed(1))+'% ділянки';$('plgo').textContent=`💼 Вкласти ${fmt(v)} ₴ (≈ +${fmt(Math.round(o.dayAll*30*v/o.price))} ₴/міс)`};sh();
   $('pl').oninput=e=>{v=+e.target.value;sh()};$('pl').onchange=()=>hap('light');
@@ -1008,6 +1010,18 @@ function refDraw(){const I=RI,D=RD,ro=!I.edit,N=I.next||I.now,O=I.now,ic={narcis
  if($('rdef'))$('rdef').onclick=()=>{Object.assign(D,I.def);hap('light');refDraw();go()};
  if($('rsave'))$('rsave').onclick=async()=>{if(!(await confirmTG('Зберегти еталон? Норми й дохід інвестицій перерахуються.')))return;hap('heavy');const r=await act('refSave',D);if(r&&r.ok){RI=null;unsheet();confetti()}}}
 $('refb').onclick=()=>{RI=null;refSheet()};
+// ===================== 🏡 bought: what changes
+async function buySheet(o){sheet(`<h3>🏡 «${o.name}»</h3><p>Рахую, що зміниться…</p><div class="refload" style="height:120px"></div>`);
+ const r=DEMO?{res:{name:o.name,full:true,before:{max:126,beds:12,plots:9,over:5,myMonth:34,people:[{id:'1',share:50,norm:65},{id:'2',share:30,norm:40}]},after:{max:140,beds:13.2,plots:10.1,over:6,myMonth:60,people:[{id:'1',share:50,norm:70},{id:'2',share:30,norm:40}]}}}:await call('buyPreview',{oid:o.id});
+ if(!r||!r.res){toast('Немає зв’язку з ботом 😕');unsheet();return}const R=r.res,A=R.before,B=R.after;
+ const row=(nm,a,b,u,goodUp)=>{const d=b-a,c=Math.abs(d)<.01?'same':(d>0)===!!goodUp?'dn':'up';return `<div class="cr2"><span class="nm">${nm}</span>${Math.abs(d)>=.01?`<span class="a">${fmt(a)}${u} →</span>`:''}<span class="b ${c}">${fmt(b)}${u}</span></div>`};
+ sheet(`<h3>🏡 «${R.name}» куплена?</h3><p>Ось що зміниться, щойно ділянка стане частиною ферми:</p>
+ <div class="cmp"><h5>💰 Заробіток за збір (кожному, хто збирає)</h5>${row('🌱 Грядки',A.beds,B.beds,' ₴',1)}${row('🪱 Хробаки',A.plots,B.plots,' ₴',1)}</div>
+ <div class="cmp"><h5>🎯 Норми</h5>${B.people.map((p,i)=>row(`${who(p.id,24)} <small style="color:var(--mute)">${p.share}%</small>`,A.people[i].norm,p.norm,' ₴',0)).join('')}${row('🌾 Уся ферма за еталонний день',A.max,B.max,' ₴',1)}${row('💎 +1 кристал понад норму за кожні',A.over,B.over,' ₴',0)}</div>
+ <div class="cmp"><h5>💼 Твій дохід з землі</h5>${row('на місяць',A.myMonth,B.myMonth,' ₴',1)}</div>
+ ${S.me.owner&&R.full?`<button class="buy big" id="bgo" style="background:linear-gradient(#53d97f,#2fb45c);box-shadow:0 4px 0 #23914a">✅ Так, куплено в грі</button>`:R.full?'<p>Підтвердити покупку може власник ферми.</p>':'<p>Збір ще не завершено.</p>'}
+ <button class="ghostb" onclick="unsheet()">Закрити</button>`);
+ if($('bgo'))$('bgo').onclick=async()=>{hap('heavy');const x=await act('offerBought',{oid:o.id});if(x&&x.ok&&!/Ще не|закрито|лише/.test(x.toast||'')){unsheet();confetti()}}}
 // ===================== tabs
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{hap('light');document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===b));
  document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id==='v_'+b.dataset.v));scrollTo(0,0);if(b.dataset.v==='inv')tickInvest()});

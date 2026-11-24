@@ -834,7 +834,7 @@ function today(st, now) { return st.stats['d:' + dayKey(now, st.cfg)] || {}; }
 // The farm's reference day (еталон), the base of norms, plot income and payback: Cactus/Turmeric in the seedbeds,
 // 2/3 of the composter spots as Clover bundles and 1/3 as composters (worms), 6 harvests of each a day. It does not
 // depend on what is planted today, only on the land: more plots or neutral land -> more pay per harvest -> a bigger norm.
-const BOT_VER = '24.11.1124'; // set by bump.sh on every push
+const BOT_VER = '24.11.1125'; // set by bump.sh on every push
 const REF_DEF = { bedCrop: 'tc', bundleCrop: 'clover', bundleShare: 2 / 3, runs: 6 };
 let REF_OVR = null; // the owner's reference day (st.cfg.ref), set when the state is loaded
 const REF = {
@@ -3646,6 +3646,7 @@ function appApi(e) {
       const st = loadState(), id = String(user.id);
       if (!st.people[id]) return { error: 'member', msg: 'Тебе ще немає на фермі. Натисни ▶️ Почати день у групі.' };
       const q = { app: true, out: [] }, noop = function () {}, a = body.args || {}, now = Date.now();
+      if (body.action === 'buyPreview') return { ok: true, res: appBuyPreview(st, id, String(a.oid)) };
       if (body.action === 'refPreview') return { ok: true, res: appRef(st, id, a && Object.keys(a).length ? a : null) }; // nothing saved, no full state
       let changed = true;
       if (body.action === 'buy') buy(st, user, String(a.item), id, q, noop);
@@ -3668,6 +3669,13 @@ function appApi(e) {
         else { st.cfg.ref = Object.assign({}, REF_DEF, st.cfg.ref || {}, refPick(a)); REF_OVR = st.cfg.ref;
           Object.keys(st.people).forEach(function (u) { const p = st.people[u]; p.norm = normFor(st.cfg, p.share || 0); });
           q.out.push('📐 Еталон збережено · норми перераховано'); q.res = appRef(st, id); }
+      }
+      else if (body.action === 'offerBought') {
+        const o = offerById(st, String(a.oid));
+        if (String(id) !== String(st.owner)) q.out.push('Підтверджує лише власник ферми');
+        else if (!o) q.out.push('Цей збір уже закрито');
+        else if (offerSum(o) < o.price - 0.005) q.out.push('Ще не зібрано 100%');
+        else { closeOffer(st, o, true); q.out.push('🎉 «' + o.name + '» куплена! Норми й заробіток перераховано'); }
       }
       else if (body.action === 'grow') appSetGrow(st, user, a, q);
       else if (body.action === 'pet') appPet(st, user, String(a.data || 'pet:card'), q);
@@ -3958,6 +3966,19 @@ function refNumbers(st, id) {
     people: Object.keys(st.people).map(function (u) { return { id: u, share: st.people[u].share || 0, norm: normFor(c, st.people[u].share || 0) }; }),
     plotsInv: (c.iplots || []).map(function (p) { const d = offerDaily(st, p); return { id: p.id, name: p.name, all: money(d * 30), mine: money(d * shareOf(p, id) * 30) }; }),
     offers: (st.offers || []).map(function (o) { return { id: o.id, name: o.name, all: money(offerDaily(st, o) * 30) }; }) };
+}
+// 🏡 "bought in the game": what changes for everyone once the plot joins the farm (nothing saved here)
+function buyNumbers(st, id) {
+  const c = st.cfg, n = refNumbers(st, id);
+  return { max: n.max, beds: money(KINDS.beds.reward(c)), plots: money(KINDS.plots.reward(c)), over: n.over, people: n.people,
+    myMonth: money((c.iplots || []).reduce(function (a, p) { return a + offerDaily(st, p) * shareOf(p, id) * 30; }, 0)) };
+}
+function appBuyPreview(st, id, oid) {
+  const o = offerById(st, oid); if (!o) return null;
+  const before = buyNumbers(st, id), was = st.cfg.iplots;
+  st.cfg.iplots = (was || []).concat([{ id: 'preview', name: o.name, type: o.type, price: o.price, gold: o.gold || null, since: dayKey(Date.now(), st.cfg), shares: Object.assign({}, o.pledges), got: {}, days: {} }]);
+  let after; try { after = buyNumbers(st, id); } finally { st.cfg.iplots = was; }
+  return { oid: o.id, name: o.name, before: before, after: after, full: offerSum(o) >= o.price - 0.005 };
 }
 function appRef(st, id, draft) {
   const was = REF_OVR, cur = Object.assign({}, REF_DEF, was || {}), now = refNumbers(st, id);
