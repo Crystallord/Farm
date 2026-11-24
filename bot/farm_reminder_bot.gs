@@ -834,7 +834,7 @@ function today(st, now) { return st.stats['d:' + dayKey(now, st.cfg)] || {}; }
 // The farm's reference day (еталон), the base of norms, plot income and payback: Cactus/Turmeric in the seedbeds,
 // 2/3 of the composter spots as Clover bundles and 1/3 as composters (worms), 6 harvests of each a day. It does not
 // depend on what is planted today, only on the land: more plots or neutral land -> more pay per harvest -> a bigger norm.
-const BOT_VER = '24.11.1134'; // set by bump.sh on every push
+const BOT_VER = '24.11.1332'; // set by bump.sh on every push
 const REF_DEF = { bedCrop: 'tc', bundleCrop: 'clover', bundleShare: 2 / 3, runs: 6 };
 let REF_OVR = null; // the owner's reference day (st.cfg.ref), set when the state is loaded
 const REF = {
@@ -3705,7 +3705,7 @@ function appApi(e) {
 }
 // 📱 a harvest from the app: the same as "✅ Я вже зібрав(ла)…" in the menu. crop: a one-off seedbed crop
 // (Narcissus / Clover / Mint) that is paid by its own price; the seedbed timer still restarts for the usual crop.
-const ONCE_CROPS = { narcissus: '🌼', clover: '🍀', mr: '🌿' };
+const ONCE_CROPS = { narcissus: '🌼', mr: '🌿', tc: '🌵' };
 function appHarvest(st, user, k, crop, q, now) {
   if (!KINDS[k] || (crop && (k !== 'beds' || !ONCE_CROPS[crop]))) { q.out.push('Невідомий збір'); return; }
   const p = person(st, user), before = doneToday(st, user.id, now);
@@ -3758,7 +3758,7 @@ function appFarm(st, id, now) {
       return { id: k, name: k === 'beds' ? 'Грядки' : 'Хробаки', icon: k === 'beds' ? ({ narcissus: '🌼', clover: '🍀', corn: '🌽', mr: '🌿', tc: '🌵' }[st.cfg.bedCrop] || '🌱') : '🪱', crop: k === 'beds' ? bedCrop(st.cfg).label : plotType(st.cfg).label,
         uah: rewardNow(st, k), gem: harvestGemFor(st, k, now), cycle: KINDS[k].cycle(st.cfg), due: t ? t.due : 0, ripe: (st.grown || {})[k] || 0 }; }),
     once: Object.keys(ONCE_CROPS).map(function (c) { const cf = Object.assign({}, st.cfg, { bedCrop: c });
-      return { id: c, icon: ONCE_CROPS[c], name: { narcissus: 'Narcissus', clover: 'Clover', mr: 'Mint' }[c], uah: KINDS.beds.reward(cf), gem: KINDS.beds.cycle(cf) <= 60 ? g / 2 : g }; }),
+      return { id: c, icon: ONCE_CROPS[c], name: { narcissus: 'Narcissus', mr: 'Mint', tc: 'Cactus' }[c], uah: KINDS.beds.reward(cf), gem: KINDS.beds.cycle(cf) <= 60 ? g / 2 : g }; }),
   };
 }
 const TASK_ORDER = ['daily', 'gift', 'nui', 'quest', 'dog', 'restock', 'flower', 'neutral', 'event', 'alt']; // the usual frequency, until there is history
