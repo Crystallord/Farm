@@ -415,6 +415,13 @@ body.busy button:not(.pending),body.busy .tile,body.busy .ob{opacity:.6;transiti
 .split{display:flex;height:14px;border-radius:7px;overflow:hidden;margin:6px 0}.split i{display:block;height:100%}.split .b{background:#ffb020}.split .c{background:#c08a5a}
 .gsave{position:sticky;bottom:0;padding-top:6px;background:linear-gradient(transparent,var(--bg) 30%)}
 .stp{display:flex;gap:6px;margin-top:8px}.stp button{flex:1;border:0;border-radius:10px;padding:7px 0;font:900 13px Nunito,sans-serif;background:#fff;color:#5b3fd6;box-shadow:0 2px 0 #e6dcff;cursor:pointer}
+
+.growrow{display:grid;grid-template-columns:1fr 1fr;gap:10px}.growb.ref{color:#5b3fd6;background:#f1ecff;box-shadow:0 3px 0 #ddd3ff}
+.cmp{background:#fff;border-radius:16px;padding:10px 12px;margin:10px 0}.cmp h5{margin:0 0 6px;font-size:14px;font-weight:900}
+.cr2{display:flex;align-items:center;gap:8px;padding:6px 0;font-weight:800;font-size:13px}.cr2+.cr2{border-top:1px solid #f6efe5}.cr2 .nm{flex:1;min-width:0}
+.cr2 .a{color:var(--mute);font-variant-numeric:tabular-nums}.cr2 .b{font-weight:900;font-variant-numeric:tabular-nums;min-width:64px;text-align:right}
+.up{color:#e2552b}.dn{color:#1d8a45}.same{color:var(--ink)}
+.refload{opacity:.45;transition:opacity .2s}
 </style></head><body>
 <header class="hdr" id="hdr"><span id="hava" class="tapme"></span><div class="hn"><b id="hname">…</b><span id="httl"></span><span id="hbst"></span></div>
   <div class="hb"><span class="hs"><span class="flame dim" id="flame">🔥</span><b id="hst">0</b></span><span class="hm"><b id="uah">0</b> ₴</span><span class="hg"><b id="gem">0</b> 💎</span></div></header>
@@ -430,7 +437,7 @@ body.busy button:not(.pending),body.busy .tile,body.busy .ob{opacity:.6;transiti
     <div class="nf"><span class="left" id="left">…</span><span class="nx" id="ms"></span></div>
   </div>
   <div class="hv" id="hv"></div>
-  <button class="growb" id="growb">🌱 Що росте · змінити</button>
+  <div class="growrow"><button class="growb" id="growb">🌱 Що росте</button><button class="growb ref" id="refb">📐 Еталон ферми</button></div>
   <div class="card petc" id="petc"></div>
   <div class="card cont" id="cont"></div>
   <div class="sect" style="margin-top:22px"><b>Посадила щось інше?</b><small>разовий збір</small></div>
@@ -959,6 +966,42 @@ function growSheet(){const G=S.grow;if(!G)return;if(!GD)GD={bedCrop:G.bedCrop,bu
  $('sheet').querySelectorAll('.stp button').forEach(b=>b.onclick=()=>{const k=b.dataset.k;D[k]=Math.max(0,D[k]+ +b.dataset.d);hap('light');keep()});
  if($('gsave'))$('gsave').onclick=async()=>{hap('heavy');const r=await act('grow',D);if(r&&r.ok){GD=null;unsheet();confetti()}}}
 $('growb').onclick=()=>{GD=null;growSheet()};
+// ===================== 📐 reference day
+let RD=null,RI=null,rtm=null,rseq=0;
+async function refCall(args){const my=++rseq;
+ if(DEMO){const n=JSON.parse(JSON.stringify(RI.now));const k=(args.runs||RI.ref.runs)/RI.ref.runs*(args.bedCrop==='mr'?1.1:1);n.max=Math.round(n.max*k);n.people.forEach(p=>p.norm=Math.round(p.norm*k/5)*5);n.plotsInv.forEach(p=>{p.all=Math.round(p.all*k);p.mine=Math.round(p.mine*k)});return {res:Object.assign({},RI,{next:n})}}
+ const r=await call('refPreview',args);return my===rseq?r:null}
+async function refSheet(){if(!RI){const r=DEMO?{res:{ref:{bedCrop:'tc',bundleCrop:'clover',bundleShare:2/3,runs:6},def:{bedCrop:'tc',bundleCrop:'clover',bundleShare:2/3,runs:6},edit:true,
+   now:{max:126,beds:12,plots:9,over:5,people:[{id:'1',share:50,norm:65},{id:'2',share:30,norm:40}],plotsInv:[{id:'p1',name:'Сонячна',all:110,mine:34}],offers:[{id:'o1',name:'Річкова',all:110}]},
+   crops:[['narcissus','Narcissus',30],['clover','Clover',30],['corn','Corn',60],['mr','Mint / Rosemary',90],['tc','Cactus / Turmeric',120]].map(x=>({key:x[0],label:x[1],min:x[2]})),
+   bcrops:[['clover','Clover',90],['narcissus','Narcissus',170],['rose','Rose',170],['corn','Corn',180]].map(x=>({key:x[0],label:x[1],min:x[2]}))}}:await call('refPreview',{});
+  if(!r||!r.res){toast('Немає зв’язку з ботом 😕');return}RI=r.res;RD=Object.assign({},RI.ref)}
+ refDraw()}
+function refDraw(){const I=RI,D=RD,ro=!I.edit,N=I.next||I.now,O=I.now,ic={narcissus:'🌼',clover:'🍀',corn:'🌽',mr:'🌿',tc:'🌵'};
+ const dirty=['bedCrop','bundleCrop','runs'].some(k=>D[k]!==I.ref[k])||Math.abs(D.bundleShare-I.ref.bundleShare)>.001;
+ const row=(nm,a,b,u,goodUp)=>{const d=b-a,c=!dirty||Math.abs(d)<.01?'same':(d>0)===!!goodUp?'dn':'up';return `<div class="cr2"><span class="nm">${nm}</span>${dirty&&Math.abs(d)>=.01?`<span class="a">${fmt(a)}${u} →</span>`:''}<span class="b ${c}">${fmt(b)}${u}</span></div>`};
+ const sc=$('sheet').scrollTop;
+ sheet(`<h3>📐 Еталон ферми</h3><p>Еталонний день — від нього рахуються норми, кристали понад норму та дохід інвестицій. ${ro?'Змінює власник ферми.':'Тягни — і одразу бачиш, що зміниться. Нічого не збережеться, поки не натиснеш «Зберегти».'}</p>
+ <div class="gsec"><h5>🏠 Грядки в еталоні</h5><div class="cpick">${I.crops.map(c=>`<button data-bed="${c.key}" class="${c.key===D.bedCrop?'on':''}" ${ro?'disabled':''}><span class="e">${ic[c.key]||'🌱'}</span>${c.label}</button>`).join('')}</div></div>
+ <div class="gsec"><h5>📦 Бандли в еталоні</h5><div class="cpick" style="grid-template-columns:repeat(4,1fr)">${I.bcrops.map(c=>`<button data-bc="${c.key}" class="${c.key===D.bundleCrop?'on':''}" ${ro?'disabled':''}><span class="e">📦</span>${c.label}</button>`).join('')}</div>
+  <div class="rg"><div class="rgh"><span class="nm">Частка місць під бандли</span><span class="rv" id="rsv">${Math.round(D.bundleShare*100)}% · 🪱 ${100-Math.round(D.bundleShare*100)}%</span></div><input type="range" id="rs" min="0" max="100" step="5" value="${Math.round(D.bundleShare*100)}" ${ro?'disabled':''}></div></div>
+ <div class="gsec"><h5>🔁 Зборів за день</h5><div class="rg"><div class="rgh"><span class="nm">грядки і хробаки</span><span class="rv" id="rrv">${D.runs}</span></div><input type="range" id="rr" min="1" max="12" step="1" value="${D.runs}" ${ro?'disabled':''}></div></div>
+ <div id="refres" class="">
+ <div class="cmp"><h5>🌾 Еталонний день ферми</h5>${row('Уся ферма за день',O.max,N.max,' ₴',1)}${row('🌱 Грядки за збір',O.beds,N.beds,' ₴',1)}${row('🪱 Хробаки за збір',O.plots,N.plots,' ₴',1)}${row('💎 +1 кристал понад норму за кожні',O.over,N.over,' ₴',0)}</div>
+ <div class="cmp"><h5>🎯 Норми</h5>${N.people.map((p,i)=>row(`${who(p.id,24)} <small style="color:var(--mute)">${p.share}%</small>`,O.people[i].norm,p.norm,' ₴',0)).join('')}</div>
+ ${N.plotsInv.length?`<div class="cmp"><h5>💼 Інвестиції, на місяць</h5>${N.plotsInv.map((p,i)=>row(`🏡 ${p.name} · тобі`,O.plotsInv[i].mine,p.mine,' ₴',1)+row(`<small style="color:var(--mute)">усім власникам</small>`,O.plotsInv[i].all,p.all,' ₴',1)).join('')}${N.offers.map((o,i)=>row(`🏗 ${o.name} (збір)`,O.offers[i].all,o.all,' ₴',1)).join('')}</div>`:''}
+ </div>
+ ${ro?'':`<div class="gsave"><button class="buy big" id="rsave" ${dirty?'':'disabled'}>💾 Зберегти еталон</button></div><button class="ghostb" id="rdef">↺ Як було спочатку (кактус · 2/3 Clover · 6 зборів)</button>`}
+ <button class="ghostb" onclick="RI=null;unsheet()">Закрити</button>`);
+ $('sheet').scrollTop=sc;
+ const go=()=>{clearTimeout(rtm);$('refres').classList.add('refload');rtm=setTimeout(async()=>{const r=await refCall(RD);if(r&&r.res){RI.next=r.res.next;refDraw()}},350)};
+ $('sheet').querySelectorAll('[data-bed]').forEach(b=>b.onclick=()=>{D.bedCrop=b.dataset.bed;hap('light');refDraw();go()});
+ $('sheet').querySelectorAll('[data-bc]').forEach(b=>b.onclick=()=>{D.bundleCrop=b.dataset.bc;hap('light');refDraw();go()});
+ $('rs').oninput=e=>{D.bundleShare=+e.target.value/100;$('rsv').textContent=`${e.target.value}% · 🪱 ${100-e.target.value}%`;go()};
+ $('rr').oninput=e=>{D.runs=+e.target.value;$('rrv').textContent=D.runs;go()};
+ if($('rdef'))$('rdef').onclick=()=>{Object.assign(D,I.def);hap('light');refDraw();go()};
+ if($('rsave'))$('rsave').onclick=async()=>{if(!(await confirmTG('Зберегти еталон? Норми й дохід інвестицій перерахуються.')))return;hap('heavy');const r=await act('refSave',D);if(r&&r.ok){RI=null;unsheet();confetti()}}}
+$('refb').onclick=()=>{RI=null;refSheet()};
 // ===================== tabs
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{hap('light');document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===b));
  document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id==='v_'+b.dataset.v));scrollTo(0,0);if(b.dataset.v==='inv')tickInvest()});

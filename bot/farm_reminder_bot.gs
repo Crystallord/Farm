@@ -255,6 +255,7 @@ function loadState() {
   const s = readState();
   const st = s ? JSON.parse(s) : {};
   st.cfg = Object.assign({}, DEFAULTS, st.cfg || {});
+  REF_OVR = st.cfg.ref || null;
   if (!st.cfg.mig16 && st.cfg.plots16 === 10) st.cfg.plots16 = 12; // bought 2 more 16×16 on 9.11
   st.cfg.mig16 = true;
   if (st.cfg.taskGems.daily === undefined) st.cfg.taskGems = Object.assign({ daily: 5 }, st.cfg.taskGems); // dailies moved to crystals
@@ -833,7 +834,12 @@ function today(st, now) { return st.stats['d:' + dayKey(now, st.cfg)] || {}; }
 // The farm's reference day (еталон), the base of norms, plot income and payback: Cactus/Turmeric in the seedbeds,
 // 2/3 of the composter spots as Clover bundles and 1/3 as composters (worms), 6 harvests of each a day. It does not
 // depend on what is planted today, only on the land: more plots or neutral land -> more pay per harvest -> a bigger norm.
-const REF = { bedCrop: 'tc', bundleCrop: 'clover', bundleShare: 2 / 3, runs: 6 };
+const REF_DEF = { bedCrop: 'tc', bundleCrop: 'clover', bundleShare: 2 / 3, runs: 6 };
+let REF_OVR = null; // the owner's reference day (st.cfg.ref), set when the state is loaded
+const REF = {
+  get bedCrop() { return (REF_OVR || {}).bedCrop || REF_DEF.bedCrop; }, get bundleCrop() { return (REF_OVR || {}).bundleCrop || REF_DEF.bundleCrop; },
+  get bundleShare() { const v = (REF_OVR || {}).bundleShare; return v === undefined ? REF_DEF.bundleShare : v; }, get runs() { return (REF_OVR || {}).runs || REF_DEF.runs; },
+};
 function refCfg(c) { // the farm's config as in the reference day
   const f = farmCalc(c), nTot = (c.neutral || 0) + (c.nbundles || 0), nb = Math.round(nTot * REF.bundleShare);
   return Object.assign({}, c, { bedCrop: REF.bedCrop, bundleCrop: REF.bundleCrop, bedTimer: 0, plotTimer: 0,
@@ -3639,6 +3645,7 @@ function appApi(e) {
       const st = loadState(), id = String(user.id);
       if (!st.people[id]) return { error: 'member', msg: 'Тебе ще немає на фермі. Натисни ▶️ Почати день у групі.' };
       const q = { app: true, out: [] }, noop = function () {}, a = body.args || {}, now = Date.now();
+      if (body.action === 'refPreview') return { ok: true, res: appRef(st, id, a && Object.keys(a).length ? a : null) }; // nothing saved, no full state
       let changed = true;
       if (body.action === 'buy') buy(st, user, String(a.item), id, q, noop);
       else if (body.action === 'food') buyFood(st, user, a.pack ? 'pack' : 'one', q, noop);
@@ -3655,6 +3662,12 @@ function appApi(e) {
       }
       else if (body.action === 'look') appLook(st, id, a, q);
       else if (body.action === 'tr') appTrade(st, user, a, q);
+      else if (body.action === 'refSave') {
+        if (String(id) !== String(st.owner)) q.out.push('Змінювати може лише власник ферми');
+        else { st.cfg.ref = Object.assign({}, REF_DEF, st.cfg.ref || {}, refPick(a)); REF_OVR = st.cfg.ref;
+          Object.keys(st.people).forEach(function (u) { const p = st.people[u]; p.norm = normFor(st.cfg, p.share || 0); });
+          q.out.push('📐 Еталон збережено · норми перераховано'); q.res = appRef(st, id); }
+      }
       else if (body.action === 'grow') appSetGrow(st, user, a, q);
       else if (body.action === 'pet') appPet(st, user, String(a.data || 'pet:card'), q);
       else if (body.action === 'boost') buyBoost(st, user, String(a.key), q);
@@ -3928,6 +3941,30 @@ function appSetGrow(st, user, a, q) {
   if (a.nbundles !== undefined) c.nbundles = clamp(Math.round(+a.nbundles || 0), 0, 1000);
   if (a.neutral !== undefined) c.neutral = clamp(Math.round(+a.neutral || 0), 0, 500);
   q.out.push('🌱 Збережено');
+}
+// 📐 the reference day: what norms and investment incomes are counted from. preview = the same numbers for a draft, nothing saved
+function refPick(a) {
+  const o = {};
+  if (CROPS[a.bedCrop]) o.bedCrop = String(a.bedCrop);
+  if (BUNDLES[a.bundleCrop]) o.bundleCrop = String(a.bundleCrop);
+  if (a.bundleShare !== undefined) o.bundleShare = Math.max(0, Math.min(1, +a.bundleShare || 0));
+  if (a.runs !== undefined) o.runs = Math.max(1, Math.min(20, Math.round(+a.runs || 1)));
+  return o;
+}
+function refNumbers(st, id) {
+  const c = st.cfg, r = refCfg(c);
+  return { max: farmMax(c), beds: money(KINDS.beds.reward(r)), plots: money(KINDS.plots.reward(r)), over: overStep(c),
+    people: Object.keys(st.people).map(function (u) { return { id: u, share: st.people[u].share || 0, norm: normFor(c, st.people[u].share || 0) }; }),
+    plotsInv: (c.iplots || []).map(function (p) { const d = offerDaily(st, p); return { id: p.id, name: p.name, all: money(d * 30), mine: money(d * shareOf(p, id) * 30) }; }),
+    offers: (st.offers || []).map(function (o) { return { id: o.id, name: o.name, all: money(offerDaily(st, o) * 30) }; }) };
+}
+function appRef(st, id, draft) {
+  const was = REF_OVR, cur = Object.assign({}, REF_DEF, was || {}), now = refNumbers(st, id);
+  let next = null;
+  if (draft) { REF_OVR = Object.assign({}, cur, refPick(draft)); try { next = refNumbers(st, id); } finally { REF_OVR = was; } }
+  return { ref: cur, def: REF_DEF, now: now, next: next, edit: String(id) === String(st.owner),
+    crops: Object.keys(CROPS).map(function (k) { return { key: k, label: CROPS[k].label, min: CROPS[k].min }; }),
+    bcrops: Object.keys(BUNDLES).map(function (k) { return { key: k, label: BUNDLES[k].label, min: BUNDLES[k].min }; }) };
 }
 function appMe(st, id, now) { // 👤 stats, records, the family this week, the next achievements, the inventory
   const day = dayKey(now, st.cfg), wk = 'w:' + weekKey(day), mo = 'm:' + monthKey(now);
