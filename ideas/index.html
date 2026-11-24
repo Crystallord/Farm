@@ -1,0 +1,147 @@
+<!DOCTYPE html><html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Ферма · ідеї UX</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fff7ec;--ink:#3b2a1a;--mute:#9a8570;--gem:#7b5cff}
+*{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent}
+body{font-family:Nunito,system-ui,sans-serif;background:var(--bg);color:var(--ink);padding:16px 14px 80px;max-width:520px;margin:0 auto}
+h1{font-size:24px;font-weight:900}h1+p{color:var(--mute);font-weight:800;font-size:13.5px;margin:4px 0 18px}
+.idea{background:#fff;border-radius:22px;padding:16px;margin-bottom:16px;box-shadow:0 2px 0 #f0dcc0,0 10px 24px rgba(160,110,50,.08)}
+.idea h2{font-size:17px;font-weight:900;display:flex;gap:8px;align-items:center}.src{font-size:11px;font-weight:900;color:#5b3fd6;background:#f1ecff;border-radius:8px;padding:2px 7px}
+.idea>p{font-size:13px;font-weight:700;color:#6a5844;margin:6px 0 12px;line-height:1.4}
+.ba{display:grid;grid-template-columns:1fr 1fr;gap:10px}.ba>div{border-radius:16px;padding:10px;background:#fbf4ea;min-height:120px;position:relative}
+.ba>div>small{display:block;font-size:10.5px;font-weight:900;text-transform:uppercase;letter-spacing:.06em;color:var(--mute);margin-bottom:8px}
+.ba>div.new{background:#effaf2}.ba>div.new>small{color:#1d8a45}
+.try{margin-top:10px;width:100%;border:0;border-radius:14px;padding:11px;font:900 14px Nunito,sans-serif;background:#3b2a1a;color:#fff;cursor:pointer}
+.chip{display:inline-block;background:#fff;border-radius:10px;padding:5px 9px;font-weight:900;font-size:13px;box-shadow:0 2px 0 #f0dcc0;font-variant-numeric:tabular-nums}
+/* 1 drawer */
+.phone{position:relative;height:230px;border-radius:18px;overflow:hidden;background:#fff3e2}
+.phone .pg{position:absolute;inset:0;padding:10px;transition:transform .35s cubic-bezier(.32,.72,0,1),border-radius .35s,filter .35s;background:#fff7ec;transform-origin:50% 0}
+.phone.open .pg{transform:scale(.92) translateY(8px);border-radius:14px;filter:brightness(.8)}
+.phone .dr{position:absolute;left:0;right:0;bottom:0;height:160px;background:#fff;border-radius:18px 18px 0 0;transform:translateY(105%);transition:transform .4s cubic-bezier(.32,.72,0,1);padding:8px 12px;touch-action:none;box-shadow:0 -10px 30px rgba(0,0,0,.15)}
+.phone.open .dr{transform:translateY(0)}.dr .hd{width:40px;height:5px;border-radius:3px;background:#ddd;margin:0 auto 10px}
+.oldsheet{position:absolute;left:8px;right:8px;bottom:8px;height:120px;background:#fff;border-radius:16px;display:grid;place-items:center;font-weight:900;font-size:12px;color:var(--mute)}
+/* 2 toasts */
+.tz{position:relative;height:150px}
+.ts{position:absolute;left:-4px;right:-4px;top:0;font-size:12px!important;background:#fff;border-radius:14px;padding:10px 12px;font-weight:900;font-size:13px;box-shadow:0 6px 18px rgba(0,0,0,.12);display:flex;align-items:center;gap:8px;transition:transform .35s cubic-bezier(.2,.9,.3,1.1),opacity .3s}
+.ts .sp{width:16px;height:16px;border-radius:50%;border:3px solid #eee;border-top-color:#ff7a1a;animation:spin .7s linear infinite}
+.ts.ok{background:#e9ffef;color:#1d8a45}.ts .u{margin-left:auto;border:0;background:#fff;border-radius:9px;padding:4px 8px;font:900 12px Nunito;color:#b35a00}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* 3 ticker */
+.big{font-size:26px;white-space:nowrap;font-weight:900;font-variant-numeric:tabular-nums}
+.tk{display:inline-flex;overflow:hidden;height:1.15em;line-height:1.15em}.tk span{display:inline-flex;flex-direction:column;transition:transform .9s cubic-bezier(.2,.9,.25,1.05)}
+/* 4 beam */
+.beam{position:relative;border-radius:16px;padding:12px;background:#fff;overflow:hidden;font-weight:900}
+.beam::before{content:"";position:absolute;inset:-50%;background:conic-gradient(from 0deg,transparent 0 300deg,#2fb45c 330deg,#b9ffd6 345deg,transparent 360deg);animation:spin 2.6s linear infinite}
+.beam::after{content:"";position:absolute;inset:2.5px;border-radius:14px;background:#fff}.beam>*{position:relative;z-index:1}
+.shim{border:0;border-radius:12px;padding:10px;width:100%;font:900 14px Nunito;color:#fff;background:linear-gradient(110deg,#2fb45c 40%,#8ff0b0 50%,#2fb45c 60%);background-size:250% 100%;animation:sh 2.2s linear infinite}
+@keyframes sh{from{background-position:120% 0}to{background-position:-120% 0}}
+.plainbtn{border:0;border-radius:12px;padding:10px;width:100%;font:900 14px Nunito;color:#fff;background:#2fb45c}
+/* 5 tracker */
+.trk{display:grid;grid-template-columns:repeat(15,1fr);gap:3px}.trk i{height:22px;border-radius:4px;background:#f0e4d4;position:relative}.trk i.ok{background:#ff9a2b}.trk i.fz{background:#9fd8ff}.trk i.td{outline:2px dashed #ff9a2b;background:#fff}
+.trk i:hover::after{content:attr(data-t);position:absolute;bottom:120%;left:50%;transform:translateX(-50%);background:#3b2a1a;color:#fff;font-size:10px;padding:3px 6px;border-radius:6px;white-space:nowrap;z-index:5}
+.wk{display:flex;gap:4px}.wk i{flex:1;height:9px;border-radius:5px;background:#ff9a2b}.wk i:last-child{background:#f0e4d4}
+/* 6 bar list */
+.bl div{display:flex;align-items:center;gap:8px;margin:5px 0;font-weight:900;font-size:12.5px}.bl b{flex:1;height:22px;border-radius:6px;background:#ffe6c2;position:relative;overflow:hidden}
+.bl b i{position:absolute;left:0;top:0;bottom:0;background:#ffb020;border-radius:6px;display:flex;align-items:center;padding-left:6px;font-style:normal;color:#5a3a00;font-size:11.5px;white-space:nowrap}
+.cat{display:flex;height:12px;border-radius:6px;overflow:hidden;margin:8px 0 4px}.cat i{display:block}
+.lg2{display:flex;gap:10px;font-size:11px;font-weight:900;color:var(--mute)}
+/* 7 spark */
+.tile{background:#fff;border-radius:14px;padding:10px;font-weight:900}.tile small{display:block;font-size:11px;color:var(--mute)}.tile svg{display:block;width:100%;height:34px;margin-top:4px}
+.delta{display:inline-block;font-size:11px;background:#e3f7e9;color:#1d8a45;border-radius:7px;padding:1px 6px;margin-left:4px}
+/* 8 skeleton */
+.sk{height:14px;border-radius:7px;background:linear-gradient(90deg,#f3e9dc 25%,#fbf4ea 50%,#f3e9dc 75%);background-size:300% 100%;animation:sh 1.3s linear infinite;margin:7px 0}
+/* 9 cmdk */
+.cmd{background:#fff;border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.12);overflow:hidden}.cmd input{width:100%;border:0;border-bottom:1px solid #f0e4d4;padding:10px 12px;font:800 14px Nunito;outline:0}
+.cmd #cl{display:block;padding:0}.cmd #cl div{padding:8px 12px;font-weight:800;font-size:13px;display:flex;gap:8px}.cmd #cl div.on{background:#f1ecff}.cmd #cl div small{margin-left:auto;color:var(--mute)}
+/* impeccable */
+.rules li{font-size:13px;font-weight:800;margin:6px 0 6px 18px;line-height:1.35}.rules b{color:#e2552b}
+.race-old{border-radius:14px;padding:10px;color:#fff;background:linear-gradient(160deg,#2a1c63,#5b3fd6 70%,#7b5cff);font-weight:900;font-size:13px}
+.race-new{border-radius:14px;padding:10px;color:#fff;background:#1f3a2c;font-weight:900;font-size:13px;box-shadow:inset 0 0 0 2px #ffd84a}
+.race-new small,.race-old small{display:block;font-size:11px;margin-top:4px}.race-old small{color:#b9a8ff}.race-new small{color:#ffe58a}
+</style></head><body>
+<h1>💡 Ідеї для Ферми</h1>
+<p>Прийоми з 15 репозиторіїв, переведені на наш додаток. Кожна картка — «було → стане», з живою демонстрацією. Ці бібліотеки на React, а наш додаток — один HTML, тож беремо ідеї й переписуємо їх вручну, без збирання.</p>
+
+<div class="idea"><h2>1 · Шторка, яку тягнеш пальцем <span class="src">vaul</span></h2>
+<p>Зараз вікна (угода, стиль, гонка) просто з'являються, закрити — лише кнопкою. Як в iOS: ручка зверху, свайп вниз закриває, сторінка позаду трохи зменшується — видно, що ти «в шарі над» фермою.</p>
+<div class="ba"><div><small>Було</small><div class="phone" style="height:180px"><div class="pg"><span class="chip">🌾 Ферма</span></div><div class="oldsheet">вікно · кнопка «Закрити»</div></div></div>
+<div class="new"><small>Стане</small><div class="phone" id="ph" style="height:180px"><div class="pg"><span class="chip">🌾 Ферма</span></div><div class="dr" id="dr"><div class="hd"></div><b>🔁 Угода з Тато</b><p style="font-size:12px;color:var(--mute);font-weight:800;margin-top:6px">потягни вниз, щоб закрити ↓</p></div></div></div></div>
+<button class="try" id="t1">Відкрити шторку</button></div>
+
+<div class="idea"><h2>2 · Сповіщення з прогресом і «Скасувати» <span class="src">sonner</span></h2>
+<p>Зараз: крутилка на кнопці, потім тост зверху. Стане: один тост, який сам змінюється «Збираю… → +17 ₴ · +1 💎», кольоровий за типом, змахується пальцем; для угод і купонів — кнопка «Скасувати» кілька секунд. Кілька тостів складаються стопкою, а не перекривають один одного.</p>
+<div class="ba"><div><small>Було</small><div class="ts" style="position:relative">Відкриваю: Збір</div></div><div class="new"><small>Стане</small><div class="tz" id="tz"></div></div></div>
+<button class="try" id="t2">Зібрати (демо)</button></div>
+
+<div class="idea"><h2>3 · Цифри, що прокручуються <span class="src">magicui · Number Ticker</span></h2>
+<p>Баланс у хедері й гривні в нормі не «стрибають», а прокручуються барабаном, як лічильник. Мозок помічає рух — нагорода відчувається сильніше.</p>
+<div class="ba"><div><small>Було</small><div class="big" id="o3">94,43 ₴</div></div><div class="new"><small>Стане</small><div class="big" id="n3"></div></div></div>
+<button class="try" id="t3">+17,43 ₴</button></div>
+
+<div class="idea"><h2>4 · Готове світиться по краю <span class="src">magicui · Border Beam, Shimmer Button</span></h2>
+<p>Коли урожай готовий, по краю картки біжить зелений промінь, а кнопка переливається. Око знаходить «що зробити зараз» за долю секунди, без зайвих підписів.</p>
+<div class="ba"><div><small>Було</small><div style="background:#fff;border-radius:16px;padding:12px;font-weight:900"><span>🌼 Грядки</span><br><br><button class="plainbtn">Зібрав(ла) ✓</button></div></div>
+<div class="new"><small>Стане</small><div class="beam"><span>🌼 Грядки</span><br><br><button class="shim">Зібрав(ла) ✓</button></div></div></div></div>
+
+<div class="idea"><h2>5 · Місяць стріку блоками <span class="src">tremor · Tracker</span></h2>
+<p>Замість 7 смужок — 30 маленьких квадратів: помаранчевий = норма виконана, блакитний = врятувала заморозка, порожній = пропуск. Довгий ланцюжок без дір — сильна мотивація «не зламати».</p>
+<div class="ba"><div><small>Було</small><div class="wk"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div><div class="new"><small>Стане</small><div class="trk" id="trk"></div></div></div></div>
+
+<div class="idea"><h2>6 · Рейтинг смугами і склад землі <span class="src">tremor · Bar List, Category Bar</span></h2>
+<p>У статистиці значення пишеться прямо всередині смуги — менше рядків, легше порівняти. «Що росте» — одна кольорова смуга (бандли / компостери / нейтральна) з легендою.</p>
+<div class="ba"><div><small>Було</small><div style="font-size:12.5px;font-weight:900;line-height:1.8">🥇 Сашко · 140 ₴<br>🥈 Марія · 112 ₴</div></div>
+<div class="new"><small>Стане</small><div class="bl"><div>🐰<b><i style="width:100%">Сашко · 140 ₴</i></b></div><div>🦄<b><i style="width:80%;background:#ffcf6b">Марія · 112 ₴</i></b></div></div>
+<div class="cat"><i style="width:55%;background:#ffb020"></i><i style="width:30%;background:#c08a5a"></i><i style="width:15%;background:#7fc4f0"></i></div><div class="lg2"><span>📦 26</span><span>🪱 14</span><span>🌍 18</span></div></div></div></div>
+
+<div class="idea"><h2>7 · Міні-графік у плитці інвестиції <span class="src">tremor · Spark Chart, recharts</span></h2>
+<p>У кожній ділянці — крихітна лінія доходу за 14 днів і бейдж зміни (+12%). Видно, що «земля росте», а не лише сухе число.</p>
+<div class="ba"><div><small>Було</small><div class="tile">🏡 Сонячна<small>+112 ₴/міс</small></div></div>
+<div class="new"><small>Стане</small><div class="tile">🏡 Сонячна <span class="delta">▲ 12%</span><small>+112 ₴/міс</small><svg viewBox="0 0 100 30" preserveAspectRatio="none"><polyline fill="none" stroke="#2fb45c" stroke-width="2.5" stroke-linejoin="round" points="0,24 8,22 16,25 24,18 32,19 40,15 48,17 56,12 64,13 72,9 80,11 88,6 100,4"/><polygon fill="rgba(47,180,92,.12)" points="0,30 0,24 8,22 16,25 24,18 32,19 40,15 48,17 56,12 64,13 72,9 80,11 88,6 100,4 100,30"/></svg></div></div></div></div>
+
+<div class="idea"><h2>8 · Скелетони замість порожнечі <span class="src">shadcn/ui · Skeleton</span></h2>
+<p>Перше відкриття: замість нулів (0 ₴, 0 днів) — сірі «заготовки», що м'яко переливаються. Не виглядає як баг «у мене все обнулилось».</p>
+<div class="ba"><div><small>Було</small><div class="big" style="font-size:22px">0 ₴ · 0 💎<br>0 днів</div></div><div class="new"><small>Стане</small><div class="sk" style="width:70%"></div><div class="sk" style="width:45%"></div><div class="sk" style="width:85%;height:26px"></div></div></div></div>
+
+<div class="idea"><h2>9 · Швидкий пошук дії <span class="src">cmdk</span></h2>
+<p>Для тебе як власника: тягнеш хедер вниз — поле «що зробити?». Пишеш «пос» — одразу «Купон: посуд», «Підтвердити завдання», «Еталон». Менше лазити по вкладках. Для Марії не потрібно.</p>
+<div class="cmd"><input id="ci" placeholder="Що зробити? (напр. «кор»)"><div id="cl"></div></div></div>
+
+<div class="idea"><h2>10 · Що каже «impeccable» про наш дизайн <span class="src">impeccable · design rules</span></h2>
+<p>Це не бібліотека, а набір правил для перевірки «AI-вигляду». Пройшовся по нашому додатку:</p>
+<ul class="rules">
+<li><b>Фіолетово-синій градієнт</b> на картці гонки — класична ознака «згенерованого» дизайну. Краще свій характер: темно-зелене «поле» з золотою облямівкою (приклад нижче).</li>
+<li><b>Картки в картках</b> у шторках (угода, еталон): біла картка всередині кремової всередині білої. Прибрати один рівень — замість рамок відступи.</li>
+<li><b>Сірий текст на кольоровому</b> (підписи на фіолетовій гонці, на зеленій інвестиції) — погано читається. Брати світлий відтінок того ж кольору.</li>
+<li><b>Один фокус на екран.</b> На Фермі зараз сперечаються норма, 2 збори, гонка, улюбленець. Головне — кнопки збору; решта тихіше.</li>
+<li><b>Шрифт</b> у нас уже свій (Nunito) — добре. Цифри варто зробити ще жирнішими й табличними всюди.</li></ul>
+<div class="ba" style="margin-top:10px"><div><small>Було</small><div class="race-old">🏁 Гонка дня<small>до кінця 09:12:44</small></div></div><div class="new"><small>Стане</small><div class="race-new">🏁 Гонка дня<small>до кінця 09:12:44</small></div></div></div></div>
+
+<div class="idea"><h2>Що не беремо</h2>
+<p><b>Tailwind, Mantine, daisyUI, Radix, shadcn як бібліотеки, Storybook</b> — потребують збирання проєкту (React/npm). Для одного HTML-файлу це зайве: ідеї (шторка, тости, скелетони) переносимо вручну. <b>Tabler icons</b> — гарні контурні іконки, але для 8-річної Марії емодзі зрозуміліші й теплійші; можна взяти лише для дрібних значків (✕, ›, налаштування). <b>anthropics/skills</b> — це навички для мене, не для додатку; корисна звідти frontend-design, якою я вже користуюсь.</p></div>
+
+<script>
+// 1 drawer with swipe
+const ph=document.getElementById('ph'),dr=document.getElementById('dr');let y0=null,dy=0;
+document.getElementById('t1').onclick=()=>ph.classList.add('open');
+dr.addEventListener('pointerdown',e=>{y0=e.clientY;dr.style.transition='none';dr.setPointerCapture(e.pointerId)});
+dr.addEventListener('pointermove',e=>{if(y0==null)return;dy=Math.max(0,e.clientY-y0);dr.style.transform=`translateY(${dy}px)`});
+dr.addEventListener('pointerup',()=>{dr.style.transition='';dr.style.transform='';if(dy>50)ph.classList.remove('open');y0=null;dy=0});
+// 2 toasts
+const tz=document.getElementById('tz');let n=0;
+document.getElementById('t2').onclick=()=>{const t=document.createElement('div');t.className='ts';t.innerHTML='<span class="sp"></span> Збираю грядки…';tz.prepend(t);n++;
+ [...tz.children].forEach((c,i)=>{c.style.transform=`translateY(${i*10}px) scale(${1-i*.05})`;c.style.opacity=i>2?0:1;c.style.zIndex=10-i});
+ setTimeout(()=>{t.classList.add('ok');t.innerHTML='✅ +17,43 ₴ · +1 💎<button class="u">↩️</button>';t.querySelector('.u').onclick=()=>{t.className='ts';t.innerHTML='↩️ Скасовано'}},1100);
+ let sx=null;t.addEventListener('pointerdown',e=>{sx=e.clientX});t.addEventListener('pointerup',e=>{if(sx!=null&&Math.abs(e.clientX-sx)>40){t.style.transform='translateX(120%)';t.style.opacity=0;setTimeout(()=>t.remove(),300)}sx=null})};
+// 3 ticker
+let val=94.43;const o3=document.getElementById('o3'),n3=document.getElementById('n3');
+function tick(v){const s=v.toFixed(2).replace('.',',');n3.innerHTML=[...s].map(ch=>/\d/.test(ch)?`<span class="tk"><span style="transform:translateY(-${+ch*1.15}em)">${[...'0123456789'].map(d=>`<i style="font-style:normal">${d}</i>`).join('')}</span></span>`:ch).join('')+' ₴'}
+tick(val);document.getElementById('t3').onclick=()=>{val+=17.43;o3.textContent=val.toFixed(2).replace('.',',')+' ₴';tick(val)};
+// 5 tracker
+const trk=document.getElementById('trk');for(let i=0;i<30;i++){const d=new Date(Date.now()-(29-i)*864e5),c=i===29?'td':[3,11].includes(i)?'':i===18?'fz':'ok';
+ trk.insertAdjacentHTML('beforeend',`<i class="${c}" data-t="${d.getDate()}.${d.getMonth()+1} · ${c==='ok'?'норма ✓':c==='fz'?'заморозка ❄️':c==='td'?'сьогодні':'пропуск'}"></i>`)}
+// 9 cmdk
+const A=[['🍖','Купити корм','Крамниця'],['🍽','Купон: посуд','Мої речі'],['✅','Підтвердити завдання (3)','Завдання'],['📐','Еталон ферми','Ферма'],['🌱','Що росте','Ферма'],['💱','Обміняти кристали','Торгівля'],['🏡','Вкласти в «Річкову»','Інвестиції']];
+const ci=document.getElementById('ci'),cl=document.getElementById('cl');const draw=()=>{const q=ci.value.toLowerCase();const r=A.filter(a=>!q||a[1].toLowerCase().includes(q)||a[2].toLowerCase().includes(q)).slice(0,4);
+ cl.innerHTML=r.map((a,i)=>`<div class="${i?'':'on'}">${a[0]} ${a[1]}<small>${a[2]}</small></div>`).join('')||'<div>Нічого не знайдено</div>'};ci.oninput=draw;draw();
+</script></body></html>
