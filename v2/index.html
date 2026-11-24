@@ -443,7 +443,7 @@ body.sheeton>.view.on{transform:scale(.94) translateY(10px);border-radius:18px;f
 .sp2{width:18px;height:18px;flex:none;border-radius:50%;border:3px solid #f0e4d4;border-top-color:#ff7a1a;animation:spin .7s linear infinite}
 .ti2{flex:none}
 /* 3 rolling digits */
-.rl{display:inline-block;height:1em;line-height:1em;overflow:hidden;vertical-align:-0.12em}.rc{display:flex;flex-direction:column;transition:transform .8s cubic-bezier(.2,.9,.25,1.05)}.rc i{font-style:normal;height:1em;line-height:1em}
+.rolled{display:inline-flex;align-items:center;line-height:1.25em;vertical-align:middle}.dgw{display:block;height:1.25em;overflow:hidden}.dgc{display:flex;flex-direction:column;transition:transform .8s cubic-bezier(.2,.9,.25,1.05)}.dgc i{font-style:normal;display:block;height:1.25em;line-height:1.25em}.rs{white-space:pre}
 .rs{display:inline-block}
 /* 4 ready beam + shimmer */
 .crop{position:relative;isolation:isolate}.crop .beam{display:none}
@@ -470,6 +470,7 @@ body.loading .hb>span,body.loading .hn b,body.loading .card:not(.race){color:tra
 body.loading .card *,body.loading .hb>span *,body.loading #hava{visibility:hidden}
 body.loading .hn b{border-radius:8px;min-width:90px;display:inline-block}
 body.drag,body.drag *{user-select:none;-webkit-user-select:none}
+.cat .mb{height:6px;border-radius:3px;background:#f6ead8;overflow:hidden;margin:-2px 0 4px}.cat .mb i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,#ffd27a,#ffb020)}.cat .w.me+.mb i{background:linear-gradient(90deg,#9be7b1,#3cc46a)}
 </style></head><body class="loading">
 <header class="hdr" id="hdr"><span id="hava" class="tapme"></span><div class="hn"><b id="hname">…</b><span id="httl"></span><span id="hbst"></span></div>
   <div class="hb"><span class="hs"><span class="flame dim" id="flame">🔥</span><b id="hst">0</b></span><span class="hm"><b id="uah">0</b> ₴</span><span class="hg"><b id="gem">0</b> 💎</span></div></header>
@@ -558,7 +559,7 @@ const TG=window.Telegram&&Telegram.WebApp; try{TG.ready();TG.expand();TG.setHead
 const qs=new URLSearchParams(location.search), API=qs.get('api')||window.FARM_API||'', DEMO=qs.get('demo')==='1'||!(TG&&TG.initData);
 const quiet=()=>{const h=new Date().getHours();return h<8}; // 00:00–08:00: no vibration
 const hap=t=>{if(quiet())return;try{t==='ok'?TG.HapticFeedback.notificationOccurred('success'):t==='err'?TG.HapticFeedback.notificationOccurred('error'):TG.HapticFeedback.impactOccurred(t||'medium')}catch(e){}};
-const APP_VER='24.11.1407';
+const APP_VER='24.11.1416';
 const $=id=>document.getElementById(id), R=95, C=2*Math.PI*R;
 const fmt=v=>(+v).toLocaleString('uk-UA',{minimumFractionDigits:(+v)%1?2:0,maximumFractionDigits:2});
 const plural=(n,f)=>{n=Math.abs(n)%100;const b=n%10;return n>10&&n<20?f[2]:b===1?f[0]:b>=2&&b<=4?f[1]:f[2]};
@@ -592,9 +593,9 @@ async function act(action,args){
 }
 function apply(st){S=st;document.body.classList.remove('loading');$('ver').textContent='v'+APP_VER+(st.ver?' · бот '+st.ver:'');OFF=(st.farm&&st.farm.now?st.farm.now-Date.now():0);render()}
 // ===================== helpers
-function roll(el,v){const s=fmt(+(+v).toFixed(2));if(el.dataset.s===s)return;const first=!el.dataset.s;el.dataset.s=s;el.dataset.v=v;
- if(!el.querySelector('.rl')||el.children.length!==[...s].length)el.innerHTML=[...s].map(ch=>/\d/.test(ch)?`<span class="rl"><span class="rc">${'0123456789'.split('').map(d=>`<i>${d}</i>`).join('')}</span></span>`:`<span class="rs">${ch}</span>`).join('');
- const cols=el.children;[...s].forEach((ch,i)=>{const c=cols[i];if(/\d/.test(ch)){const r=c.firstChild;if(first)r.style.transition='none';r.style.transform=`translateY(-${+ch}em)`;if(first)requestAnimationFrame(()=>r.style.transition='')}else c.textContent=ch})}
+function roll(el,v){const s=fmt(+(+v).toFixed(2));if(el.dataset.s===s)return;const first=!el.dataset.s;el.dataset.s=s;el.dataset.v=v;el.classList.add('rolled');
+ if(!el.querySelector('.dgw')||el.children.length!==[...s].length)el.innerHTML=[...s].map(ch=>/\d/.test(ch)?`<span class="dgw"><span class="dgc">${'0123456789'.split('').map(d=>`<i>${d}</i>`).join('')}</span></span>`:`<span class="rs">${ch}</span>`).join('');
+ const cols=el.children;[...s].forEach((ch,i)=>{const c=cols[i];if(/\d/.test(ch)){const r=c.firstChild;if(first)r.style.transition='none';r.style.transform=`translateY(-${+ch*1.25}em)`;if(first)requestAnimationFrame(()=>r.style.transition='')}else c.textContent=ch})}
 function countTo(el,to,dec,ms=900){const from=+el.dataset.v||0;el.dataset.v=to;const t0=performance.now();
  (function f(t){const k=Math.min(1,(t-t0)/ms),e=1-Math.pow(1-k,3),v=from+(to-from)*e;el.textContent=dec?fmt(+v.toFixed(2)):Math.round(v);if(k<1)requestAnimationFrame(f)})(t0)}
 function bump(e){const p=e.closest('.card')||e.closest('span')||e;p.classList.remove('bump');void p.offsetWidth;p.classList.add('bump')}
@@ -929,7 +930,7 @@ function fullStats(){const F=S.fstats;if(!F)return;const pp=F.people,per=fsPer,m
  const rank=[...pp].sort((a,b)=>val(b)-val(a)),mx=Math.max(1,...pp.map(val)),u=met==='uah'?' ₴':' 💎';
  const pods=[rank[1],rank[0],rank[2]].map((p,i)=>p?`<div class="pc p${[2,1,3][i]}">${ava(P(p.id).look,[46,60,40][i])}<b>${P(p.id).name}</b><small>${fmt(Math.round(val(p)))}${u}</small><div class="pl">${[2,1,3][i]}</div></div>`:'').join('');
  const best=(f,lab,fmtv)=>{const r=[...pp].sort((a,b)=>(f(b)||0)-(f(a)||0)),top=f(r[0])||0;if(!(top>0))return '';const me=String(S.me.id);
- return `<div class="cat"><small>${lab}</small>${r.map((w,i)=>{const v=f(w)||0,win=v===top;return `<div class="w ${win?'win':'oth'} ${w.id===me?'me':''}">${ava(P(w.id).look,win?24:18)}${P(w.id).name}${win?' 🥇':''}<span>${fmtv(v)}</span></div>`}).join('')}</div>`};
+ return `<div class="cat"><small>${lab}</small>${r.map((w,i)=>{const v=f(w)||0,win=v===top;return `<div class="w ${win?'win':'oth'} ${w.id===me?'me':''}">${ava(P(w.id).look,win?24:18)}${P(w.id).name}${win?' 🥇':''}<span>${fmtv(v)}</span></div><div class="mb"><i style="width:${Math.max(3,v/top*100)}%"></i></div>`}).join('')}</div>`};
  sheet(`<h3>📊 Статистика ферми</h3><p>Хто сьогодні король урожаю? 👑</p>
  <div class="mc">${[['today','Сьогодні'],['yday','Вчора'],['week','Тиждень'],['lweek','Мин. тиждень']].map(([k,l])=>`<button data-p="${k}" class="${k===per?'on':''}">${l}</button>`).join('')}</div>
  <div class="mc">${[['month','Місяць'],['all','Весь час']].map(([k,l])=>`<button data-p="${k}" class="${k===per?'on':''}">${l}</button>`).join('')}</div>
