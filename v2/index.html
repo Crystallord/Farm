@@ -510,7 +510,7 @@ const TG=window.Telegram&&Telegram.WebApp; try{TG.ready();TG.expand();TG.setHead
 const qs=new URLSearchParams(location.search), API=qs.get('api')||window.FARM_API||'', DEMO=qs.get('demo')==='1'||!(TG&&TG.initData);
 const quiet=()=>{const h=new Date().getHours();return h<8}; // 00:00–08:00: no vibration
 const hap=t=>{if(quiet())return;try{t==='ok'?TG.HapticFeedback.notificationOccurred('success'):t==='err'?TG.HapticFeedback.notificationOccurred('error'):TG.HapticFeedback.impactOccurred(t||'medium')}catch(e){}};
-const APP_VER='24.11.1107';
+const APP_VER='24.11.1124';
 const $=id=>document.getElementById(id), R=95, C=2*Math.PI*R;
 const fmt=v=>(+v).toLocaleString('uk-UA',{minimumFractionDigits:(+v)%1?2:0,maximumFractionDigits:2});
 const plural=(n,f)=>{n=Math.abs(n)%100;const b=n%10;return n>10&&n<20?f[2]:b===1?f[0]:b>=2&&b<=4?f[1]:f[2]};
@@ -759,9 +759,13 @@ function offerSheet(o){const I=S.invest,left=Math.max(0,o.price-o.raised),bal=I.
  <div class="kv"><div><b>${fmt(bal)} ₴</b><small>у тебе на балансі</small></div><div><b>${fmt(o.my)} ₴</b><small>твій внесок</small></div>
  <div><b>+${fmt(Math.round(o.dayAll*30))} ₴</b><small>ділянка власникам/міс</small></div><div><b>${fmt(left)} ₴</b><small>лишилось зібрати</small></div></div>
  ${(o.who||[]).length?`<div class="sidec" style="margin-bottom:10px"><h5>👥 Уже вклали</h5>${o.who.map(w=>`<div class="own"><span class="nm">${who(w.id,30,true)}</span><span class="pc">${fmt(w.uah)} ₴</span></div>`).join('')}</div>`:''}
- ${Math.min(bal,left)>=1?`<div class="rg big"><div class="rgh"><span class="nm">💼 Вкласти</span><span class="rv" id="plv"></span></div><input type="range" id="pl" min="1" max="${Math.floor(Math.min(bal,left))}" step="1" value="${Math.min(Math.floor(Math.min(bal,left)),Math.max(I.min||1,20))}"><div class="rgl"><span>1 ₴</span><span>${bal>=left?'закрити збір':'увесь баланс'} · ${fmt(Math.floor(Math.min(bal,left)))} ₴</span></div></div><button class="buy big" id="plgo"></button>`:'<p>На балансі поки немає гривень для внеску</p>'}
+ ${(()=>{const cap=Math.floor(Math.min(bal,left)*100)/100;if(cap<=0)return '<p>На балансі поки немає гривень для внеску</p>';
+  const close=bal>=left?`<button class="buy big" id="plall" style="background:linear-gradient(#53d97f,#2fb45c);box-shadow:0 4px 0 #23914a">🏁 Закрити збір · вкласти ${fmt(left)} ₴</button>`:'';
+  if(cap<1)return close||`<button class="buy big" id="plall">💼 Вкласти ${fmt(cap)} ₴</button>`;
+  return `<div class="rg big"><div class="rgh"><span class="nm">💼 Вкласти</span><span class="rv" id="plv"></span></div><input type="range" id="pl" min="1" max="${Math.floor(cap)}" step="1" value="${Math.min(Math.floor(cap),Math.max(I.min||1,20))}"><div class="rgl"><span>1 ₴</span><span>${bal>=left?'майже весь залишок':'увесь баланс'} · ${fmt(Math.floor(cap))} ₴</span></div></div><button class="buy big" id="plgo"></button>${close?'<div style="height:8px"></div>'+close:''}`})()}
  ${o.my?`<button class="ghostb" id="back" style="color:#e2552b">↩️ Забрати свій внесок (${fmt(o.my)} ₴)</button>`:''}
  <button class="ghostb" onclick="unsheet()">Закрити</button>`);
+ if($('plall'))$('plall').onclick=async()=>{hap('heavy');const r=await act('pledge',{oid:o.id,amt:'all'});if(r&&r.ok){confetti();const n=S.invest.offers.find(x=>x.id===o.id);if(n)offerSheet(n);else unsheet()}};
  if($('pl')){let v=+$('pl').value;const sh=()=>{$('plv').textContent=fmt(v)+' ₴ · '+fmt(+(v/o.price*100).toFixed(1))+'% ділянки';$('plgo').textContent=`💼 Вкласти ${fmt(v)} ₴ (≈ +${fmt(Math.round(o.dayAll*30*v/o.price))} ₴/міс)`};sh();
   $('pl').oninput=e=>{v=+e.target.value;sh()};$('pl').onchange=()=>hap('light');
   $('plgo').onclick=async()=>{hap('heavy');const r=await act('pledge',{oid:o.id,amt:String(v)});if(r&&r.ok){confetti();const n=S.invest.offers.find(x=>x.id===o.id);if(n)offerSheet(n);else unsheet()}}}
