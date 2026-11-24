@@ -414,6 +414,7 @@ body.busy button:not(.pending),body.busy .tile,body.busy .ob{opacity:.6;transiti
 .cpick button .e{font-size:24px}.cpick button small{font-size:10.5px;color:var(--mute);font-weight:800}.cpick button.on{background:#e9ffef;box-shadow:0 0 0 3px #2fb45c}
 .split{display:flex;height:14px;border-radius:7px;overflow:hidden;margin:6px 0}.split i{display:block;height:100%}.split .b{background:#ffb020}.split .c{background:#c08a5a}
 .gsave{position:sticky;bottom:0;padding-top:6px;background:linear-gradient(transparent,var(--bg) 30%)}
+.stp{display:flex;gap:6px;margin-top:8px}.stp button{flex:1;border:0;border-radius:10px;padding:7px 0;font:900 13px Nunito,sans-serif;background:#fff;color:#5b3fd6;box-shadow:0 2px 0 #e6dcff;cursor:pointer}
 </style></head><body>
 <header class="hdr" id="hdr"><span id="hava" class="tapme"></span><div class="hn"><b id="hname">…</b><span id="httl"></span><span id="hbst"></span></div>
   <div class="hb"><span class="hs"><span class="flame dim" id="flame">🔥</span><b id="hst">0</b></span><span class="hm"><b id="uah">0</b> ₴</span><span class="hg"><b id="gem">0</b> 💎</span></div></header>
@@ -944,15 +945,18 @@ function growSheet(){const G=S.grow;if(!G)return;if(!GD)GD={bedCrop:G.bedCrop,bu
   <div class="split"><i class="b" style="width:${G.spots?own/G.spots*100:0}%"></i><i class="c" style="width:${G.spots?comps/G.spots*100:0}%"></i></div>
   <div class="rg"><div class="rgh"><span class="nm">📦 бандлів ${bc.label}</span><span class="rv" id="gv1">${own} · 🪱 ${comps}</span></div><input type="range" id="g1" min="0" max="${G.spots}" step="1" value="${own}" ${ro?'disabled':''}></div></div>
  <div class="gsec"><h5>🌍 Нейтральна земля</h5><small>Скільки в середньому стоїть (бо крадуть)</small>
-  <div class="rg"><div class="rgh"><span class="nm">📦 бандлів</span><span class="rv" id="gv2">${D.nbundles}</span></div><input type="range" id="g2" min="0" max="${Math.max(40,D.nbundles)}" step="1" value="${D.nbundles}" ${ro?'disabled':''}></div>
-  <div class="rg"><div class="rgh"><span class="nm">🪱 компостерів</span><span class="rv" id="gv3">${D.neutral}</span></div><input type="range" id="g3" min="0" max="${Math.max(60,D.neutral)}" step="1" value="${D.neutral}" ${ro?'disabled':''}></div></div>
+  ${[['g2','nbundles','📦 бандлів'],['g3','neutral','🪱 компостерів']].map(([i,k,l])=>`<div class="rg"><div class="rgh"><span class="nm">${l}</span><span class="rv" id="v${i}">${D[k]}</span></div>
+   ${ro?'':`<div class="stp">${[-5,-1,1,5,10].map(d=>`<button data-k="${k}" data-d="${d}">${d>0?'+':''}${d}</button>`).join('')}</div>`}
+   <input type="range" id="${i}" min="0" max="${Math.max(k==='neutral'?60:40,D[k]+20)}" step="1" value="${D[k]}" ${ro?'disabled':''}></div>`).join('')}
+  ${ro?'':'<small style="display:block;color:var(--mute);font-weight:800;font-size:11.5px;margin-top:4px">Посадив нові — тисни +1 / +5. Вкрали — −1.</small>'}</div>
  <div class="gsec"><h5>🪱 Хробаки: збір кожні ${dur(plotMin)}</h5><small>≈ ${fmt(Math.round(gold))}g за збір · зараз ${fmt(G.plotsUah)} ₴</small></div>
  ${ro?'':`<div class="gsave"><button class="buy big" id="gsave" ${dirty?'':'disabled'}>💾 Зберегти</button></div>`}<button class="ghostb" onclick="GD=null;unsheet()">Закрити</button>`);
  const keep=()=>{const sc=$('sheet').scrollTop;growSheet();$('sheet').scrollTop=sc};
  $('sheet').querySelectorAll('[data-bed]').forEach(b=>b.onclick=()=>{D.bedCrop=b.dataset.bed;hap('light');keep()});
  $('sheet').querySelectorAll('[data-bc]').forEach(b=>b.onclick=()=>{D.bundleCrop=b.dataset.bc;hap('light');keep()});
  [['g1','bundles'],['g2','nbundles'],['g3','neutral']].forEach(([i,k])=>{const el=$(i);el.oninput=()=>{D[k]=+el.value;
-  if(k==='bundles')$('gv1').textContent=`${D.bundles} · 🪱 ${G.spots-D.bundles}`;else $(i==='g2'?'gv2':'gv3').textContent=D[k];const g=$('gsave');if(g)g.disabled=false};el.onchange=()=>{hap('light');keep()}});
+  if(k==='bundles')$('gv1').textContent=`${D.bundles} · 🪱 ${G.spots-D.bundles}`;else $('v'+i).textContent=D[k];const g=$('gsave');if(g)g.disabled=false};el.onchange=()=>{hap('light');keep()}});
+ $('sheet').querySelectorAll('.stp button').forEach(b=>b.onclick=()=>{const k=b.dataset.k;D[k]=Math.max(0,D[k]+ +b.dataset.d);hap('light');keep()});
  if($('gsave'))$('gsave').onclick=async()=>{hap('heavy');const r=await act('grow',D);if(r&&r.ok){GD=null;unsheet();confetti()}}}
 $('growb').onclick=()=>{GD=null;growSheet()};
 // ===================== tabs
