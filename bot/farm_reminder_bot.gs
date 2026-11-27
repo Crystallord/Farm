@@ -47,6 +47,10 @@
 
 // ---------------------------------------------------------------- settings (changed with buttons, see settingsPanel)
 const DEFAULTS = {
+  honorPrice: 0.042,   // gold for 1 honor point on the AH (27.11.2026)
+  autoGold: 500,       // gold a buffalo autofarm brings a character a day
+  questPct: 50,        // the norm counts this share of all daily quests on all characters
+  gemPerUah: 2,        // a quest / autofarm reward taken in crystals: 1 UAH = 2 💎
   bedCrop: 'tc',       // what grows in the seedbeds (see CROPS)
   bundles: 70,         // seed bundles planted in place of composters (one bundle per composter spot)
   bundleCrop: 'clover',// which bundle (see BUNDLES)
@@ -848,7 +852,7 @@ function today(st, now) { return st.stats['d:' + dayKey(now, st.cfg)] || {}; }
 // The farm's reference day (еталон), the base of norms, plot income and payback: Cactus/Turmeric in the seedbeds,
 // 2/3 of the composter spots as Clover bundles and 1/3 as composters (worms), 6 harvests of each a day. It does not
 // depend on what is planted today, only on the land: more plots or neutral land -> more pay per harvest -> a bigger norm.
-const BOT_VER = '24.11.1556'; // set by bump.sh on every push
+const BOT_VER = '28.11.0016'; // set by bump.sh on every push
 const REF_DEF = { bedCrop: 'tc', bundleCrop: 'clover', bundleShare: 2 / 3, runs: 6 };
 let REF_OVR = null; // the owner's reference day (st.cfg.ref), set when the state is loaded
 const REF = {
@@ -861,8 +865,58 @@ function refCfg(c) { // the farm's config as in the reference day
     bundles: Math.round(f.spots * REF.bundleShare), nbundles: nb, neutral: nTot - nb });
 }
 function farmMax(c) {
-  const r = refCfg(c);
-  return money(REF.runs * (KINDS.beds.reward(r) + KINDS.plots.reward(r)));
+  const r = refCfg(c), e = extraMax(c);
+  return money(REF.runs * (KINDS.beds.reward(r) + KINDS.plots.reward(r)) + e.quest + e.auto);
+}
+// ⚔️ Daily quests and autofarms: income we can count exactly (honor sold on the AH, gold from RD, the buffalo autofarm).
+// Halcyona: the first one of the day on a character also opens a chest with 12k honor (max 3 a day: 12k + 3 × 3.5k = 22.5k).
+const QUESTS = [
+  { id: 'cr', label: 'CR', honor: 4000 }, { id: 'gr', label: 'GR', honor: 4000 },
+  { id: 'halcy', label: 'Halcyona', honor: 3500, first: 12000, max: 3 },
+  { id: 'ws', label: 'WS', honor: 4000 }, { id: 'aegis', label: 'Aegis', honor: 4000 }, { id: 'rd', label: 'RD', honor: 4000, gold: 400 },
+];
+const INCOME_TASKS = { quest: 'q', daily: 'a' }; // tasks paid by the income they bring: UAH or crystals, per character
+function questById(id) { return QUESTS.filter(function (q) { return q.id === id; })[0] || null; }
+function goldUah(c, g) { return money(g * c.uahPer1000 / 1000); }
+function questGold(c, q, first) { return (q.honor + (first && q.first ? q.first : 0)) * c.honorPrice + (q.gold || 0); }
+function charQuestMax(c) { return QUESTS.reduce(function (a, q) { return a + (q.honor * (q.max || 1) + (q.first || 0)) * c.honorPrice + (q.gold || 0); }, 0); }
+function charNames(c) { return (c.chars || []).map(function (x) { return x.name; }); }
+function extraMax(c) {
+  const n = (c.chars || []).length || CHARACTERS;
+  return { quest: goldUah(c, charQuestMax(c) * n * c.questPct / 100), auto: goldUah(c, c.autoGold * n) };
+}
+// what one press is worth: the quest (or the autofarm) on these characters; Halcyona's chest only on a character's first one today
+function incomeValue(st, x) {
+  const c = st.cfg, q = x.task === 'quest' ? questById(x.quest) : null, D = ((st.qlog || {})[x.day]) || {};
+  const seen = {}; (st.pend || []).forEach(function (y) { if (y !== x && y.task === 'quest' && y.quest === 'halcy' && y.day === x.day) (y.chars || []).forEach(function (ch) { seen[ch] = 1; }); });
+  const gold = (x.chars || []).reduce(function (a, ch) { return a + (q ? questGold(c, q, !(((D[ch] || {}).n || {})[q.id]) && !seen[ch]) : c.autoGold); }, 0);
+  const uah = goldUah(c, gold);
+  return { uah: uah, gems: money(uah * c.gemPerUah) };
+}
+function rewardText(x) { return x.cur === 'uah' ? '+' + money(x.uah) + ' грн' : '+' + x.gems + ' ' + GEM; }
+function grantIncome(st, x) {
+  const c = st.cfg, q = x.task === 'quest' ? questById(x.quest) : null, t = taskDef(x.task);
+  if (x.task === 'quest' && !q) return null;
+  const L = st.qlog = st.qlog || {}, D = L[x.day] = L[x.day] || {}, A = st.qall = st.qall || {};
+  let gold = 0;
+  (x.chars || []).forEach(function (ch) {
+    const r = D[ch] = D[ch] || { n: {}, q: 0, a: 0 }, all = A[ch] = A[ch] || { n: {}, q: 0, a: 0 }, k = q ? q.id : 'auto';
+    const g = q ? questGold(c, q, !r.n[q.id]) : c.autoGold, u = goldUah(c, g);
+    r.n[k] = (r.n[k] || 0) + 1; all.n[k] = (all.n[k] || 0) + 1;
+    if (q) { r.q = money(r.q + u); all.q = money(all.q + u); } else { r.a = money(r.a + u); all.a = money(all.a + u); }
+    gold += g;
+  });
+  Object.keys(L).sort().slice(0, -70).forEach(function (k) { delete L[k]; });
+  x.uah = goldUah(c, gold); x.gems = x.cur === 'gem' ? money(x.uah * c.gemPerUah) : 0;
+  const g = gemLog(st, x.day, x.uid); g.n = g.n || {}; g.n[x.task] = (g.n[x.task] || 0) + (x.chars || []).length;
+  if (x.gems) {
+    g.tasks[x.task] = money((g.tasks[x.task] || 0) + x.gems);
+    x.gems = money(x.gems + gemBoost(st, x.uid, x.gems)); // 💎 season: +20%
+    inv(st, x.uid).gems = money(inv(st, x.uid).gems + x.gems);
+    snowAdd(st, String(x.uid), Math.round(x.gems * SNOW.perGem)); // ❄️ winter
+  }
+  credit(st, { id: x.uid }, q ? 'quest' : 'auto', x.uah, x.day === dayKey(Date.now(), c) ? Date.now() : x.at, x.cur === 'uah'); // counts for the day's norm either way
+  return t;
 }
 function normFor(c, share) { return Math.max(5, Math.round(farmMax(c) * share / 100 / 5) * 5); } // whole fives: easy to remember
 function overStep(c) { return normFor(c, c.overPct); }
@@ -907,7 +961,7 @@ function harvestGemFor(st, kind, now) {
   const g = st.cfg.harvestGem || 0;
   return KINDS[kind].cycle(hcfg(st, kind, now)) <= 60 ? g / 2 : g;
 }
-function credit(st, user, kind, uahAmount, now) {
+function credit(st, user, kind, uahAmount, now, pay) {
   const day = dayKey(now, st.cfg), harvest = !!KINDS[kind];
   if (harvest) {
     const full = KINDS[kind].full(hcfg(st, kind, now)); // the piggy bank gets its share of founder land only
@@ -924,7 +978,8 @@ function credit(st, user, kind, uahAmount, now) {
   if (harvest) snowAdd(st, String(user.id), SNOW.harvest);
   if (harvest) { st.grown = st.grown || {}; st.grown[kind] = now + KINDS[kind].cycle(st.cfg) * 60000; st.grownMin = st.grownMin || {}; st.grownMin[kind] = KINDS[kind].cycle(st.cfg); } // when it is really ripe (the reminder may wait for the morning)
   Object.keys(st.count).sort().slice(0, -3).forEach(function (k) { delete st.count[k]; });
-  const gross = uahAmount, counts = harvest || kind === 'pet'; // counts for the norm
+  const gross = uahAmount, counts = harvest || kind === 'pet' || kind === 'quest' || kind === 'auto'; // counts for the norm
+  if (pay === false) uahAmount = 0; // a quest / autofarm taken in crystals: counts for the norm, pays no UAH
   if (harvest) { const cut = goalsTake(st, String(user.id), uahAmount); uahAmount = money(uahAmount - cut); st._cut = money((st._cut || 0) + cut); }
   st.balance[user.id] = money((st.balance[user.id] || 0) + uahAmount);
   ['d:' + day, 'w:' + weekKey(day), 'm:' + monthKey(now)].forEach(function (key) {
@@ -932,6 +987,7 @@ function credit(st, user, kind, uahAmount, now) {
     const r = b[user.id] = b[user.id] || { n: 0, uah: 0 };
     if (harvest) { r.n += 1; r.k = r.k || {}; const what = kind === 'beds' ? 'b_' + (st._crop || (nightFirst(st, kind, now) ? 'tc' : st.cfg.bedCrop)) : kind; r.k[what] = (r.k[what] || 0) + 1; } // what was harvested: who likes what
     if (counts) r.g = money((r.g !== undefined ? r.g : r.uah) + gross);
+    if (kind === 'quest') r.q = money((r.q || 0) + gross); if (kind === 'auto') r.a = money((r.a || 0) + gross); // where the money came from
     r.uah += uahAmount;
   });
   if (harvest && pn && before < pn && doneToday(st, String(user.id), now) >= pn) snowAdd(st, String(user.id), SNOW.norm);
@@ -1043,8 +1099,8 @@ function postNag(st) {
 }
 function postDaily(st) {
   sayK(st, 'daily', '☀️ Щоденні справи на кожному персонажі:\n' + DAILY.join('\n') +
-    '\n\n' + GEM + ' Зробив(ла) все на одному персонажі — +' + st.cfg.taskGems.daily + ' ' + GEM + '. Натискай за кожного!' + petMorningLine(st),
-    { inline_keyboard: [[button('☀️ Зроблено на 1 персонажі · +' + st.cfg.taskGems.daily + ' ' + GEM, 'task:daily:me')],
+    '\n\n🐃 Автоферма на кожному персонажі — +' + money(goldUah(st.cfg, st.cfg.autoGold)) + ' грн або +' + money(goldUah(st.cfg, st.cfg.autoGold) * st.cfg.gemPerUah) + ' ' + GEM + '. Відміть у додатку: Завдання → ☀️, обери персонажів.' + petMorningLine(st),
+    { inline_keyboard: [
       [button('⏳ Пізніше (+1 год)', 'daily:later')], [button('▶️ Почати день: нагадування про землю', 'menu:go')]] });
 }
 function postEvening(st, streaks, divs) {
@@ -1458,14 +1514,14 @@ function shopToday(st, id) { // the unlocked items on sale today: a window of cf
 // the streak level of an item as a keycap: 1️⃣ 3️⃣ 5️⃣ 7️⃣ 🔟 1️⃣2️⃣
 function lvl(n) { return n === 10 ? '🔟' : String(n).split('').map(function (d) { return d + '\uFE0F\u20E3'; }).join(''); }
 const TASKS = [ // extra ways to earn crystals: as many times as done (many characters, many dailies); the owner approves each in private
-  { id: 'daily', icon: '☀️', label: 'Щоденні справи', per: 'за персонажа', list: true },
+  { id: 'daily', icon: '☀️', label: 'Щоденні справи й автоферма', per: 'за персонажа', list: true },
   { id: 'restock', icon: '📦', label: 'Поповнити запаси ферми', per: 'за раз' },
   { id: 'flower', icon: '🌸', label: 'Купити буйволів за квіточки', per: 'за всіх персонажів', note: 'валюта «квітка»; одне натискання за всіх персонажів' },
   { id: 'alt', icon: '🧑‍🌾', label: 'Прокачати альта й поставити пугало', per: 'за альта' },
   { id: 'dog', icon: '🐕', label: 'Закласти собачку', per: 'за раз', note: 'чікен або буйволи' },
   { id: 'gift', icon: '🎁', label: 'Забрати подарунок', per: 'за персонажа' },
   { id: 'nui', icon: '🕯', label: 'Зробити квести Нуі', per: 'за персонажа' },
-  { id: 'quest', icon: '📜', label: 'Пройти щоденний квест', per: 'за квест' },
+  { id: 'quest', icon: '⚔️', label: 'Щоденні квести', per: 'за квест на персонажі' },
   { id: 'neutral', icon: '🪱', label: 'Розставити компостери на нейтральній землі', per: 'за раз' },
   { id: 'event', icon: '🎉', label: 'Пройти івент розробників', per: 'за івент' },
 ];
@@ -1535,6 +1591,7 @@ function _earnKeyboard(st, id, game) {
 // Approved: crystals go to the person and count for the day the task was done.
 function grantTask(st, x) {
   const t = taskDef(x.task); if (!t) return null;
+  if (INCOME_TASKS[x.task]) return x.chars && x.chars.length ? grantIncome(st, x) : null;
   if (t.game === 'wow') x.gems = wowGems(st, x.uid, x.task.slice(3)); // first time or again: decided when approved
   const g = gemLog(st, x.day, x.uid), gems = x.gems;
   g.tasks[x.task] = (g.tasks[x.task] || 0) + gems; g.n = g.n || {}; g.n[x.task] = (g.n[x.task] || 0) + 1;
@@ -1544,11 +1601,12 @@ function grantTask(st, x) {
   if (t.game === 'wow') { st.wowDone = st.wowDone || {}; st.wowDone[x.uid] = st.wowDone[x.uid] || {}; st.wowDone[x.uid][x.task.slice(3)] = wowDone(st, x.uid, x.task.slice(3)) + 1; }
   return t;
 }
-function doTask(st, user, taskId, owner, q, edit) {
+function doTask(st, user, taskId, owner, q, edit, a) {
   if (owner === 'me') { owner = String(user.id); edit = function () {}; } // from the morning message in the group
   if (String(owner) !== String(user.id)) { toast(q, 'Це завдання іншої людини. Відкрий свої: 💎 у /menu'); return; }
   const t = taskDef(taskId), p = person(st, user);
   if (!t) { toast(q, 'Такого завдання немає'); return; }
+  if (INCOME_TASKS[taskId]) { doIncomeTask(st, user, t, a || {}, q); return; }
   const x = { id: (st.pendSeq = (st.pendSeq || 0) + 1), uid: String(user.id), task: taskId, gems: t.game === 'wow' ? wowGems(st, String(user.id), taskId.slice(3)) : st.cfg.taskGems[taskId], day: dayKey(Date.now(), st.cfg), at: Date.now() };
   if (String(user.id) === String(st.owner)) { // the owner approves himself
     grantTask(st, x); toast(q, '+' + x.gems + ' ' + GEM);
@@ -1560,12 +1618,33 @@ function doTask(st, user, taskId, owner, q, edit) {
   }
   edit(earnText(st, user.id, t.game || 'ar'), earnKeyboard(st, user.id, t.game || 'ar'));
 }
+// ⚔️ a quest or the autofarms: which quest, on which characters, paid in UAH or crystals (the app asks all three)
+function doIncomeTask(st, user, t, a, q) {
+  const names = charNames(st.cfg), chars = (Array.isArray(a.chars) ? a.chars : []).map(String).filter(function (ch, i, arr) { return names.indexOf(ch) >= 0 && arr.indexOf(ch) === i; });
+  if (!chars.length) { toast(q, '📱 Відміть у додатку: Завдання → ' + t.label); return; }
+  if (t.id === 'quest' && !questById(String(a.quest))) { toast(q, 'Обери квест'); return; }
+  const p = person(st, user), x = { id: (st.pendSeq = (st.pendSeq || 0) + 1), uid: String(user.id), task: t.id, quest: t.id === 'quest' ? String(a.quest) : null, chars: chars,
+    cur: a.cur === 'uah' ? 'uah' : 'gem', day: dayKey(Date.now(), st.cfg), at: Date.now() };
+  Object.assign(x, incomeValue(st, x));
+  const what = t.icon + ' ' + b(incomeLabel(x)) + ' · ' + esc(chars.join(', '));
+  if (String(user.id) === String(st.owner)) {
+    grantIncome(st, x); toast(q, rewardText(x));
+    sayK(st, 'task', '⚔️ ' + esc(p.name) + ': ' + what + ' · ' + rewardText(x));
+  } else {
+    if (x.cur === 'uah') x.gems = 0;
+    st.pend = (st.pend || []).concat([x]);
+    toast(q, '⏳ Надіслано на підтвердження: ' + incomeLabel(x) + ' ' + rewardText(x));
+    postPending(st);
+  }
+}
+function incomeLabel(x) { const qq = questById(x.quest); return x.task === 'quest' ? (qq ? qq.label : 'Квест') : 'Автоферма'; }
 // The owner's private chat: one panel with everything waiting for approval (the old one is deleted).
 function pendingText(st) {
   const list = st.pend || [];
   if (!list.length) return GEM + ' Усі завдання перевірено ✅';
   return GEM + ' ' + b('На підтвердження: ' + list.length) + '\n\n' + list.slice(0, 15).map(function (x, i) {
     const t = taskDef(x.task) || { icon: '?', label: x.task };
+    if (INCOME_TASKS[x.task]) return (i + 1) + '. ' + esc(nameOf(st, x.uid)) + ' — ' + t.icon + ' ' + esc(incomeLabel(x)) + ' · ' + esc((x.chars || []).join(', ')) + ' · ' + rewardText(x) + ' (' + hhmm(x.at) + ')';
     return (i + 1) + '. ' + esc(nameOf(st, x.uid)) + ' — ' + t.icon + ' ' + esc(t.label) + ' · +' + x.gems + ' ' + GEM + ' (' + hhmm(x.at) + ')';
   }).join('\n') + (list.length > 15 ? '\n…і ще ' + (list.length - 15) : '');
 }
@@ -1592,11 +1671,11 @@ function decideTasks(st, ok, which, q, edit) {
   st.pend = list.filter(function (x) { return pick.indexOf(x) < 0; });
   const per = {};
   pick.forEach(function (x) {
-    if (ok && grantTask(st, x)) { per[x.uid] = per[x.uid] || { gems: 0, n: 0 }; per[x.uid].gems += x.gems; per[x.uid].n++; }
+    if (ok && grantTask(st, x)) { per[x.uid] = per[x.uid] || { gems: 0, n: 0, uah: 0 }; per[x.uid].gems = money(per[x.uid].gems + (x.gems || 0)); if (x.cur === 'uah') per[x.uid].uah = money(per[x.uid].uah + x.uah); per[x.uid].n++; }
   });
   if (ok && st.group) sayK(st, 'task', Object.keys(per).map(function (id) {
     const p = st.people[id] || { name: nameOf(st, id) };
-    return GEM + ' ' + esc(p.name) + ': ' + verb(p, 'підтверджено', 'підтверджено') + ' ' + per[id].n + ' ' + plural(per[id].n, ['завдання', 'завдання', 'завдань']) + ' · +' + per[id].gems + ' ' + GEM + wallet(inv(st, id));
+    return GEM + ' ' + esc(p.name) + ': ' + verb(p, 'підтверджено', 'підтверджено') + ' ' + per[id].n + ' ' + plural(per[id].n, ['завдання', 'завдання', 'завдань']) + ' ·' + (per[id].gems ? ' +' + per[id].gems + ' ' + GEM : '') + (per[id].uah ? ' +' + money(per[id].uah) + ' грн' : '') + wallet(inv(st, id));
   }).join('\n'));
   if (!ok && st.group) {
     const ids = {}; pick.forEach(function (x) { ids[x.uid] = (ids[x.uid] || 0) + 1; });
@@ -2851,7 +2930,7 @@ const FAQ = [
     } },
     { q: '☀️ Що за щоденні справи вранці?', a: function (st) {
       return 'Маленькі справи на кожному персонажі:\n' + DAILY.join('\n') +
-        '\n\nЗробила все на одному персонажі — +' + st.cfg.taskGems.daily + ' ' + GEM + '. На трьох персонажах — утричі більше! Натисни кнопку за кожного, ' + esc(ownerName(st)) + ' підтвердить 👍';
+        '\n\nЗа автоферму на кожному персонажі — +' + money(goldUah(st.cfg, st.cfg.autoGold)) + ' грн або +' + money(goldUah(st.cfg, st.cfg.autoGold) * st.cfg.gemPerUah) + ' ' + GEM + ' (як сама обереш). У додатку: Завдання → ☀️, познач персонажів, ' + esc(ownerName(st)) + ' підтвердить 👍';
     } },
     { q: '📣 Чому бот пише смішні повідомлення?', a: function (st) {
       return 'Якщо врожай готовий, а його ніхто не збирає ' + st.cfg.nagAfter + ' ' + plural(st.cfg.nagAfter, ['хвилину', 'хвилини', 'хвилин']) + ', бот починає кликати 📢😄\n\nНатисни «🙋 Я ТУТ! ЗАРАЗ ЗРОБЛЮ!», і він заспокоїться.';
@@ -3675,7 +3754,7 @@ function appApi(e) {
       else if (body.action === 'use') { if (useCoupon(st, user, String(a.item), q)) q.out.push('🎟 Купон використано! Дивись у групі'); }
       else if (body.action === 'feed') { const pet = petOf(st, id); if (!petOk(pet)) q.out.push('Улюбленця ще немає'); else { const why = petFeed(st, id, now); q.out.push(why ? why.replace(/<[^>]+>/g, '') : '🍖 Ням! +' + st.cfg.pet.feed + '% ситості'); } }
       else if (body.action === 'harvest') appHarvest(st, user, String(a.kind), a.crop ? String(a.crop) : '', q, now);
-      else if (body.action === 'task') { const t = taskDef(String(a.id)); if (!t) q.out.push('Такого завдання немає'); else doTask(st, user, String(a.id), id, q, noop); }
+      else if (body.action === 'task') { const t = taskDef(String(a.id)); if (!t) q.out.push('Такого завдання немає'); else doTask(st, user, String(a.id), id, q, noop, a); }
       else if (body.action === 'item') { // 🎒 use something from the inventory
         const w = String(a.what || '');
         if (w === 'prize') { q.message = { text: '' }; openPrizes(st, user, q, '', noop); }
@@ -3792,7 +3871,14 @@ function appTasks(st, id) {
   const waitOf = function (tid) { return pend.filter(function (x) { return x.task === tid; }).length; };
   return {
     ar: TASKS.filter(function (t) { return gameOf(t) === 'ar'; }).sort(function (a, b) { return (used[b.id] || 0) - (used[a.id] || 0) || TASK_ORDER.indexOf(a.id) - TASK_ORDER.indexOf(b.id); })
-      .map(function (t) { return { id: t.id, icon: t.icon, label: t.label, per: t.per, note: t.note || '', list: t.list ? DAILY : null, gems: st.cfg.taskGems[t.id], today: n[t.id] || 0, wait: waitOf(t.id) }; }),
+      .map(function (t) { return { id: t.id, icon: t.icon, label: t.label, per: t.per, note: t.note || '', list: t.list ? DAILY : null, gems: st.cfg.taskGems[t.id], today: n[t.id] || 0, wait: waitOf(t.id), inc: !!INCOME_TASKS[t.id] }; }),
+    inc: (function () { // ⚔️ what quests and autofarms pay; what each character did today (with the presses still waiting)
+      const c = st.cfg, D = (st.qlog || {})[day] || {}, done = {};
+      charNames(c).forEach(function (ch) { done[ch] = Object.assign({}, (D[ch] || {}).n || {}); });
+      (st.pend || []).filter(function (x) { return INCOME_TASKS[x.task] && x.day === day; }).forEach(function (x) { (x.chars || []).forEach(function (ch) { if (done[ch]) { const k = x.quest || 'auto'; done[ch][k] = (done[ch][k] || 0) + 1; } }); });
+      return { rate: c.gemPerUah, chars: charNames(c), done: done, auto: goldUah(c, c.autoGold),
+        quests: QUESTS.map(function (q) { return { id: q.id, label: q.label, uah: goldUah(c, questGold(c, q, false)), first: q.first ? goldUah(c, questGold(c, q, true)) : null, max: q.max || 1, gold: q.gold || 0, honor: q.honor, chest: q.first || 0 }; }) };
+    })(),
     wow: wowList(st).map(function (d) { return { id: 'wd_' + d[0], icon: '🏰', label: d[1], lvl: d[2], gems: wowGems(st, id, d[0]), done: wowDone(st, id, d[0]), wait: waitOf('wd_' + d[0]) }; }),
     waitGems: pend.reduce(function (a, x) { return a + x.gems; }, 0), waitN: pend.length,
     approve: String(id) === String(st.owner) ? (st.pend || []).map(function (x) { const t = taskDef(x.task) || { icon: '?', label: x.task }; return { id: x.id, uid: String(x.uid), who: nameOf(st, x.uid), icon: t.icon, label: t.label, gems: x.gems, at: hhmm(x.at) }; }) : null,
@@ -4060,7 +4146,23 @@ function appFarmStats(st, now) {
       days: days.map(function (d) { return pick('d:' + d, u).uah; }) };
   });
   const tot = function (k) { return people.reduce(function (a, p) { return { n: a.n + p[k].n, uah: money(a.uah + p[k].uah) }; }, { n: 0, uah: 0 }); };
-  return { days: days, people: people, farm: { today: tot('today'), week: tot('week'), month: tot('month'), all: tot('all'), bank: money(st.bank || 0), plots: (st.cfg.iplots || []).length } };
+  // 🏡 the whole farm: all income summed, split by source; what each character brings with quests and the autofarm
+  const SK = { today: ['d:' + day], yday: ['d:' + yd], week: [wk], lweek: ['w:' + lw], month: [mo], all: Object.keys(st.stats).filter(function (x) { return x[0] === 'm'; }) };
+  const src = Object.keys(SK).reduce(function (o, k) { const a = { farm: 0, auto: 0, quest: 0 };
+    SK[k].forEach(function (key) { const b = st.stats[key] || {}; Object.keys(b).forEach(function (u) { const r = b[u] || {}, g = r.g !== undefined ? r.g : r.uah || 0; a.auto += r.a || 0; a.quest += r.q || 0; a.farm += g - (r.a || 0) - (r.q || 0); }); });
+    o[k] = { farm: money(a.farm), auto: money(a.auto), quest: money(a.quest), total: money(a.farm + a.auto + a.quest) }; return o; }, {});
+  const QR = { today: [day, day], yday: [yd, yd], week: [weekKey(day), day], lweek: [lw, addDays(lw, 6)], month: [monthKey(now) + '-01', day] };
+  const span = function (a, z) { return Math.round((new Date(z + 'T12:00:00Z') - new Date(a + 'T12:00:00Z')) / 86400000) + 1; };
+  const cmax = goldUah(st.cfg, charQuestMax(st.cfg));
+  const chars = charNames(st.cfg).map(function (ch) {
+    const o = { name: ch };
+    Object.keys(QR).forEach(function (k) { const a = QR[k][0], z = QR[k][1], n = {}; let q = 0, au = 0;
+      Object.keys(st.qlog || {}).filter(function (d) { return d >= a && d <= z; }).forEach(function (d) { const r = st.qlog[d][ch]; if (!r) return; q += r.q || 0; au += r.a || 0; Object.keys(r.n || {}).forEach(function (x) { n[x] = (n[x] || 0) + r.n[x]; }); });
+      o[k] = { quest: money(q), auto: money(au), n: n, pct: cmax ? Math.round(q / (cmax * span(a, z)) * 100) : 0 }; });
+    const A = (st.qall || {})[ch] || {}; o.all = { quest: money(A.q || 0), auto: money(A.a || 0), n: A.n || {}, pct: null };
+    return o; });
+  return { days: days, people: people, src: src, chars: chars, quests: QUESTS.map(function (q) { return { id: q.id, label: q.label }; }),
+    farm: { today: tot('today'), week: tot('week'), month: tot('month'), all: tot('all'), bank: money(st.bank || 0), plots: (st.cfg.iplots || []).length } };
 }
 // 🌱 what grows: seedbeds crop, bundles on our plots, neutral land (the owner changes it in the app)
 function appGrow(st, id) {
@@ -4091,7 +4193,8 @@ function refPick(a) {
 }
 function refNumbers(st, id) {
   const c = st.cfg, r = refCfg(c);
-  return { max: farmMax(c), beds: money(KINDS.beds.reward(r)), plots: money(KINDS.plots.reward(r)), over: overStep(c),
+  const e = extraMax(c);
+  return { max: farmMax(c), beds: money(KINDS.beds.reward(r)), plots: money(KINDS.plots.reward(r)), over: overStep(c), quest: e.quest, auto: e.auto, questPct: c.questPct, chars: (c.chars || []).length,
     people: Object.keys(st.people).map(function (u) { return { id: u, share: st.people[u].share || 0, norm: normFor(c, st.people[u].share || 0) }; }),
     plotsInv: (c.iplots || []).map(function (p) { const d = offerDaily(st, p); return { id: p.id, name: p.name, all: money(d * 30), mine: money(d * shareOf(p, id) * 30) }; }),
     offers: (st.offers || []).map(function (o) { return { id: o.id, name: o.name, all: money(offerDaily(st, o) * 30) }; }) };
@@ -4154,6 +4257,7 @@ function appState(st, id) {
   return {
     me: { id: id, name: p.name, female: !!p.female, color: colorOf(st, id), owner: String(id) === String(st.owner),
       gems: x.gems, balance: money(st.balance[id] || 0), streak: n, done: money(doneToday(st, id, now)), norm: p.norm || 0,
+      src: (function () { const r = (st.stats['d:' + dayKey(now, st.cfg)] || {})[id] || {}; return { auto: money(r.a || 0), quest: money(r.q || 0) }; })(), // the rest of "done" is the farm
       invest: money(myShares(st, id).reduce(function (a, pl) { return a + offerDaily(st, pl) * shareOf(pl, id); }, 0) * 30),
       wallet: money((st.invWallet || {})[id] || 0) },
     petStage: pet ? pet.stage || 'ok' : 'none',
