@@ -461,7 +461,7 @@ body.sheeton>.view.on{transform:scale(.94) translateY(10px);border-radius:18px;f
 .sp2{width:18px;height:18px;flex:none;border-radius:50%;border:3px solid #f0e4d4;border-top-color:#ff7a1a;animation:spin .7s linear infinite}
 .ti2{flex:none}
 /* 3 rolling digits */
-.rolled{display:inline-flex;align-items:center;line-height:1.25em;vertical-align:middle}.dgw{display:block;height:1.25em;overflow:hidden}.dgc{display:flex;flex-direction:column;transition:transform .8s cubic-bezier(.2,.9,.25,1.05)}.dgc i{font-style:normal;display:block;height:1.25em;line-height:1.25em}.rs{white-space:pre}
+.rolled{display:inline-flex;align-items:flex-start;height:var(--dh,1.25em);line-height:var(--dh,1.25em);vertical-align:middle;overflow:hidden}.dgw{display:block;height:var(--dh,1.25em);overflow:hidden}.dgc{display:flex;flex-direction:column;transition:transform .8s cubic-bezier(.2,.9,.25,1.05);backface-visibility:hidden}.dgc i{font-style:normal;display:block;height:var(--dh,1.25em);line-height:var(--dh,1.25em)}.rs{white-space:pre;display:block;height:var(--dh,1.25em);line-height:var(--dh,1.25em)}
 .rs{display:inline-block}
 /* 4 ready beam + shimmer */
 .crop{position:relative;isolation:isolate}.crop .beam{display:none}
@@ -663,7 +663,7 @@ const TG=window.Telegram&&Telegram.WebApp; try{TG.ready();TG.expand();TG.setHead
 const qs=new URLSearchParams(location.search), API=qs.get('api')||window.FARM_API||'', DEMO=qs.get('demo')==='1'||!(TG&&TG.initData), BETA=qs.get('beta')==='1';
 const quiet=()=>{const h=new Date().getHours();return h<8}; // 00:00–08:00: no vibration
 const hap=t=>{if(quiet())return;try{t==='ok'?TG.HapticFeedback.notificationOccurred('success'):t==='err'?TG.HapticFeedback.notificationOccurred('error'):TG.HapticFeedback.impactOccurred(t||'medium')}catch(e){}};
-const APP_VER='28.11.0026';
+const APP_VER='28.11.0027';
 const $=id=>document.getElementById(id), R=95, C=2*Math.PI*R;
 const fmt=v=>(+v).toLocaleString('uk-UA',{minimumFractionDigits:(+v)%1?2:0,maximumFractionDigits:2});
 const plural=(n,f)=>{n=Math.abs(n)%100;const b=n%10;return n>10&&n<20?f[2]:b===1?f[0]:b>=2&&b<=4?f[1]:f[2]};
@@ -698,8 +698,9 @@ async function act(action,args){
 function apply(st){S=st;document.body.classList.remove('loading');$('ver').textContent='v'+APP_VER+(st.ver?' · бот '+st.ver:'');OFF=(st.farm&&st.farm.now?st.farm.now-Date.now():0);render()}
 // ===================== helpers
 function roll(el,v){const s=fmt(+(+v).toFixed(2));if(el.dataset.s===s)return;const first=!el.dataset.s;el.dataset.s=s;el.dataset.v=v;el.classList.add('rolled');
+ const H=Math.round((parseFloat(getComputedStyle(el).fontSize)||14)*1.25);el.style.setProperty('--dh',H+'px'); // whole pixels: every digit stops on the same line
  if(!el.querySelector('.dgw')||el.children.length!==[...s].length)el.innerHTML=[...s].map(ch=>/\d/.test(ch)?`<span class="dgw"><span class="dgc">${'0123456789'.split('').map(d=>`<i>${d}</i>`).join('')}</span></span>`:`<span class="rs">${ch}</span>`).join('');
- const cols=el.children;[...s].forEach((ch,i)=>{const c=cols[i];if(/\d/.test(ch)){const r=c.firstChild;if(first)r.style.transition='none';r.style.transform=`translateY(-${+ch*1.25}em)`;if(first)requestAnimationFrame(()=>r.style.transition='')}else c.textContent=ch})}
+ const cols=el.children;[...s].forEach((ch,i)=>{const c=cols[i];if(/\d/.test(ch)){const r=c.firstChild;if(first)r.style.transition='none';r.style.transform=`translate3d(0,-${+ch*H}px,0)`;if(first)requestAnimationFrame(()=>r.style.transition='')}else c.textContent=ch})}
 function countTo(el,to,dec,ms=900){const from=+el.dataset.v||0;el.dataset.v=to;const t0=performance.now();
  (function f(t){const k=Math.min(1,(t-t0)/ms),e=1-Math.pow(1-k,3),v=from+(to-from)*e;el.textContent=dec?fmt(+v.toFixed(2)):Math.round(v);if(k<1)requestAnimationFrame(f)})(t0)}
 function bump(e){const p=e.closest('.card')||e.closest('span')||e;p.classList.remove('bump');void p.offsetWidth;p.classList.add('bump')}
