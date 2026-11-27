@@ -667,7 +667,7 @@ const TG=window.Telegram&&Telegram.WebApp; try{TG.ready();TG.expand();TG.setHead
 const qs=new URLSearchParams(location.search), API=qs.get('api')||window.FARM_API||'', DEMO=qs.get('demo')==='1'||!(TG&&TG.initData), BETA=qs.get('beta')==='1';
 const quiet=()=>{const h=new Date().getHours();return h<8}; // 00:00–08:00: no vibration
 const hap=t=>{if(quiet())return;try{t==='ok'?TG.HapticFeedback.notificationOccurred('success'):t==='err'?TG.HapticFeedback.notificationOccurred('error'):TG.HapticFeedback.impactOccurred(t||'medium')}catch(e){}};
-const APP_VER='28.11.0048';
+const APP_VER='28.11.0049';
 const $=id=>document.getElementById(id), R=95, C=2*Math.PI*R;
 const fmt=v=>(+v).toLocaleString('uk-UA',{minimumFractionDigits:(+v)%1?2:0,maximumFractionDigits:2});
 const plural=(n,f)=>{n=Math.abs(n)%100;const b=n%10;return n>10&&n<20?f[2]:b===1?f[0]:b>=2&&b<=4?f[1]:f[2]};
@@ -1262,7 +1262,7 @@ function refDraw(){const I=RI,D=RD,ro=!I.edit,N=I.next||I.now,O=I.now,ic={narcis
   <div class="rg"><div class="rgh"><span class="nm">Частка місць під бандли</span><span class="rv" id="rsv">${Math.round(D.bundleShare*100)}% · 🪱 ${100-Math.round(D.bundleShare*100)}%</span></div><input type="range" id="rs" min="0" max="100" step="5" value="${Math.round(D.bundleShare*100)}" ${ro?'disabled':''}></div></div>
  <div class="gsec"><h5>🔁 Зборів за день</h5><div class="rg"><div class="rgh"><span class="nm">грядки і хробаки</span><span class="rv" id="rrv">${D.runs}</span></div><input type="range" id="rr" min="1" max="12" step="1" value="${D.runs}" ${ro?'disabled':''}></div></div>
  <div id="refres" class="">
- <div class="cmp"><h5>🌾 Еталонний день ферми</h5>${row('Уся ферма за день',O.max,N.max,' ₴',1)}${row('🌱 Грядки за збір',O.beds,N.beds,' ₴',1)}${row('🪱 Хробаки за збір',O.plots,N.plots,' ₴',1)}${N.quest!=null?row(`⚔️ Квести · ${N.questPct}% на ${N.chars} персонажах`,O.quest,N.quest,' ₴',1)+row(`🐃 Автоферми · ${N.chars} персонажі`,O.auto,N.auto,' ₴',1):''}${row('💎 +1 кристал понад норму за кожні',O.over,N.over,' ₴',0)}</div>
+ <div class="cmp"><h5>🌾 Еталонний день ферми · усе, що ферма заробляє, разом із банком і частками власників</h5>${row('Уся ферма за день',O.max,N.max,' ₴',1)}${row('🌱 Грядки за збір',O.beds,N.beds,' ₴',1)}${row('🪱 Хробаки за збір',O.plots,N.plots,' ₴',1)}${N.quest!=null?row(`⚔️ Квести · ${N.questPct}% на ${N.chars} персонажах`,O.quest,N.quest,' ₴',1)+row(`🐃 Автоферми · ${N.chars} персонажі`,O.auto,N.auto,' ₴',1):''}${row('💎 +1 кристал понад норму за кожні',O.over,N.over,' ₴',0)}</div>
  <div class="cmp"><h5>🎯 Норми</h5>${N.people.map((p,i)=>row(`${who(p.id,24)} <small style="color:var(--mute)">${p.share}%</small>`,O.people[i].norm,p.norm,' ₴',0)).join('')}</div>
  ${N.plotsInv.length?`<div class="cmp"><h5>💼 Інвестиції, на місяць</h5>${N.plotsInv.map((p,i)=>row(`🏡 ${p.name} · тобі`,O.plotsInv[i].mine,p.mine,' ₴',1)+row(`<small style="color:var(--mute)">усім власникам</small>`,O.plotsInv[i].all,p.all,' ₴',1)).join('')}${N.offers.map((o,i)=>row(`🏗 ${o.name} (збір)`,O.offers[i].all,o.all,' ₴',1)).join('')}</div>`:''}
  </div>
