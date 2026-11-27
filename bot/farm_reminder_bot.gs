@@ -526,8 +526,72 @@ function appContest(st, id, now) {
     prizes: (st.prizes || []).filter(function (z) { return String(z.uid) === String(id); }).map(function (z) { return { id: z.id, icon: z.icon, label: z.label, text: cPrizeText(z.prize), day: z.day }; }),
     week: Object.keys(st.people).map(function (u) { return { id: u, wins: w[u] || 0 }; }).sort(function (a, b) { return b.wins - a.wins; }) };
 }
+// ↩️ Action history: what each press changed in money, crystals and stats (numbers only), so the owner can roll it back.
+// A snapshot of these parts is taken when the state loads; saveState logs the difference under the current action.
+const HIST_ROOTS = ['balance', 'inv', 'stats', 'bank', 'gemLog', 'dayLog', 'snow', 'qlog', 'qall', 'count', 'invWallet'];
+let HSNAP = null, ACT = null;
+function histPick(st) { const o = {}; HIST_ROOTS.forEach(function (k) { if (st[k] !== undefined) o[k] = st[k]; }); return JSON.stringify(o); }
+function numDiff(a, b, path, out) {
+  if (typeof b === 'number') { if (a === undefined || typeof a === 'number') { const d = b - (a || 0); if (Math.abs(d) > 1e-9) out.push([path, Math.round(d * 1e6) / 1e6]); } return; }
+  if (b && typeof b === 'object' && !Array.isArray(b)) Object.keys(b).forEach(function (k) { numDiff(a && typeof a === 'object' && !Array.isArray(a) ? a[k] : undefined, b[k], path.concat(k), out); });
+}
+function histLog(st) {
+  if (!HSNAP) return;
+  const now = histPick(st);
+  if (ACT && now !== HSNAP) {
+    const d = []; numDiff(JSON.parse(HSNAP), JSON.parse(now), [], d);
+    if (d.length) {
+      const H = st.hist = st.hist || [], last = H[H.length - 1];
+      if (last && last.req === ACT.req) last.d = mergeDiff(last.d, d);
+      else H.push({ id: (st.histSeq = (st.histSeq || 0) + 1), req: ACT.req, at: Date.now(), uid: String(ACT.uid), label: ACT.label, d: d });
+      while (H.length > 150) H.shift();
+      const cut = Date.now() - 4 * 86400000; while (H.length && H[0].at < cut) H.shift();
+    }
+  }
+  HSNAP = histPick(st);
+}
+function mergeDiff(a, b) { const m = {}; a.concat(b).forEach(function (x) { const k = JSON.stringify(x[0]); m[k] = m[k] ? [x[0], Math.round((m[k][1] + x[1]) * 1e6) / 1e6] : x; }); return Object.keys(m).map(function (k) { return m[k]; }).filter(function (x) { return Math.abs(x[1]) > 1e-9; }); }
+function histUndo(st, id) {
+  const e = (st.hist || []).filter(function (x) { return x.id === +id; })[0];
+  if (!e || e.u) return null;
+  e.d.forEach(function (x) {
+    let o = st; const path = x[0];
+    for (let i = 0; i < path.length - 1; i++) { if (!o[path[i]] || typeof o[path[i]] !== 'object') o[path[i]] = {}; o = o[path[i]]; }
+    const k = path[path.length - 1]; o[k] = Math.round(((typeof o[k] === 'number' ? o[k] : 0) - x[1]) * 1e6) / 1e6;
+  });
+  e.u = Date.now(); return e;
+}
+// what an entry did to people's money and crystals, for the list
+function histSum(e) {
+  const o = {};
+  e.d.forEach(function (x) { const p = x[0];
+    if (p[0] === 'balance' && p.length === 2) { o[p[1]] = o[p[1]] || {}; o[p[1]].uah = money((o[p[1]].uah || 0) + x[1]); }
+    if (p[0] === 'inv' && p[2] === 'gems') { o[p[1]] = o[p[1]] || {}; o[p[1]].gems = money((o[p[1]].gems || 0) + x[1]); }
+    if (p[0] === 'stats' && p[1].indexOf('d:') === 0 && p[3] === 'g') { o[p[2]] = o[p[2]] || {}; o[p[2]].norm = money((o[p[2]].norm || 0) + x[1]); }
+    if (p[0] === 'stats' && p[1].indexOf('d:') === 0 && p[3] === 'n') { o[p[2]] = o[p[2]] || {}; o[p[2]].n = (o[p[2]].n || 0) + x[1]; }
+  });
+  return o;
+}
+function btnLabel(st, parts) { // a bot button, said the same way as in the app
+  const a = parts[0];
+  if (a === 'done') { const k = KINDS[parts[1]]; return '🌾 Збір у чаті' + (k ? ': ' + k.title(st.cfg).replace(/^\S+\s/, '') : ''); }
+  if (a === 'tok') return '✅ Підтвердження завдань'; if (a === 'tno') return '❌ Відхилення завдань';
+  if (a === 'task') return actLabel(st, 'task', { id: parts[1] });
+  return '🤖 ' + parts.join(':').slice(0, 40);
+}
+function appHistory(st) {
+  return (st.hist || []).slice().reverse().map(function (e) { return { id: e.id, at: e.at, uid: e.uid, who: nameOf(st, e.uid), label: e.label, undone: !!e.u, sum: histSum(e), n: e.d.length }; });
+}
+const ACT_LABELS = { harvest: '🌾 Збір', task: '📋 Завдання', buy: '🛍 Покупка', food: '🍖 Корм', gemx: '💱 Обмін кристалів', use: '🎟 Купон', feed: '🍖 Нагодувати', item: '🎒 Предмет', look: '🎨 Стиль', tr: '🤝 Торгівля', claim: '🏅 Досягнення', pledge: '💼 Внесок у збір', ivtake: '💰 Забрати дохід', tree: '🎄 Ялинка', boost: '⚡ Буст', prize: '🏆 Приз', excl: '✨ Ексклюзив' };
+function actLabel(st, action, a) {
+  a = a || {};
+  if (action === 'harvest') { const k = KINDS[a.kind]; return '🌾 Збір: ' + (a.crop ? (CROPS[a.crop] || {}).label || a.crop : k ? k.title(st.cfg).replace(/^\S+\s/, '') : a.kind); }
+  if (action === 'task') { const t = taskDef(String(a.id)); const qq = questById(String(a.quest || '')); return '📋 ' + (t ? (qq ? qq.label : t.label) : a.id) + (a.chars ? ' · ' + [].concat(a.chars).join(', ') : ''); }
+  return ACT_LABELS[action] || action;
+}
 function saveState(st) {
   dayTrack(st);
+  try { histLog(st); } catch (e) { console.error(e); }
   const s = JSON.stringify(st), CH = 2500, out = {}, K = stateKey(); // 2500 chars ≤ 9 KB even if every char takes 3 bytes
   let n = 0; for (let i = 0; i < s.length; i += CH) out[K + '_' + n++] = s.slice(i, i + CH);
   out[K + '_N'] = String(n);
@@ -852,7 +916,7 @@ function today(st, now) { return st.stats['d:' + dayKey(now, st.cfg)] || {}; }
 // The farm's reference day (еталон), the base of norms, plot income and payback: Cactus/Turmeric in the seedbeds,
 // 2/3 of the composter spots as Clover bundles and 1/3 as composters (worms), 6 harvests of each a day. It does not
 // depend on what is planted today, only on the land: more plots or neutral land -> more pay per harvest -> a bigger norm.
-const BOT_VER = '28.11.0027'; // set by bump.sh on every push
+const BOT_VER = '28.11.0031'; // set by bump.sh on every push
 const REF_DEF = { bedCrop: 'tc', bundleCrop: 'clover', bundleShare: 2 / 3, runs: 6 };
 let REF_OVR = null; // the owner's reference day (st.cfg.ref), set when the state is loaded
 const REF = {
@@ -3754,6 +3818,13 @@ function appApi(e) {
       const st = loadState(), id = String(user.id);
       if (!st.people[id]) return { error: 'member', msg: 'Тебе ще немає на фермі. Натисни ▶️ Почати день у групі.' };
       const q = { app: true, out: [] }, noop = function () {}, a = body.args || {}, now = Date.now();
+      HSNAP = histPick(st); ACT = /^(state|history|undo)$/.test(body.action) ? null : { uid: id, req: now + ':' + id, label: actLabel(st, body.action, a) };
+      if (body.action === 'history') return String(id) === String(st.owner) ? { ok: true, res: appHistory(st) } : { error: 'owner', msg: 'Лише для власника ферми' };
+      if (body.action === 'undo') {
+        if (String(id) !== String(st.owner)) return { error: 'owner', msg: 'Лише для власника ферми' };
+        const e = histUndo(st, a.id); saveState(st);
+        return { ok: true, toast: e ? '↩️ Скасовано: ' + e.label : 'Уже скасовано', res: appHistory(st), state: appState(st, id) };
+      }
       if (body.action === 'buyPreview') return { ok: true, res: appBuyPreview(st, id, String(a.oid)) };
       if (body.action === 'refPreview') return { ok: true, res: appRef(st, id, a && Object.keys(a).length ? a : null) }; // nothing saved, no full state
       let changed = true;
@@ -4530,6 +4601,7 @@ function onButton(q) {
   const isOwner = st.owner && String(user.id) === String(st.owner);
   const eph = q.message.ephemeral_message_id; // a button in a message only this user sees
   if (catchUpStreaks(st, now)) saveState(st);
+  HSNAP = histPick(st); ACT = { uid: String(user.id), req: now + ':' + user.id + ':' + q.id, label: btnLabel(st, parts) };
   const edit = function (html, markup) {
     if (eph) tg('editEphemeralMessageText', { chat_id: chat, receiver_user_id: user.id, ephemeral_message_id: eph, text: html, parse_mode: 'HTML', reply_markup: markup || { inline_keyboard: [] } });
     else tg('editMessageText', { chat_id: chat, message_id: mid, text: html, parse_mode: 'HTML', reply_markup: markup || { inline_keyboard: [] } });

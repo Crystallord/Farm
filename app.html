@@ -421,6 +421,9 @@ body.busy button:not(.pending),body.busy .tile,body.busy .ob{opacity:.6;transiti
 .paypick button{padding:14px 6px;font-size:19px;color:#fff;background:linear-gradient(180deg,#3fc46a,#2a9d52);box-shadow:0 4px 0 #1f7a3f}.paypick button+button{background:linear-gradient(180deg,#8a6bff,#6a48f0);box-shadow:0 4px 0 #4a2fc0}.paypick button small{color:rgba(255,255,255,.85)}
 #ipay.off .paypick{opacity:.45}.paypick button>span{display:inline-flex;align-items:center;gap:4px}
 .dlist{font-size:13.5px;font-weight:800;line-height:1.6;color:var(--ink)}
+.hlist{display:flex;flex-direction:column;gap:8px;margin:6px 0 10px}.hrow{display:grid;grid-template-columns:30px 1fr auto;gap:10px;align-items:center;background:#fff;border-radius:16px;padding:10px 12px}
+.hrow .ht b{display:block;font-size:14px}.hrow .ht small{display:block;color:var(--mute);font-weight:800;font-size:11.5px}.hrow .ht span{display:block;font-size:12.5px;font-weight:900;color:#2a9d52;margin-top:2px}
+.hrow button{border:0;border-radius:12px;padding:8px 10px;background:#ffe9e2;color:#d5482a;font:900 12.5px Nunito,sans-serif;cursor:pointer}.hrow em{font-style:normal;font-size:12px;font-weight:900;color:var(--mute)}.hrow.und{opacity:.55}
 .hint{margin:8px 2px 0;font-size:12px;color:var(--mute);font-weight:800}
 .fsrc{display:flex;height:26px;border-radius:13px;overflow:hidden;margin:8px 0;background:#f3e9dc}.fsrc s{display:block;height:100%}
 .fleg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:6px}.fleg div{background:#fff;border-radius:14px;padding:8px;text-align:center}.fleg b{display:block;font-size:16px}.fleg small{font-size:11px;color:var(--mute);font-weight:800}.fleg i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:4px}
@@ -626,6 +629,7 @@ body.winter .crop.ready .beam{display:none}body.winter .crop{overflow:visible}
 <div class="wrap view" id="v_me">
   <div class="card mehd"><div class="pro"><span id="mava"></span><div><b id="mname">Я</b><div id="mtitle"></div><small id="machs"></small></div></div>
     <button class="style" id="stylebtn">🎨 Мій стиль</button><div class="trio" id="trio"></div></div>
+  <button class="newtr" id="histbtn" style="display:none">🛠 Історія дій · відкат</button>
   <div class="sect"><b>🔁 Торгівля</b><small id="trn"></small></div>
   <div id="trades" style="display:flex;flex-direction:column;gap:10px"></div>
   <button class="newtr" id="trnew">➕ Нова угода</button>
@@ -663,7 +667,7 @@ const TG=window.Telegram&&Telegram.WebApp; try{TG.ready();TG.expand();TG.setHead
 const qs=new URLSearchParams(location.search), API=qs.get('api')||window.FARM_API||'', DEMO=qs.get('demo')==='1'||!(TG&&TG.initData), BETA=qs.get('beta')==='1';
 const quiet=()=>{const h=new Date().getHours();return h<8}; // 00:00–08:00: no vibration
 const hap=t=>{if(quiet())return;try{t==='ok'?TG.HapticFeedback.notificationOccurred('success'):t==='err'?TG.HapticFeedback.notificationOccurred('error'):TG.HapticFeedback.impactOccurred(t||'medium')}catch(e){}};
-const APP_VER='28.11.0027';
+const APP_VER='28.11.0031';
 const $=id=>document.getElementById(id), R=95, C=2*Math.PI*R;
 const fmt=v=>(+v).toLocaleString('uk-UA',{minimumFractionDigits:(+v)%1?2:0,maximumFractionDigits:2});
 const plural=(n,f)=>{n=Math.abs(n)%100;const b=n%10;return n>10&&n<20?f[2]:b===1?f[0]:b>=2&&b<=4?f[1]:f[2]};
@@ -712,7 +716,7 @@ function drop(e){if(!e||!e.isConnected)return;e.classList.add('out');setTimeout(
 function toast(t,kind,el){el=el||toastEl();const k=kind||(/немає|не вистачає|не можна|помилка|спершу|зайнято|не вдалося|лише|уже|ще не|😕/i.test(t)?'err':/[+✅🎉💸🎁]|готово|куплено|збережено|вдягнуто/i.test(t)?'ok':'');
  el.className='tst '+k;el.innerHTML=`<span class="ti2">${k==='ok'?'✅':k==='err'?'⚠️':'💬'}</span><span>${t.replace(/^✅\s*/,'')}</span>`;clearTimeout(el._t);el._t=setTimeout(()=>drop(el),k==='err'?4200:2800);return el}
 function pendToast(t){const e=toastEl();e.className='tst pend';e.innerHTML=`<span class="sp2"></span><span>${t}</span>`;return e}
-const PEND={harvest:'Збираю…',task:'Надсилаю на перевірку…',buy:'Купую…',food:'Купую корм…',gemx:'Міняю…',pledge:'Вкладаю…',tr:'Надсилаю угоду…',claim:'Забираю нагороду…',prize:'Забираю приз…',look:'Вдягаю…',excl:'Купую…',boost:'Вмикаю буст…',item:'Використовую…',pet:'Хвилинку…',grow:'Зберігаю…',refSave:'Зберігаю еталон…',offerBought:'Записую покупку…',ivtake:'Забираю дохід…',sell:'Продаю частку…',decide:'Підтверджую…'};
+const PEND={harvest:'Збираю…',task:'Надсилаю на перевірку…',buy:'Купую…',food:'Купую корм…',gemx:'Міняю…',pledge:'Вкладаю…',tr:'Надсилаю угоду…',claim:'Забираю нагороду…',prize:'Забираю приз…',look:'Вдягаю…',excl:'Купую…',boost:'Вмикаю буст…',item:'Використовую…',pet:'Хвилинку…',grow:'Зберігаю…',refSave:'Зберігаю еталон…',offerBought:'Записую покупку…',ivtake:'Забираю дохід…',sell:'Продаю частку…',decide:'Підтверджую…',undo:'Відкочую…'};
 function plus(el,txt,col){const r=el.getBoundingClientRect(),p=document.createElement('div');p.className='plus';p.textContent=txt;if(col)p.style.color=col;
  p.style.left=(r.left+r.width/2-30)+'px';p.style.top=(r.top-10)+'px';document.body.appendChild(p);setTimeout(()=>p.remove(),1200)}
 function fly(from,to,char,n,done){const a=from.getBoundingClientRect(),b=to.getBoundingClientRect();let k=0;
@@ -891,7 +895,7 @@ function tickInvest(){if(!S||!S.invest||!$('v_inv').classList.contains('on'))ret
  const v=S.invest.daily*sec/86400,s=v.toFixed(5).split('.');$('ti').textContent=(+s[0]).toLocaleString('uk-UA');$('td').textContent=','+s[1];requestAnimationFrame(tickInvest)}
 // ===================== me: stats + inventory
 let achAll=false;
-function renderMe(){const M=S.my;if(!M)return;const mp=P(S.me.id);
+function renderMe(){const M=S.my;if(!M)return;const mp=P(S.me.id);$('histbtn').style.display=S.me.owner||DEMO?'block':'none';
  $('mava').innerHTML=ava(mp.look,72);$('mtitle').innerHTML=mp.look.ti?`<span class="ttl">${mp.look.ti}</span>`:'';$('stylebtn').onclick=styleSheet;$('mava').onclick=styleSheet;
  $('mname').innerHTML=nm(P(S.me.id));renderTrades();$('machs').textContent=`🏅 ${M.ach.got} з ${M.ach.total} досягнень · 🔥 ${S.me.streak} ${plural(S.me.streak,['день','дні','днів'])}`;
  $('trio').innerHTML=[['Сьогодні',M.today],['Тиждень',M.week],['Місяць',M.month]].map(([l,x])=>`<div><b>${fmt(Math.round(x.uah))} ₴</b><small>${l} · ${x.n} ${plural(x.n,['збір','збори','зборів'])}</small></div>`).join('');
@@ -1072,6 +1076,18 @@ function winterBuy(o){const cur=P(S.me.id).look,sn=(S.winter&&S.winter.snow)||0,
  $('wbb').onclick=()=>styleSheet();
  const go=async c=>{hap('heavy');const r=await act('look',{kind:stab,key:o.key,cur:c});if(r&&r.ok){confetti();styleSheet()}};
  $('wbg').onclick=()=>go('gem');$('wbs').onclick=()=>go('snow')}
+// ===================== 🛠 action history (owner only): every press with what it changed; roll back by mistake
+let HI=null;
+async function histSheet(){const r=DEMO?{res:[{id:3,at:Date.now()-6e5,uid:'2',who:'Марія',label:'🌾 Збір: Грядки',undone:false,sum:{'2':{uah:14,gems:1,n:1,norm:14}}},{id:2,at:Date.now()-36e5,uid:'2',who:'Марія',label:'📋 Halcyona · Maria',undone:false,sum:{'2':{gems:20.84,norm:10.42}}},{id:1,at:Date.now()-72e5,uid:'1',who:'Тато',label:'🛍 Покупка',undone:true,sum:{'1':{gems:-40}}}]}:await call('history',{});
+ if(!r||!r.res){toast(r&&r.msg||'Немає зв’язку з ботом 😕','err');return}HI=r.res;histDraw()}
+function histDraw(){const t=x=>{const d=new Date(x),n=new Date();return (d.toDateString()===n.toDateString()?'':d.getDate()+'.'+String(d.getMonth()+1).padStart(2,'0')+' ')+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')};
+ const sum=o=>Object.keys(o).map(u=>{const v=o[u],p=[v.uah?(v.uah>0?'+':'')+fmt(v.uah)+' ₴':'',v.gems?(v.gems>0?'+':'')+fmt(v.gems)+' 💎':'',v.n?(v.n>0?'+':'')+v.n+' збір':'',v.norm&&!v.uah?'норма '+(v.norm>0?'+':'')+fmt(v.norm)+' ₴':''].filter(Boolean).join(' · ');return p?(Object.keys(o).length>1?P(u).name+': ':'')+p:''}).filter(Boolean).join('<br>');
+ sheet(`<h3>🛠 Історія дій</h3><p>Усе, що змінювало гроші, кристали й норму за останні 4 дні. «Відкотити» поверне цифри як були. Нагадування й повідомлення в чаті не повертаються.</p>
+ <div class="hlist">${HI.length?HI.map(e=>`<div class="hrow ${e.undone?'und':''}"><div class="hw">${ava(P(e.uid).look,28)}</div><div class="ht"><b>${e.label}</b><small>${t(e.at)} · ${e.who}</small><span>${sum(e.sum)||'без змін у грошах'}</span></div>${e.undone?'<em>↩️ скасовано</em>':`<button data-u="${e.id}">Відкотити</button>`}</div>`).join(''):'<div class="rbox small"><span>Поки порожньо</span></div>'}</div>
+ <button class="ghostb" onclick="unsheet()">Закрити</button>`);
+ $('sheet').querySelectorAll('[data-u]').forEach(b=>b.onclick=async()=>{const e=HI.find(x=>x.id===+b.dataset.u);if(!(await confirmTG(`Відкотити «${e.label.replace(/<[^>]+>/g,'')}» (${e.who})?`)))return;hap('heavy');
+  if(DEMO){e.undone=true;histDraw();return}const r=await act('undo',{id:e.id});if(r&&r.res){HI=r.res;histDraw()}})}
+$('histbtn').onclick=histSheet;
 // ===================== 📊 full farm stats
 let fsPer='week',fsMet='uah',fsView='people';
 const FSV=()=>`<div class="seg" style="margin:6px 0 4px">${[['people','👥 Хто скільки'],['farm','🏡 Уся ферма']].map(([k,l])=>`<button data-v2="${k}" class="${k===fsView?'on':''}">${l}</button>`).join('')}</div>`;
