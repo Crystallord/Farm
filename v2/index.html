@@ -412,7 +412,7 @@ body.busy button:not(.pending),body.busy .tile,body.busy .ob{opacity:.6;transiti
 
 .growb{border:0;border-radius:16px;padding:12px;font:900 14.5px Nunito,sans-serif;color:#1d8a45;background:#e9ffef;box-shadow:0 3px 0 #c8efd4;cursor:pointer}
 .bar .fl{display:flex;overflow:hidden;background:none!important}.bar .fl s{display:block;height:100%;text-decoration:none}
-.sf{background:linear-gradient(90deg,#8fe39a,#2fb45c)}.sa{background:linear-gradient(90deg,#ffe07a,#f5b400)}.sq{background:linear-gradient(90deg,#9fd6ff,#2b9bff)}
+.sf{background:linear-gradient(90deg,#8fe39a,#2fb45c)}.sa{background:linear-gradient(90deg,#ffe07a,#f5b400)}.sq{background:linear-gradient(90deg,#9fd6ff,#2b9bff)}.si{background:linear-gradient(90deg,#d9c6ff,#a07cf5)}
 .srcl{display:flex;flex-wrap:wrap;gap:4px 12px;margin:-2px 0 6px;font-size:11.5px;font-weight:800;color:var(--mute)}.srcl span{display:inline-flex;align-items:center;gap:5px}.srcl i{width:10px;height:10px;border-radius:3px;display:inline-block}
 .qpick,.chpick{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.paypick{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .qpick button,.chpick button,.paypick button{border:0;border-radius:14px;padding:10px 4px;background:#f7efe3;font:900 14px Nunito,sans-serif;color:var(--ink);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px}
@@ -667,7 +667,7 @@ const TG=window.Telegram&&Telegram.WebApp; try{TG.ready();TG.expand();TG.setHead
 const qs=new URLSearchParams(location.search), API=qs.get('api')||window.FARM_API||'', DEMO=qs.get('demo')==='1'||!(TG&&TG.initData), BETA=qs.get('beta')==='1';
 const quiet=()=>{const h=new Date().getHours();return h<8}; // 00:00–08:00: no vibration
 const hap=t=>{if(quiet())return;try{t==='ok'?TG.HapticFeedback.notificationOccurred('success'):t==='err'?TG.HapticFeedback.notificationOccurred('error'):TG.HapticFeedback.impactOccurred(t||'medium')}catch(e){}};
-const APP_VER='28.11.0031';
+const APP_VER='28.11.0048';
 const $=id=>document.getElementById(id), R=95, C=2*Math.PI*R;
 const fmt=v=>(+v).toLocaleString('uk-UA',{minimumFractionDigits:(+v)%1?2:0,maximumFractionDigits:2});
 const plural=(n,f)=>{n=Math.abs(n)%100;const b=n%10;return n>10&&n<20?f[2]:b===1?f[0]:b>=2&&b<=4?f[1]:f[2]};
@@ -750,8 +750,8 @@ function ticks(){const g=$('ticks');g.innerHTML='';if(!S.me.norm)return;const st
  for(let a=step;a<.999;a+=step)g.insertAdjacentHTML('beforeend',`<span class="tk" style="left:calc(${a*100}% - 1px)"></span>`)}
 function renderRing(){const me=S.me,p=me.norm?Math.min(1,me.done/me.norm):0;ticks();
  $('prog').style.width=(p*100)+'%';ghostSet(readyUah());
- {const s=me.src||{},a=s.auto||0,qv=s.quest||0,f=Math.max(0,me.done-a-qv);$('prog').innerHTML=`<s class="sf" style="flex:${f}"></s><s class="sa" style="flex:${a}"></s><s class="sq" style="flex:${qv}"></s>`;
-  $('srcl').style.display=a||qv?'flex':'none';$('srcl').innerHTML=`<span><i class="sf"></i>Збір ${fmt(+f.toFixed(2))} ₴</span>${a?`<span><i class="sa"></i>Автоферма ${fmt(a)} ₴</span>`:''}${qv?`<span><i class="sq"></i>Квести ${fmt(qv)} ₴</span>`:''}`}
+ {const s=me.src||{},a=s.auto||0,qv=s.quest||0,iv=s.invest||0,f=Math.max(0,me.done-a-qv-iv);$('prog').innerHTML=`<s class="sf" style="flex:${f}"></s><s class="sa" style="flex:${a}"></s><s class="sq" style="flex:${qv}"></s><s class="si" style="flex:${iv}"></s>`;
+  $('srcl').style.display=a||qv||iv?'flex':'none';$('srcl').innerHTML=`<span><i class="sf"></i>Збір ${fmt(+f.toFixed(2))} ₴</span>${a?`<span><i class="sa"></i>Автоферма ${fmt(a)} ₴</span>`:''}${qv?`<span><i class="sq"></i>Квести ${fmt(qv)} ₴</span>`:''}${iv?`<span><i class="si"></i>Моя земля ${fmt(iv)} ₴</span>`:''}`}
  countTo($('pv'),Math.floor(p*100));countTo($('earn'),me.done,1);$('norm').textContent=fmt(me.norm);
  const rest=me.norm-me.done,L=$('left'),step=Math.max(...S.farm.crops.map(c=>c.uah));
  if(rest<=0){L.textContent='Норму виконано! 🎉';L.className='left done'}
@@ -1382,7 +1382,7 @@ document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{hap('light');documen
  document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id==='v_'+b.dataset.v));scrollTo(0,0);if(b.dataset.v==='tree'&&S)safe(renderTree);});
 // ===================== demo (outside Telegram)
 let D=null;
-function demoState(){const now=Date.now();return{me:{id:'2',name:'Марія',gems:67,balance:533,streak:9,done:37,norm:60,src:{auto:8,quest:10.42}},
+function demoState(){const now=Date.now();return{me:{id:'2',name:'Марія',gems:67,balance:533,streak:9,done:37,norm:60,src:{auto:8,quest:10.42,invest:3.2}},
  farm:{now,week:[...Array(7)].map((_,i)=>({day:new Date(now-(6-i)*864e5).toISOString().slice(0,10),ok:i<6&&i!==1})),
   crops:[{id:'beds',name:'Грядки',icon:'🌱',uah:14,gem:1,cycle:120,due:0},{id:'plots',name:'Хробаки',icon:'🪱',uah:13,gem:1,cycle:90,due:now+25*60000}],
   once:[{id:'narcissus',icon:'🌼',name:'Narcissus',uah:6,gem:.5},{id:'mr',icon:'🌿',name:'Mint',uah:16,gem:1},{id:'tc',icon:'🌵',name:'Cactus',uah:14,gem:1}]},

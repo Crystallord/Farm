@@ -916,7 +916,7 @@ function today(st, now) { return st.stats['d:' + dayKey(now, st.cfg)] || {}; }
 // The farm's reference day (еталон), the base of norms, plot income and payback: Cactus/Turmeric in the seedbeds,
 // 2/3 of the composter spots as Clover bundles and 1/3 as composters (worms), 6 harvests of each a day. It does not
 // depend on what is planted today, only on the land: more plots or neutral land -> more pay per harvest -> a bigger norm.
-const BOT_VER = '28.11.0031'; // set by bump.sh on every push
+const BOT_VER = '28.11.0048'; // set by bump.sh on every push
 const REF_DEF = { bedCrop: 'tc', bundleCrop: 'clover', bundleShare: 2 / 3, runs: 6 };
 let REF_OVR = null; // the owner's reference day (st.cfg.ref), set when the state is loaded
 const REF = {
@@ -1051,7 +1051,7 @@ function credit(st, user, kind, uahAmount, now, pay) {
   if (harvest) snowAdd(st, String(user.id), SNOW.harvest);
   if (harvest) { st.grown = st.grown || {}; st.grown[kind] = now + KINDS[kind].cycle(st.cfg) * 60000; st.grownMin = st.grownMin || {}; st.grownMin[kind] = KINDS[kind].cycle(st.cfg); } // when it is really ripe (the reminder may wait for the morning)
   Object.keys(st.count).sort().slice(0, -3).forEach(function (k) { delete st.count[k]; });
-  const gross = uahAmount, counts = harvest || kind === 'pet' || kind === 'quest' || kind === 'auto'; // counts for the norm
+  const gross = uahAmount, counts = harvest || kind === 'pet' || kind === 'quest' || kind === 'auto' || kind === 'invest'; // counts for the norm
   if (pay === false) uahAmount = 0; // a quest / autofarm taken in crystals: counts for the norm, pays no UAH
   if (harvest) { const cut = goalsTake(st, String(user.id), uahAmount); uahAmount = money(uahAmount - cut); st._cut = money((st._cut || 0) + cut); }
   st.balance[user.id] = money((st.balance[user.id] || 0) + uahAmount);
@@ -1060,10 +1060,11 @@ function credit(st, user, kind, uahAmount, now, pay) {
     const r = b[user.id] = b[user.id] || { n: 0, uah: 0 };
     if (harvest) { r.n += 1; r.k = r.k || {}; const what = kind === 'beds' ? 'b_' + (st._crop || (nightFirst(st, kind, now) ? 'tc' : st.cfg.bedCrop)) : kind; r.k[what] = (r.k[what] || 0) + 1; } // what was harvested: who likes what
     if (counts) r.g = money((r.g !== undefined ? r.g : r.uah) + gross);
-    if (kind === 'quest') r.q = money((r.q || 0) + gross); if (kind === 'auto') r.a = money((r.a || 0) + gross); // where the money came from
+    if (kind === 'quest') r.q = money((r.q || 0) + gross); if (kind === 'auto') r.a = money((r.a || 0) + gross); if (kind === 'invest') r.i = money((r.i || 0) + gross); // where the money came from
     r.uah += uahAmount;
   });
   if (harvest && pn && before < pn && doneToday(st, String(user.id), now) >= pn) snowAdd(st, String(user.id), SNOW.norm);
+  if (harvest && (kind === 'beds' || kind === 'plots')) investNorm(st, kind, now);
   const keys = Object.keys(st.stats).sort(); // keep ~70 days, 12 weeks and 13 months
   [['d', 70], ['w', 12], ['m', 13]].forEach(function (p) {
     const ks = keys.filter(function (k) { return k[0] === p[0]; });
@@ -2208,6 +2209,19 @@ function divSoFar(st, p, now) {
   const c = st.cfg, day = dayKey(now, c), cnt = st.count[day] || {}, g = iplotGold(c, p);
   const gross = ((cnt.beds || 0) * g.beds + (cnt.plots || 0) * g.plots) * c.uahPer1000 / 1000 * (100 - c.invWage) / 100;
   return { beds: cnt.beds || 0, plots: cnt.plots || 0, gross: money(gross), net: Math.max(0, gross - iplotTaxDay(c, p)), tax: iplotTaxDay(c, p) };
+}
+// 💼 A harvest on an investor plot counts for its owners' norms at once, whoever harvested ("it was my land").
+// Their share of what the evening will pay for this harvest (after the plot's daily tax); the money itself still comes in the evening.
+function investNorm(st, kind, now) {
+  const c = st.cfg, day = dayKey(now, c), cnt = st.count[day] || {};
+  (c.iplots || []).forEach(function (p) {
+    if (p.since > day) return;
+    const g = iplotGold(c, p), k = c.uahPer1000 / 1000 * (100 - c.invWage) / 100, tax = iplotTaxDay(c, p);
+    const after = ((cnt.beds || 0) * g.beds + (cnt.plots || 0) * g.plots) * k, before = after - g[kind] * k;
+    const add = Math.max(0, after - tax) - Math.max(0, before - tax);
+    if (add <= 0) return;
+    Object.keys(p.shares).forEach(function (id) { const amt = money(add * shareOf(p, id)); if (amt > 0 && st.people[id]) credit(st, { id: id }, 'invest', amt, now, false); });
+  });
 }
 function payDividends(st, now) {
   const c = st.cfg, day = dayKey(now, c), cnt = st.count[day] || {}, out = [];
@@ -4229,7 +4243,7 @@ function appFarmStats(st, now) {
   // 🏡 the whole farm: all income summed, split by source; what each character brings with quests and the autofarm
   const SK = { today: ['d:' + day], yday: ['d:' + yd], week: [wk], lweek: ['w:' + lw], month: [mo], all: Object.keys(st.stats).filter(function (x) { return x[0] === 'm'; }) };
   const src = Object.keys(SK).reduce(function (o, k) { const a = { farm: 0, auto: 0, quest: 0 };
-    SK[k].forEach(function (key) { const b = st.stats[key] || {}; Object.keys(b).forEach(function (u) { const r = b[u] || {}, g = r.g !== undefined ? r.g : r.uah || 0; a.auto += r.a || 0; a.quest += r.q || 0; a.farm += g - (r.a || 0) - (r.q || 0); }); });
+    SK[k].forEach(function (key) { const b = st.stats[key] || {}; Object.keys(b).forEach(function (u) { const r = b[u] || {}, g = r.g !== undefined ? r.g : r.uah || 0; a.auto += r.a || 0; a.quest += r.q || 0; a.farm += g - (r.a || 0) - (r.q || 0) - (r.i || 0); }); }); // land income counted for owners is the same harvest: not twice
     o[k] = { farm: money(a.farm), auto: money(a.auto), quest: money(a.quest), total: money(a.farm + a.auto + a.quest) }; return o; }, {});
   const QR = { today: [day, day], yday: [yd, yd], week: [weekKey(day), day], lweek: [lw, addDays(lw, 6)], month: [monthKey(now) + '-01', day] };
   const span = function (a, z) { return Math.round((new Date(z + 'T12:00:00Z') - new Date(a + 'T12:00:00Z')) / 86400000) + 1; };
@@ -4337,7 +4351,7 @@ function appState(st, id) {
   return {
     me: { id: id, name: p.name, female: !!p.female, color: colorOf(st, id), owner: String(id) === String(st.owner),
       gems: x.gems, balance: money(st.balance[id] || 0), streak: n, done: money(doneToday(st, id, now)), norm: p.norm || 0,
-      src: (function () { const r = (st.stats['d:' + dayKey(now, st.cfg)] || {})[id] || {}; return { auto: money(r.a || 0), quest: money(r.q || 0) }; })(), // the rest of "done" is the farm
+      src: (function () { const r = (st.stats['d:' + dayKey(now, st.cfg)] || {})[id] || {}; return { auto: money(r.a || 0), quest: money(r.q || 0), invest: money(r.i || 0) }; })(), // the rest of "done" is the farm
       invest: money(myShares(st, id).reduce(function (a, pl) { return a + offerDaily(st, pl) * shareOf(pl, id); }, 0) * 30),
       wallet: money((st.invWallet || {})[id] || 0) },
     petStage: pet ? pet.stage || 'ok' : 'none',
