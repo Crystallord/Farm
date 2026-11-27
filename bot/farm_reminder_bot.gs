@@ -852,7 +852,7 @@ function today(st, now) { return st.stats['d:' + dayKey(now, st.cfg)] || {}; }
 // The farm's reference day (еталон), the base of norms, plot income and payback: Cactus/Turmeric in the seedbeds,
 // 2/3 of the composter spots as Clover bundles and 1/3 as composters (worms), 6 harvests of each a day. It does not
 // depend on what is planted today, only on the land: more plots or neutral land -> more pay per harvest -> a bigger norm.
-const BOT_VER = '28.11.0016'; // set by bump.sh on every push
+const BOT_VER = '28.11.0024'; // set by bump.sh on every push
 const REF_DEF = { bedCrop: 'tc', bundleCrop: 'clover', bundleShare: 2 / 3, runs: 6 };
 let REF_OVR = null; // the owner's reference day (st.cfg.ref), set when the state is loaded
 const REF = {
@@ -881,6 +881,15 @@ function goldUah(c, g) { return money(g * c.uahPer1000 / 1000); }
 function questGold(c, q, first) { return (q.honor + (first && q.first ? q.first : 0)) * c.honorPrice + (q.gold || 0); }
 function charQuestMax(c) { return QUESTS.reduce(function (a, q) { return a + (q.honor * (q.max || 1) + (q.first || 0)) * c.honorPrice + (q.gold || 0); }, 0); }
 function charNames(c) { return (c.chars || []).map(function (x) { return x.name; }); }
+// whose character it is by default in the app: the owner's is the first one, the others' by a name that sounds the same (Марія → Maria)
+function myChar(st, id) {
+  const names = charNames(st.cfg), p = st.people[id] || {};
+  if (p.char && names.indexOf(p.char) >= 0) return p.char;
+  if (String(id) === String(st.owner)) return names[0] || null;
+  const T = { а: 'a', б: 'b', в: 'v', г: 'h', ґ: 'g', д: 'd', е: 'e', є: 'e', ж: 'zh', з: 'z', и: 'y', і: 'i', ї: 'i', й: 'i', к: 'k', л: 'l', м: 'm', н: 'n', о: 'o', п: 'p', р: 'r', с: 's', т: 't', у: 'u', ф: 'f', х: 'h', ц: 'c', ч: 'ch', ш: 'sh', щ: 'sh', ю: 'u', я: 'a' };
+  const lat = String(p.name || '').toLowerCase().split('').map(function (ch) { return T[ch] !== undefined ? T[ch] : ch; }).join('').slice(0, 3);
+  return names.filter(function (n) { return lat && n.toLowerCase().slice(0, 3) === lat; })[0] || null;
+}
 function extraMax(c) {
   const n = (c.chars || []).length || CHARACTERS;
   return { quest: goldUah(c, charQuestMax(c) * n * c.questPct / 100), auto: goldUah(c, c.autoGold * n) };
@@ -3876,7 +3885,7 @@ function appTasks(st, id) {
       const c = st.cfg, D = (st.qlog || {})[day] || {}, done = {};
       charNames(c).forEach(function (ch) { done[ch] = Object.assign({}, (D[ch] || {}).n || {}); });
       (st.pend || []).filter(function (x) { return INCOME_TASKS[x.task] && x.day === day; }).forEach(function (x) { (x.chars || []).forEach(function (ch) { if (done[ch]) { const k = x.quest || 'auto'; done[ch][k] = (done[ch][k] || 0) + 1; } }); });
-      return { rate: c.gemPerUah, chars: charNames(c), done: done, auto: goldUah(c, c.autoGold),
+      return { rate: c.gemPerUah, chars: charNames(c), mine: myChar(st, id), done: done, auto: goldUah(c, c.autoGold),
         quests: QUESTS.map(function (q) { return { id: q.id, label: q.label, uah: goldUah(c, questGold(c, q, false)), first: q.first ? goldUah(c, questGold(c, q, true)) : null, max: q.max || 1, gold: q.gold || 0, honor: q.honor, chest: q.first || 0 }; }) };
     })(),
     wow: wowList(st).map(function (d) { return { id: 'wd_' + d[0], icon: '🏰', label: d[1], lvl: d[2], gems: wowGems(st, id, d[0]), done: wowDone(st, id, d[0]), wait: waitOf('wd_' + d[0]) }; }),

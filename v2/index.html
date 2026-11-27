@@ -295,7 +295,7 @@ body{padding-bottom:96px}
 .hn{flex:1;min-width:0;line-height:1.15}.hn b{display:block;font-size:16px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.hn .ttl{margin:2px 0 0}
 .hb{display:grid;grid-template-columns:auto auto;gap:5px;justify-content:end;justify-items:stretch}
 .hb>span{display:inline-flex;align-items:center;justify-content:center;gap:3px;line-height:1.25em;background:#fff;border-radius:12px;padding:5px 8px;font-size:13px;font-weight:900;white-space:nowrap;box-shadow:0 2px 0 #f0dcc0;font-variant-numeric:tabular-nums}
-.hb .hg{color:#5b3fd6}.hb .hsn{display:none;color:#2a7fc9}body.winter .hb .hsn{display:inline-flex}.hb .hs,.hb .hsn{font-size:12px;padding:3px 8px}.hb .hs{color:#e2552b}.hb .flame{font-size:13px;filter:none}.hb .flame.dim{filter:grayscale(1) opacity(.5)}
+.hb .hg{color:#5b3fd6}.hb .hsn{display:none;color:#2a7fc9}body.winter .hb .hsn{display:inline-flex}.hb .hs{grid-column:2}body.winter .hb .hs{grid-column:auto}.hb .hs,.hb .hsn{font-size:12px;padding:3px 8px}.hb .hs{color:#e2552b}.hb .flame{font-size:13px;filter:none}.hb .flame.dim{filter:grayscale(1) opacity(.5)}
 .bigfl{font-size:34px;line-height:1}.bigfl.dim{filter:grayscale(.65) opacity(.6)}
 .top .sline{font-size:14px}.top .sline b{font-size:19px}
 
@@ -417,6 +417,8 @@ body.busy button:not(.pending),body.busy .tile,body.busy .ob{opacity:.6;transiti
 .qpick button small,.chpick button small,.paypick button small{font-size:10.5px;color:var(--mute);font-weight:800}
 .qpick button.on,.chpick button.on{background:#e8f4ff;box-shadow:0 0 0 3px #2b9bff}.chpick button:disabled{opacity:.45}
 .paypick button{padding:14px 6px;font-size:19px;color:#fff;background:linear-gradient(180deg,#3fc46a,#2a9d52);box-shadow:0 4px 0 #1f7a3f}.paypick button+button{background:linear-gradient(180deg,#8a6bff,#6a48f0);box-shadow:0 4px 0 #4a2fc0}.paypick button small{color:rgba(255,255,255,.85)}
+#ipay.off .paypick{opacity:.45}.paypick button>span{display:inline-flex;align-items:center;gap:4px}
+.dlist{font-size:13.5px;font-weight:800;line-height:1.6;color:var(--ink)}
 .hint{margin:8px 2px 0;font-size:12px;color:var(--mute);font-weight:800}
 .fsrc{display:flex;height:26px;border-radius:13px;overflow:hidden;margin:8px 0;background:#f3e9dc}.fsrc s{display:block;height:100%}
 .fleg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:6px}.fleg div{background:#fff;border-radius:14px;padding:8px;text-align:center}.fleg b{display:block;font-size:16px}.fleg small{font-size:11px;color:var(--mute);font-weight:800}.fleg i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:4px}
@@ -659,7 +661,7 @@ const TG=window.Telegram&&Telegram.WebApp; try{TG.ready();TG.expand();TG.setHead
 const qs=new URLSearchParams(location.search), API=qs.get('api')||window.FARM_API||'', DEMO=qs.get('demo')==='1'||!(TG&&TG.initData), BETA=qs.get('beta')==='1';
 const quiet=()=>{const h=new Date().getHours();return h<8}; // 00:00–08:00: no vibration
 const hap=t=>{if(quiet())return;try{t==='ok'?TG.HapticFeedback.notificationOccurred('success'):t==='err'?TG.HapticFeedback.notificationOccurred('error'):TG.HapticFeedback.impactOccurred(t||'medium')}catch(e){}};
-const APP_VER='28.11.0016';
+const APP_VER='28.11.0024';
 const $=id=>document.getElementById(id), R=95, C=2*Math.PI*R;
 const fmt=v=>(+v).toLocaleString('uk-UA',{minimumFractionDigits:(+v)%1?2:0,maximumFractionDigits:2});
 const plural=(n,f)=>{n=Math.abs(n)%100;const b=n%10;return n>10&&n<20?f[2]:b===1?f[0]:b>=2&&b<=4?f[1]:f[2]};
@@ -797,29 +799,33 @@ function renderTasks(){const T=S.tasks,g=goal(),pr=$('tpr'),cc=2*Math.PI*37,k=g?
  const L=game==='wow'?T.wow:T.ar;
  $('tlist').innerHTML=(game==='wow'?`<div class="gl">Альянс · до ${T.maxLvl} рівня · перше +${L[0]?Math.max(...L.map(x=>x.gems)):''} 💎</div>`:'')+L.map(t=>`<div class="card task" id="t_${t.id}"><div class="e">${t.icon}</div>
   <div class="tx"><b>${t.label}</b><small>${game==='wow'?t.lvl+' рів.'+(t.done?' · пройдено ×'+t.done:''):t.per}</small>
-  ${t.list?`<div class="list">${t.list.join('<br>')}</div>`:''}
+  ${t.list&&!t.inc?`<div class="list">${t.list.join('<br>')}</div>`:''}
   ${t.today?`<div class="cnt">✓ сьогодні ×${t.today}</div>`:''}${t.wait?`<div class="wt">⏳ на перевірці ×${t.wait}</div>`:''}</div>
   <span class="gemchip ${t.gems>=20&&!t.inc?'big':''} ${t.inc?'inc':''}">${t.inc?incChip(t):'+'+t.gems+' 💎'}</span><button class="do">${game==='wow'?(t.done?'🔁':'Пройдено'):t.inc?'Відмітити':'Зроблено'}</button></div>`).join('');
  for(const t of L){const el=$('t_'+t.id);el.querySelector('.do').onclick=()=>t.inc?incSheet(t):doTask(t,el)}
  const n=T.ar.filter(t=>!t.today&&!t.wait).length;$('tdot').textContent=n;$('tdot').style.display='none'}
 // ⚔️ quests and autofarms: pay = the income they bring, in UAH or crystals (1 ₴ = 2 💎); it always counts for the day's norm
-function incChip(t){const I=S.tasks.inc;if(!I)return '';if(t.id==='daily')return `${fmt(I.auto)} ₴<br>${fmt(I.auto*I.rate)} 💎`;return `до ${fmt(Math.ceil(Math.max(...I.quests.map(q=>q.first||q.uah))))} ₴`}
+const up=v=>Math.ceil(v-1e-9); // hints round up to whole ₴ / 💎; what is paid is exact
+function incChip(t){const I=S.tasks.inc;if(!I)return '';if(t.id==='daily')return `${up(I.auto)} ₴<br>${up(I.auto*I.rate)} 💎`;const m=Math.max(...I.quests.map(q=>q.first||q.uah));return `до ${up(m)} ₴<br>до ${up(m*I.rate)} 💎`}
 let IQ=null;
-function incSheet(t){const I=S.tasks.inc;if(!I)return;hap('light');IQ={t,quest:t.id==='quest'?null:'auto',chars:new Set()};
- if(t.id==='daily')I.chars.filter(ch=>!((I.done[ch]||{}).auto)).forEach(ch=>IQ.chars.add(ch));incDraw()}
+function incSheet(t){const I=S.tasks.inc;if(!I)return;hap('light');IQ={t,quest:t.id==='quest'?null:'auto',chars:new Set()};incMine();incDraw()}
+function incMine(){const I=S.tasks.inc;IQ.chars=new Set();if(I.mine&&I.chars.includes(I.mine)&&!incFull(I.mine))IQ.chars.add(I.mine)}
 function incQ(){const I=S.tasks.inc;return IQ.quest&&IQ.quest!=='auto'?I.quests.find(x=>x.id===IQ.quest):null}
 function incFull(ch){const I=S.tasks.inc,q=incQ(),n=((I.done[ch]||{})[q?q.id:'auto'])||0;return q?n>=q.max:n>=1}
 function incVal(){const I=S.tasks.inc,q=incQ();let u=0;for(const ch of IQ.chars){if(!q)u+=I.auto;else u+=q.first&&!((I.done[ch]||{})[q.id])?q.first:q.uah}return +u.toFixed(2)}
-function incDraw(){const I=S.tasks.inc,t=IQ.t,isQ=t.id==='quest',q=incQ(),step=isQ?2:1,sc=$('sheet').scrollTop;
- const qs=isQ?`<div class="gsec"><h5>1. Який квест?</h5><small>Ціна — продаж Honor по ${'0,042'} g + золото</small><div class="qpick">${I.quests.map(x=>`<button data-q="${x.id}" class="${x.id===IQ.quest?'on':''}"><b>${x.label}</b><small>${x.first?fmt(x.first)+' ₴ перша · '+fmt(x.uah)+' ₴':fmt(x.uah)+' ₴'}${x.gold?' · +'+x.gold+' g':''}</small></button>`).join('')}</div></div>`:'';
- const chs=!isQ||q?`<div class="gsec"><h5>${step}. На яких персонажах?</h5><small>Можна обрати кілька${q&&q.first?' · 🎁 перша Halcyona за день дає ще скриню на '+fmt(q.chest)+' Honor':''}</small><div class="chpick">${I.chars.map(ch=>{const n=((I.done[ch]||{})[q?q.id:'auto'])||0,full=incFull(ch);
+function incPay(first){const I=S.tasks.inc,v=incVal(),on=IQ.chars.size>0;
+ const a=$('ipu'),b=$('ipg');if(!a)return;if(first){a.textContent=fmt(v);b.textContent=fmt(+(v*I.rate).toFixed(2))}else{roll(a,v);roll(b,+(v*I.rate).toFixed(2))}
+ $('ipn').textContent=fmt(v);document.querySelectorAll('#ipay button').forEach(x=>x.disabled=!on);$('ipay').classList.toggle('off',!on)}
+function incDraw(){const I=S.tasks.inc,t=IQ.t,isQ=t.id==='quest',q=incQ(),step=isQ?2:1,sc=$('sheet').scrollTop,R=I.rate;
+ const qs=isQ?`<div class="gsec"><h5>1. Який квест?</h5><div class="qpick">${I.quests.map(x=>`<button data-q="${x.id}" class="${x.id===IQ.quest?'on':''}"><b>${x.label}</b><small>${x.first?`перша ${up(x.first)} ₴ · ${up(x.first*R)} 💎<br>далі ${up(x.uah)} ₴ · ${up(x.uah*R)} 💎`:`${up(x.uah)} ₴ · ${up(x.uah*R)} 💎`}</small></button>`).join('')}</div></div>`:'';
+ const chs=!isQ||q?`<div class="gsec"><h5>${step}. На яких персонажах?</h5><small>Можна обрати кілька${q&&q.first?' · 🎁 перша Halcyona за день дає ще скриню':''}</small><div class="chpick">${I.chars.map(ch=>{const n=((I.done[ch]||{})[q?q.id:'auto'])||0,full=incFull(ch);
    return `<button data-ch="${ch}" class="${IQ.chars.has(ch)?'on':''}" ${full?'disabled':''}><b>${ch}</b><small>${full?'✓ уже сьогодні':q&&q.first&&!n?'🎁 + скриня':n?'✓ ×'+n+' сьогодні':'&nbsp;'}</small></button>`}).join('')}</div></div>`:'';
- const v=incVal(),pay=IQ.chars.size?`<div class="gsec"><h5>${step+1}. У чому нагорода?</h5><div class="paypick"><button data-cur="uah">${fmt(v)} ₴<small>гривні на баланс</small></button><button data-cur="gem">${fmt(+(v*I.rate).toFixed(2))} 💎<small>кристали</small></button></div><p class="hint">У норму дня зараховується ${fmt(v)} ₴ — що б ти не обрав(ла).</p></div>`:'';
- sheet(`<h3>${t.icon} ${t.label}</h3><p>${isQ?'Обери квест, персонажів і в чому отримати нагороду.':'Автоферма на кожному персонажі — '+fmt(I.auto)+' ₴. Познач персонажів, де заклав(ла) ферму.'}</p>${qs}${chs}${pay}<button class="ghostb" onclick="unsheet()">Скасувати</button>`);
- $('sheet').scrollTop=sc;
- $('sheet').querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>{IQ.quest=b.dataset.q;IQ.chars=new Set(I.chars.filter(ch=>!incFull(ch)));hap('light');incDraw()});
- $('sheet').querySelectorAll('[data-ch]').forEach(b=>b.onclick=()=>{const ch=b.dataset.ch;IQ.chars.has(ch)?IQ.chars.delete(ch):IQ.chars.add(ch);hap('light');incDraw()});
- $('sheet').querySelectorAll('[data-cur]').forEach(b=>b.onclick=async()=>{if(busy)return;hap('heavy');const a={id:t.id,quest:q?q.id:null,chars:[...IQ.chars],cur:b.dataset.cur};
+ const pay=!isQ||q?`<div class="gsec" id="ipay"><h5>${step+1}. У чому нагорода?</h5><div class="paypick"><button data-cur="uah"><span><span id="ipu">0</span> ₴</span><small>гривні на баланс</small></button><button data-cur="gem"><span><span id="ipg">0</span> 💎</span><small>кристали</small></button></div><p class="hint">У норму дня зараховується <span id="ipn">0</span> ₴ — що б ти не обрав(ла).</p></div>`:'';
+ sheet(`<h3>${t.icon} ${t.label}</h3><p>${isQ?'Квести приносять фермі золото, тому за них можна обрати гривні. Обери квест, персонажів і нагороду.':'Автоферма приносить фермі золото, тому за неї можна обрати гривні. Познач персонажів, де все зробив(ла).'}</p>${!isQ&&t.list?`<div class="gsec"><h5>На кожному персонажі</h5><div class="dlist">${t.list.join('<br>')}</div></div>`:''}${qs}${chs}${pay}<button class="ghostb" onclick="unsheet()">Скасувати</button>`);
+ $('sheet').scrollTop=sc;incPay(true);
+ $('sheet').querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>{IQ.quest=b.dataset.q;incMine();hap('light');incDraw()});
+ $('sheet').querySelectorAll('[data-ch]').forEach(b=>b.onclick=()=>{const ch=b.dataset.ch;IQ.chars.has(ch)?IQ.chars.delete(ch):IQ.chars.add(ch);b.classList.toggle('on',IQ.chars.has(ch));hap('light');incPay()});
+ $('sheet').querySelectorAll('[data-cur]').forEach(b=>b.onclick=async()=>{if(busy||!IQ.chars.size)return;hap('heavy');const v=incVal(),a={id:t.id,quest:q?q.id:null,chars:[...IQ.chars],cur:b.dataset.cur};
   unsheet();const el=$('t_'+t.id),chip=el&&el.querySelector('.gemchip');if(chip)plus(chip,b.dataset.cur==='uah'?'+'+fmt(v)+' ₴':'+'+fmt(+(v*I.rate).toFixed(2))+' 💎',b.dataset.cur==='uah'?'#2fb45c':'#6a48f0');
   await act('task',a)})}
 async function doTask(t,el){if(busy)return;hap('heavy');const chip=el.querySelector('.gemchip');
@@ -1362,7 +1368,7 @@ function demoState(){const now=Date.now();return{me:{id:'2',name:'Марія',ge
   crops:[{id:'beds',name:'Грядки',icon:'🌱',uah:14,gem:1,cycle:120,due:0},{id:'plots',name:'Хробаки',icon:'🪱',uah:13,gem:1,cycle:90,due:now+25*60000}],
   once:[{id:'narcissus',icon:'🌼',name:'Narcissus',uah:6,gem:.5},{id:'mr',icon:'🌿',name:'Mint',uah:16,gem:1},{id:'tc',icon:'🌵',name:'Cactus',uah:14,gem:1}]},
  tasks:{ar:[{id:'alt',icon:'🧑‍🌾',label:'Прокачати альта й поставити пугало',per:'за альта',gems:50,today:0,wait:0},{id:'restock',icon:'📦',label:'Поповнити запаси ферми',per:'за раз',gems:10,today:0,wait:0},{id:'daily',icon:'☀️',label:'Щоденні справи й автоферма',per:'за персонажа',gems:5,today:1,wait:1,inc:true,list:['📅 Нагорода в календарі','🫘 Боб з ринку']},{id:'quest',icon:'⚔️',label:'Щоденні квести',per:'за квест на персонажі',gems:5,today:0,wait:0,inc:true},{id:'gift',icon:'🎁',label:'Забрати подарунок',per:'за персонажа',gems:1,today:0,wait:0}],
-  wow:[{id:'wd_dm',icon:'🏰',label:'The Deadmines',lvl:'18-23',gems:30,done:0,wait:0},{id:'wd_wc',icon:'🏰',label:'Wailing Caverns',lvl:'17-25',gems:20,done:1,wait:0}],waitGems:5,waitN:1,maxLvl:35,inc:{rate:2,chars:['Oleksa','Tetan','Maria'],done:{Oleksa:{auto:1,halcy:1},Tetan:{},Maria:{}},auto:8,
+  wow:[{id:'wd_dm',icon:'🏰',label:'The Deadmines',lvl:'18-23',gems:30,done:0,wait:0},{id:'wd_wc',icon:'🏰',label:'Wailing Caverns',lvl:'17-25',gems:20,done:1,wait:0}],waitGems:5,waitN:1,maxLvl:35,inc:{rate:2,chars:['Oleksa','Tetan','Maria'],mine:'Maria',done:{Oleksa:{auto:1,halcy:1},Tetan:{},Maria:{}},auto:8,
   quests:[['cr','CR',2.69],['gr','GR',2.69],['halcy','Halcyona',2.35,10.42,3,0,12000],['ws','WS',2.69],['aegis','Aegis',2.69],['rd','RD',9.09,null,1,400]].map(x=>({id:x[0],label:x[1],uah:x[2],first:x[3]||null,max:x[4]||1,gold:x[5]||0,chest:x[6]||0}))}},
  shop:{season:null,rise:30,resting:4,items:[{id:'ice',icon:'🍦',label:'Морозиво',open:true,price:40,times:0},{id:'cart',icon:'🎬',label:'Мультик +30 хв',open:true,price:33,times:1},{id:'toy',icon:'🧸',label:'Нова іграшка',open:true,price:90,times:0},{id:null,open:false,need:12,price:60},{id:null,open:false,need:14,price:80}],food:{price:1,pack:10,packN:12}},
  people:[{id:'2',name:'Марія',look:{av:'🦄',bg:'rose',fr:'rainbow',ti:'Королева грядок'}},{id:'1',name:'Тато',look:{av:'🐻',bg:'sky',fr:'gold',ti:''},owner:true}],
