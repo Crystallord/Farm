@@ -751,7 +751,7 @@ function ticks(){const g=$('ticks');g.innerHTML='';if(!S.me.norm)return;const st
 function renderRing(){const me=S.me,p=me.norm?Math.min(1,me.done/me.norm):0;ticks();
  $('prog').style.width=(p*100)+'%';ghostSet(readyUah());
  {const s=me.src||{},a=s.auto||0,qv=s.quest||0,iv=s.invest||0,f=Math.max(0,me.done-a-qv-iv);$('prog').innerHTML=`<s class="sf" style="flex:${f}"></s><s class="sa" style="flex:${a}"></s><s class="sq" style="flex:${qv}"></s><s class="si" style="flex:${iv}"></s>`;
-  $('srcl').style.display=a||qv||iv?'flex':'none';$('srcl').innerHTML=`<span><i class="sf"></i>Збір ${fmt(+f.toFixed(2))} ₴</span>${a?`<span><i class="sa"></i>Автоферма ${fmt(a)} ₴</span>`:''}${qv?`<span><i class="sq"></i>Квести ${fmt(qv)} ₴</span>`:''}${iv?`<span><i class="si"></i>Моя земля ${fmt(iv)} ₴</span>`:''}`}
+  $('srcl').style.display=a||qv||iv?'flex':'none';$('srcl').innerHTML=`<span><i class="sf"></i>Збір ${fmt(+f.toFixed(2))} ₴</span>${a?`<span><i class="sa"></i>Автоферма ${fmt(a)} ₴</span>`:''}${qv?`<span><i class="sq"></i>Квести ${fmt(qv)} ₴</span>`:''}${iv?`<span><i class="si"></i>Інвестиції ${fmt(iv)} ₴</span>`:''}`}
  countTo($('pv'),Math.floor(p*100));countTo($('earn'),me.done,1);$('norm').textContent=fmt(me.norm);
  const rest=me.norm-me.done,L=$('left'),step=Math.max(...S.farm.crops.map(c=>c.uah));
  if(rest<=0){L.textContent='Норму виконано! 🎉';L.className='left done'}
