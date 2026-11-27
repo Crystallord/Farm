@@ -294,8 +294,10 @@ body{padding-bottom:96px}
 .hdr{position:sticky;top:0;z-index:45;display:flex;align-items:center;gap:10px;padding:16px 14px 10px;background:#fff3e2;border-bottom:1px solid #f0dcc0;margin:-14px -14px 12px;box-shadow:0 4px 14px rgba(160,110,50,.08)}
 .hn{flex:1;min-width:0;line-height:1.15}.hn b{display:block;font-size:16px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.hn .ttl{margin:2px 0 0}
 .hb{display:grid;grid-template-columns:auto auto;gap:5px;justify-content:end;justify-items:stretch}
-.hb>span{display:inline-flex;align-items:center;justify-content:center;gap:3px;line-height:1.25em;background:#fff;border-radius:12px;padding:5px 8px;font-size:13px;font-weight:900;white-space:nowrap;box-shadow:0 2px 0 #f0dcc0;font-variant-numeric:tabular-nums}
-.hb .hg{color:#5b3fd6}.hb .hsn{display:none;color:#2a7fc9}body.winter .hb .hsn{display:inline-flex}.hb .hs{grid-column:2}body.winter .hb .hs{grid-column:auto}.hb .hs,.hb .hsn{font-size:12px;padding:3px 8px}.hb .hs{color:#e2552b}.hb .flame{font-size:13px;filter:none}.hb .flame.dim{filter:grayscale(1) opacity(.5)}
+.hb>span{display:flex;align-items:center;justify-content:center;gap:4px;box-sizing:border-box;height:28px;line-height:1;background:#fff;border-radius:12px;padding:0 9px;font-size:14px;font-weight:900;white-space:nowrap;box-shadow:0 2px 0 #f0dcc0;font-variant-numeric:tabular-nums}
+.hb>span>b{display:inline-flex;align-items:center;height:1.25em;line-height:1.25em;font-size:14px;font-weight:900}
+.hb>span>i{font-style:normal;display:inline-flex;align-items:center;justify-content:center;min-width:1em;height:1.2em;font-size:13px;line-height:1}.hb .hm>i{font-size:14px;font-weight:900}
+.hb .hg{color:#5b3fd6}.hb .hsn{display:none;color:#2a7fc9}body.winter .hb .hsn{display:inline-flex}.hb .hs{grid-column:2}body.winter .hb .hs{grid-column:auto}.hb .hs,.hb .hsn{height:24px;padding:0 8px}.hb .hs>b,.hb .hsn>b{font-size:12.5px}.hb .hs>i,.hb .hsn>i{font-size:12px}.hb .hs{color:#e2552b}.hb .flame{filter:none}.hb .flame.dim{filter:grayscale(1) opacity(.5)}
 .bigfl{font-size:34px;line-height:1}.bigfl.dim{filter:grayscale(.65) opacity(.6)}
 .top .sline{font-size:14px}.top .sline b{font-size:19px}
 
@@ -569,7 +571,7 @@ body.winter .crop.ready .beam{display:none}body.winter .crop{overflow:visible}
 .tl{animation:blink 1.2s ease-in-out infinite}.star{animation:pulse3 2s ease-in-out infinite;transform-origin:center}
 </style></head><body class="loading">
 <header class="hdr" id="hdr"><span id="hava" class="tapme"></span><div class="hn"><b id="hname">…</b><span id="httl"></span><span id="hbst"></span></div>
-  <div class="hb"><span class="hm"><b id="uah">0</b> ₴</span><span class="hg"><b id="gem">0</b> 💎</span><span class="hs"><span class="flame dim" id="flame">🔥</span><b id="hst">0</b></span><span class="hsn" id="hsnw"><b id="hsn">0</b> ❄️</span></div></header>
+  <div class="hb"><span class="hm"><b id="uah">0</b><i>₴</i></span><span class="hg"><b id="gem">0</b><i>💎</i></span><span class="hs"><i class="flame dim" id="flame">🔥</i><b id="hst">0</b></span><span class="hsn" id="hsnw"><b id="hsn">0</b><i>❄️</i></span></div></header>
 <div class="wrap view on" id="v_farm">
   <div class="card top">
     <div class="streak"><span class="bigfl dim" id="flame2">🔥</span>
@@ -661,7 +663,7 @@ const TG=window.Telegram&&Telegram.WebApp; try{TG.ready();TG.expand();TG.setHead
 const qs=new URLSearchParams(location.search), API=qs.get('api')||window.FARM_API||'', DEMO=qs.get('demo')==='1'||!(TG&&TG.initData), BETA=qs.get('beta')==='1';
 const quiet=()=>{const h=new Date().getHours();return h<8}; // 00:00–08:00: no vibration
 const hap=t=>{if(quiet())return;try{t==='ok'?TG.HapticFeedback.notificationOccurred('success'):t==='err'?TG.HapticFeedback.notificationOccurred('error'):TG.HapticFeedback.impactOccurred(t||'medium')}catch(e){}};
-const APP_VER='28.11.0024';
+const APP_VER='28.11.0026';
 const $=id=>document.getElementById(id), R=95, C=2*Math.PI*R;
 const fmt=v=>(+v).toLocaleString('uk-UA',{minimumFractionDigits:(+v)%1?2:0,maximumFractionDigits:2});
 const plural=(n,f)=>{n=Math.abs(n)%100;const b=n%10;return n>10&&n<20?f[2]:b===1?f[0]:b>=2&&b<=4?f[1]:f[2]};
