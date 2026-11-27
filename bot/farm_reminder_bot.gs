@@ -916,7 +916,7 @@ function today(st, now) { return st.stats['d:' + dayKey(now, st.cfg)] || {}; }
 // The farm's reference day (еталон), the base of norms, plot income and payback: Cactus/Turmeric in the seedbeds,
 // 2/3 of the composter spots as Clover bundles and 1/3 as composters (worms), 6 harvests of each a day. It does not
 // depend on what is planted today, only on the land: more plots or neutral land -> more pay per harvest -> a bigger norm.
-const BOT_VER = '28.11.0049'; // set by bump.sh on every push
+const BOT_VER = '28.11.0059'; // set by bump.sh on every push
 const REF_DEF = { bedCrop: 'tc', bundleCrop: 'clover', bundleShare: 2 / 3, runs: 6 };
 let REF_OVR = null; // the owner's reference day (st.cfg.ref), set when the state is loaded
 const REF = {
@@ -929,8 +929,8 @@ function refCfg(c) { // the farm's config as in the reference day
     bundles: Math.round(f.spots * REF.bundleShare), nbundles: nb, neutral: nTot - nb });
 }
 function farmMax(c) {
-  const r = refCfg(c), e = extraMax(c); // everything the farm really makes in a reference day: with the bank's share and the investors' full plots
-  return money(REF.runs * (KINDS.beds.full(r) + investFull(r, 'beds') + KINDS.plots.full(r) + investFull(r, 'plots')) + e.quest + e.auto);
+  const r = refCfg(c), e = extraMax(c); // what work earns in a reference day (the harvester's pay): reachable by anyone who does their share
+  return money(REF.runs * (KINDS.beds.reward(r) + KINDS.plots.reward(r)) + e.quest + e.auto);
 }
 // ⚔️ Daily quests and autofarms: income we can count exactly (honor sold on the AH, gold from RD, the buffalo autofarm).
 // Halcyona: the first one of the day on a character also opens a chest with 12k honor (max 3 a day: 12k + 3 × 3.5k = 22.5k).
@@ -3993,7 +3993,9 @@ function appInvest(st, id) {
   for (let i = 10; i >= 1; i--) { const d = addDays(today, -i);
     real.push({ day: d, uah: money((st.cfg.iplots || []).reduce(function (a, p) { return a + (((p.days || {})[d] || {})[id] || 0); }, 0)),
       mon: money((st.cfg.iplots || []).filter(function (p) { return p.since <= d; }).reduce(function (a, p) { return a + offerDaily(st, p) * shareOf(p, id) * 30; }, 0)) }); }
-  return { real: real, hist: hist, split: split, min: INV_MIN, balance: money(st.balance[id] || 0), daily: plots.reduce(function (a, p) { return a + p.day; }, 0), wallet: money((st.invWallet || {})[id] || 0), plots: plots, offers: offers };
+  const nm = (st.people[id] || {}).norm || 0, landNorm = []; // what share of the norm investments earned each of the last 30 days
+  for (let i = 29; i >= 0; i--) { const d = addDays(today, -i), r = ((st.stats['d:' + d] || {})[id]) || {}; landNorm.push({ day: d, uah: money(r.i || 0), pct: nm ? Math.round((r.i || 0) / nm * 100) : 0 }); }
+  return { landNorm: landNorm, real: real, hist: hist, split: split, min: INV_MIN, balance: money(st.balance[id] || 0), daily: plots.reduce(function (a, p) { return a + p.day; }, 0), wallet: money((st.invWallet || {})[id] || 0), plots: plots, offers: offers };
 }
 // 🏅 +1 💎 for every achievement, taken by hand in the app (old ones too): st.achPaid[uid] = { achKey: day }
 function achLabel(st, id, key) {
@@ -4288,7 +4290,7 @@ function refPick(a) {
 function refNumbers(st, id) {
   const c = st.cfg, r = refCfg(c);
   const e = extraMax(c);
-  return { max: farmMax(c), beds: money(KINDS.beds.full(r) + investFull(r, 'beds')), plots: money(KINDS.plots.full(r) + investFull(r, 'plots')), over: overStep(c), quest: e.quest, auto: e.auto, questPct: c.questPct, chars: (c.chars || []).length,
+  return { max: farmMax(c), beds: money(KINDS.beds.reward(r)), plots: money(KINDS.plots.reward(r)), over: overStep(c), quest: e.quest, auto: e.auto, questPct: c.questPct, chars: (c.chars || []).length,
     people: Object.keys(st.people).map(function (u) { return { id: u, share: st.people[u].share || 0, norm: normFor(c, st.people[u].share || 0) }; }),
     plotsInv: (c.iplots || []).map(function (p) { const d = offerDaily(st, p); return { id: p.id, name: p.name, all: money(d * 30), mine: money(d * shareOf(p, id) * 30) }; }),
     offers: (st.offers || []).map(function (o) { return { id: o.id, name: o.name, all: money(offerDaily(st, o) * 30) }; }) };
