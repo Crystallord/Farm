@@ -425,6 +425,19 @@ body.busy button:not(.pending),body.busy .tile,body.busy .ob{opacity:.6;transiti
 .hrow .ht b{display:block;font-size:14px}.hrow .ht small{display:block;color:var(--mute);font-weight:800;font-size:11.5px}.hrow .ht span{display:block;font-size:12.5px;font-weight:900;color:#2a9d52;margin-top:2px}
 .hrow button{border:0;border-radius:12px;padding:8px 10px;background:#ffe9e2;color:#d5482a;font:900 12.5px Nunito,sans-serif;cursor:pointer}.hrow em{font-style:normal;font-size:12px;font-weight:900;color:var(--mute)}.hrow.und{opacity:.55}
 .crop .rw.bon{color:#e07b00;font-size:11.5px;font-weight:900;margin-top:-2px}
+.shseg{margin:0 0 12px}
+.tgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:stretch}
+.tcard{background:#fff;border-radius:20px;padding:10px;display:flex;flex-direction:column;gap:6px;box-shadow:0 3px 0 #f0dcc0}
+.tcard .ti{aspect-ratio:1;border-radius:14px;background:#fff;overflow:hidden;cursor:zoom-in}.tcard .ti img{width:100%;height:100%;object-fit:contain;display:block}
+.tcard b{font-size:13.5px;line-height:1.25;flex:1}.tcard small{color:var(--mute);font-weight:800;font-size:11.5px}
+.tcard .tqp{display:flex;align-items:center;justify-content:space-between;gap:6px}.tcard .tqpr{font-size:17px;font-weight:900}
+.tqs{display:flex;align-items:center;gap:6px}.tqs button{width:34px;height:34px;border-radius:12px;border:0;font:900 19px Nunito,sans-serif;cursor:pointer;background:#ffe3b8;color:#b35b00}.tqs button.add{background:linear-gradient(180deg,#3fc46a,#2a9d52);color:#fff;box-shadow:0 3px 0 #1f7a3f}.tqs span{min-width:16px;text-align:center;font-weight:900}
+.tcart{position:fixed;left:12px;right:12px;bottom:calc(var(--navh,92px) + 10px);z-index:42;display:flex;align-items:center;justify-content:space-between;gap:10px;background:#2b2118;color:#fff;border-radius:18px;padding:10px 10px 10px 16px;font-weight:900;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.tcart button{border:0;border-radius:14px;padding:10px 16px;font:900 15px Nunito,sans-serif;color:#fff;background:linear-gradient(180deg,#3fc46a,#2a9d52);box-shadow:0 3px 0 #1f7a3f;cursor:pointer}
+.tzoom{position:fixed;inset:0;z-index:90;background:rgba(20,14,8,.86);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:20px}.tzoom img{max-width:100%;max-height:72vh;border-radius:20px;background:#fff}.tzoom b{color:#fff;font-size:17px;text-align:center}
+.tqsum{display:flex;justify-content:space-between;align-items:center;background:#fff;border-radius:16px;padding:12px 14px;margin:12px 0;font-weight:900}.tqsum b{font-size:20px}
+.tord{background:#fff5e0;border-radius:16px;padding:10px 12px;font-weight:900;font-size:13px;margin-bottom:10px}.tord small{display:block;color:var(--mute);font-weight:800}
+.tqlist .tqr{display:grid;grid-template-columns:44px 1fr auto;gap:10px;align-items:center;padding:6px 0;border-bottom:1px solid #f1e6d6}.tqlist img{width:44px;height:44px;object-fit:contain;border-radius:10px;background:#fff}.tqlist b{font-size:13px}.tqlist small{display:block;color:var(--mute);font-weight:800}
 .hint{margin:8px 2px 0;font-size:12px;color:var(--mute);font-weight:800}
 .fsrc{display:flex;height:26px;border-radius:13px;overflow:hidden;margin:8px 0;background:#f3e9dc}.fsrc s{display:block;height:100%}
 .fleg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:6px}.fleg div{background:#fff;border-radius:14px;padding:8px;text-align:center}.fleg b{display:block;font-size:16px}.fleg small{font-size:11px;color:var(--mute);font-weight:800}.fleg i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:4px}
@@ -604,6 +617,14 @@ body.winter .crop.ready .beam{display:none}body.winter .crop{overflow:visible}
   <div id="tlist" style="display:flex;flex-direction:column;gap:10px"></div>
 </div>
 <div class="wrap view" id="v_shop">
+  <div class="seg shseg" id="shseg"><button data-sh="main" class="on">💎 Крамниця</button><button data-sh="treats">🍬 Смаколики</button></div>
+  <div id="trv" style="display:none">
+   <div class="card sh"><div><b>🍬 Смаколики</b><small>справжні, за гривні · у тебе <span id="tbal">0</span> ₴</small></div></div>
+   <div id="tord"></div>
+   <div class="tgrid" id="tgrid"></div>
+   <div style="height:70px"></div>
+  </div>
+  <div id="shm">
   <div class="card sh"><div><b>Крамниця дня</b><small>у тебе <span id="sg">0</span> 💎</small></div><div class="timer">🔄 <span id="stm">--:--:--</span></div></div>
   <div class="sect"><b>⚡ Бусти</b><small>діють одразу</small></div>
   <div id="boosts" style="display:flex;flex-direction:column;gap:10px"></div>
@@ -614,7 +635,10 @@ body.winter .crop.ready .beam{display:none}body.winter .crop{overflow:visible}
   <div class="sect"><b>Корм для улюбленця</b><small id="foodn"></small></div>
   <div id="foods" style="display:flex;flex-direction:column;gap:10px"></div>
   <div class="demo dm"></div>
+  </div>
 </div>
+<div class="tcart" id="tcart" style="display:none"><span id="tcn"></span><button id="tcb">Оплатити</button></div>
+<div class="tzoom" id="tzoom" style="display:none"><img id="tzi" alt=""><b id="tzn"></b></div>
 <div class="wrap view" id="v_inv">
   <div class="card ihero">
     <div class="ih"><b>💼 Дохід з землі</b><span id="iwal2"></span></div>
@@ -669,7 +693,7 @@ const TG=window.Telegram&&Telegram.WebApp; try{TG.ready();TG.expand();TG.setHead
 const qs=new URLSearchParams(location.search), API=qs.get('api')||window.FARM_API||'', DEMO=qs.get('demo')==='1'||!(TG&&TG.initData), BETA=qs.get('beta')==='1';
 const quiet=()=>{const h=new Date().getHours();return h<8}; // 00:00–08:00: no vibration
 const hap=t=>{if(quiet())return;try{t==='ok'?TG.HapticFeedback.notificationOccurred('success'):t==='err'?TG.HapticFeedback.notificationOccurred('error'):TG.HapticFeedback.impactOccurred(t||'medium')}catch(e){}};
-const APP_VER='28.11.1030';
+const APP_VER='28.11.1034';
 const $=id=>document.getElementById(id), R=95, C=2*Math.PI*R;
 const fmt=v=>(+v).toLocaleString('uk-UA',{minimumFractionDigits:(+v)%1?2:0,maximumFractionDigits:2});
 const plural=(n,f)=>{n=Math.abs(n)%100;const b=n%10;return n>10&&n<20?f[2]:b===1?f[0]:b>=2&&b<=4?f[1]:f[2]};
@@ -737,7 +761,7 @@ function confirmTG(text){return new Promise(res=>{try{TG.showConfirm(text,ok=>re
 // ===================== render: farm
 const WD=['Нд','Пн','Вт','Ср','Чт','Пт','Сб'];
 function safe(f){try{f()}catch(e){console.error(e);toast('⚠️ '+(e&&e.message||e))}}
-function render(){if(!S)return;safe(()=>{renderTop()});safe(()=>{renderRing()});safe(()=>{renderCrops()});safe(()=>{renderOnce()});safe(()=>{renderTasks()});safe(()=>{renderShop()});safe(()=>{if(S.invest)renderInvest()});safe(()=>{renderMe()});safe(()=>{renderClaim()});safe(()=>{renderAppr()});safe(()=>{renderContest()});safe(()=>{renderBoosts()});safe(()=>{renderPet()});safe(()=>{renderWinter()});}
+function render(){if(!S)return;safe(()=>{renderTop()});safe(()=>{renderRing()});safe(()=>{renderCrops()});safe(()=>{renderOnce()});safe(()=>{renderTasks()});safe(()=>{renderShop()});safe(()=>{renderTreats()});safe(()=>{if(S.invest)renderInvest()});safe(()=>{renderMe()});safe(()=>{renderClaim()});safe(()=>{renderAppr()});safe(()=>{renderContest()});safe(()=>{renderBoosts()});safe(()=>{renderPet()});safe(()=>{renderWinter()});}
 function renderTop(){const me=S.me,w=S.farm.week,done=w[w.length-1].ok,mp=P(me.id);
  $('hava').innerHTML=ava(mp.look,40);$('hname').innerHTML=nm(mp);$('httl').innerHTML=mp.look.ti?`<span class="ttl">${mp.look.ti}</span>`:'';$('hava').onclick=styleSheet;$('hst').textContent=me.streak;
  $('flame2').classList.toggle('dim',!done);
@@ -1094,6 +1118,32 @@ function histDraw(){const t=x=>{const d=new Date(x),n=new Date();return (d.toDat
  $('sheet').querySelectorAll('[data-u]').forEach(b=>b.onclick=async()=>{const e=HI.find(x=>x.id===+b.dataset.u);if(!(await confirmTG(`Відкотити «${e.label.replace(/<[^>]+>/g,'')}» (${e.who})?`)))return;hap('heavy');
   if(DEMO){e.undone=true;histDraw();return}const r=await act('undo',{id:e.id});if(r&&r.res){HI=r.res;histDraw()}})}
 $('histbtn').onclick=histSheet;
+// ===================== 🍬 treats: real sweets for real hryvnias; a basket, paid from the UAH balance; the owner hands them out
+const IMGB=location.pathname.includes('/v2/')?'../':'';let shView='main',CART={};
+const tItem=id=>((S.treats||{}).items||[]).find(x=>x.id===id);
+const cartN=()=>Object.values(CART).reduce((a,b)=>a+b,0),cartSum=()=>+Object.keys(CART).reduce((a,k)=>a+(tItem(k)?tItem(k).price*CART[k]:0),0).toFixed(2);
+function shSet(v){shView=v;document.querySelectorAll('#shseg button').forEach(b=>b.classList.toggle('on',b.dataset.sh===v));$('trv').style.display=v==='treats'?'block':'none';$('shm').style.display=v==='treats'?'none':'block';renderTreats()}
+document.querySelectorAll('#shseg button').forEach(b=>b.onclick=()=>{hap('light');shSet(b.dataset.sh)});
+function renderTreats(){const T=S.treats;if(!T){$('shseg').style.display='none';return}
+ $('tbal').textContent=fmt(S.me.balance);
+ const O=T.orders||[];$('tord').innerHTML=O.length?`<div class="tord">⏳ Чекає видачі: ${O.map(o=>o.items.map(x=>x.name.split(' ')[0]+(x.n>1?' ×'+x.n:'')).join(', ')).join(' · ')}<small>Тато видасть, щойно побачить 🙂</small></div>`:'';
+ $('tgrid').innerHTML=T.items.map(t=>{const n=CART[t.id]||0;return `<div class="tcard"><div class="ti" data-z="${t.id}"><img src="${IMGB+t.img}" alt="" loading="lazy"></div><b>${t.name}</b><small>${t.w}</small>
+  <div class="tqp"><span class="tqpr">${fmt(t.price)} ₴</span><div class="tqs">${n?`<button data-m="${t.id}">−</button><span>${n}</span>`:''}<button class="add" data-p="${t.id}">+</button></div></div></div>`}).join('');
+ $('tgrid').querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{CART[b.dataset.p]=(CART[b.dataset.p]||0)+1;hap('light');renderTreats()});
+ $('tgrid').querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{const k=b.dataset.m;CART[k]=(CART[k]||0)-1;if(CART[k]<=0)delete CART[k];hap('light');renderTreats()});
+ $('tgrid').querySelectorAll('[data-z]').forEach(b=>b.onclick=()=>{const t=tItem(b.dataset.z);$('tzi').src=IMGB+t.img;$('tzn').textContent=t.name+' · '+fmt(t.price)+' ₴';$('tzoom').style.display='flex';hap('light')});
+ const n=cartN();$('tcart').style.display=n>0&&shView==='treats'&&$('v_shop').classList.contains('on')?'flex':'none';$('tcn').textContent=`🧺 ${n} · ${fmt(cartSum())} ₴`}
+$('tzoom').onclick=()=>{$('tzoom').style.display='none'};
+$('tcb').onclick=()=>{const sum=cartSum(),bal=S.me.balance,ok=bal>=sum;hap('light');
+ const draw=()=>{const ks=Object.keys(CART);if(!ks.length){unsheet();renderTreats();return}const s2=cartSum();
+  sheet(`<h3>🧺 Кошик</h3><div class="tqlist">${ks.map(k=>{const t=tItem(k);return `<div class="tqr"><img src="${IMGB+t.img}" alt=""><div><b>${t.name}</b><small>${fmt(t.price)} ₴ × ${CART[k]}</small></div><div class="tqs"><button data-m="${k}">−</button><span>${CART[k]}</span><button class="add" data-p="${k}">+</button></div></div>`}).join('')}</div>
+  <div class="tqsum"><span>Разом</span><b>${fmt(s2)} ₴</b></div><p class="hint" style="margin-bottom:10px">${bal>=s2?`На балансі лишиться ${fmt(+(bal-s2).toFixed(2))} ₴. Тато отримає повідомлення, що видати.`:`Не вистачає ${fmt(+(s2-bal).toFixed(2))} ₴ — збери ще трохи врожаю 🌾`}</p>
+  <button class="bigb" id="tpay" style="width:100%;background:#2a9d52" ${bal>=s2?'':'disabled'}>Оплатити ${fmt(s2)} ₴</button><button class="ghostb" onclick="unsheet()">Ще подивлюсь</button>`);
+  $('sheet').querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{CART[b.dataset.p]++;hap('light');draw();renderTreats()});
+  $('sheet').querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{const k=b.dataset.m;if(--CART[k]<=0)delete CART[k];hap('light');draw();renderTreats()});
+  $('tpay').onclick=async()=>{if(busy)return;hap('heavy');const cart=Object.assign({},CART);unsheet();
+   const r=await act('treats',{cart});if(r&&r.ok&&!/Не вистачає|порожній/.test(r.toast||'')){CART={};confetti();renderTreats()}}};
+ draw()};
 // ===================== 📊 full farm stats
 let fsPer='week',fsMet='uah',fsView='people';
 const FSV=()=>`<div class="seg" style="margin:6px 0 4px">${[['people','👥 Хто скільки'],['farm','🏡 Уся ферма']].map(([k,l])=>`<button data-v2="${k}" class="${k===fsView?'on':''}">${l}</button>`).join('')}</div>`;
@@ -1385,7 +1435,7 @@ function musicToggle(){const on=!musicOn();try{localStorage.setItem('music',on?'
 document.addEventListener('visibilitychange',()=>{if(document.hidden)musicStop();else if(musicOn()&&S&&S.winter&&S.winter.design)musicArm()});
 // ===================== tabs
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{hap('light');document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===b));
- document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id==='v_'+b.dataset.v));scrollTo(0,0);if(b.dataset.v==='tree'&&S)safe(renderTree);});
+ document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id==='v_'+b.dataset.v));scrollTo(0,0);if(b.dataset.v==='tree'&&S)safe(renderTree);if(S)safe(renderTreats);});
 // ===================== demo (outside Telegram)
 let D=null;
 function demoState(){const now=Date.now();return{me:{id:'2',name:'Марія',gems:67,balance:533,streak:9,done:37,norm:60,src:{auto:8,quest:10.42,invest:3.2}},
@@ -1395,6 +1445,7 @@ function demoState(){const now=Date.now();return{me:{id:'2',name:'Марія',ge
  tasks:{ar:[{id:'alt',icon:'🧑‍🌾',label:'Прокачати альта й поставити пугало',per:'за альта',gems:50,today:0,wait:0},{id:'restock',icon:'📦',label:'Поповнити запаси ферми',per:'за раз',gems:10,today:0,wait:0},{id:'daily',icon:'☀️',label:'Щоденні справи й автоферма',per:'за персонажа',gems:5,today:1,wait:1,inc:true,list:['📅 Нагорода в календарі','🫘 Боб з ринку']},{id:'quest',icon:'⚔️',label:'Щоденні квести',per:'за квест на персонажі',gems:5,today:0,wait:0,inc:true},{id:'gift',icon:'🎁',label:'Забрати подарунок',per:'за персонажа',gems:1,today:0,wait:0}],
   wow:[{id:'wd_dm',icon:'🏰',label:'The Deadmines',lvl:'18-23',gems:30,done:0,wait:0},{id:'wd_wc',icon:'🏰',label:'Wailing Caverns',lvl:'17-25',gems:20,done:1,wait:0}],waitGems:5,waitN:1,maxLvl:35,inc:{rate:2,chars:['Oleksa','Tetan','Maria'],mine:'Maria',done:{Oleksa:{auto:1,halcy:1},Tetan:{},Maria:{}},auto:8,
   quests:[['cr','CR',2.69],['gr','GR',2.69],['halcy','Halcyona',2.35,10.42,3,0,12000],['ws','WS',2.69],['aegis','Aegis',2.69],['rd','RD',9.09,null,1,400]].map(x=>({id:x[0],label:x[1],uah:x[2],first:x[3]||null,max:x[4]||1,gold:x[5]||0,chest:x[6]||0}))}},
+ treats:{orders:[],items:[['chips','Чіпси «Розумний вибір» зі смаком шашлику','60 г',18.9],['yogurt','Йогурт «Ростишка» банан','115 г',18.9],['papita','Печиво Papita з кокосом і драже','33 г',15.3],['2crack','Крекер Roshen 2 Crack з шоколадом','190 г',64.7],['kashtan','Морозиво «Каштан»','75 г',21.9],['milkaoreo','Шоколад Milka & Oreo','37 г',32.3],['jelly','Желе «Злагода» вишня','120 г',24.4],['juice','Сік Seniorik мультифруктовий','200 мл',16.7]].map(x=>({id:x[0],name:x[1],w:x[2],price:x[3],img:'img/treats/'+x[0]+'.jpg'}))},
  shop:{season:null,rise:30,resting:4,items:[{id:'ice',icon:'🍦',label:'Морозиво',open:true,price:40,times:0},{id:'cart',icon:'🎬',label:'Мультик +30 хв',open:true,price:33,times:1},{id:'toy',icon:'🧸',label:'Нова іграшка',open:true,price:90,times:0},{id:null,open:false,need:12,price:60},{id:null,open:false,need:14,price:80}],food:{price:1,pack:10,packN:12}},
  people:[{id:'2',name:'Марія',look:{av:'🦄',bg:'rose',fr:'rainbow',ti:'Королева грядок'}},{id:'1',name:'Тато',look:{av:'🐻',bg:'sky',fr:'gold',ti:''},owner:true}],
  looks:{av:['🙂','🐱','🐶','🦄','🧚','🐲','👑','🔮'].map((k,i)=>({key:k,price:i<3?0:15+i*5,own:i<4})),bg:['sand','sky','mint','rose','ocean','sunset','galaxy','gold'].map((k,i)=>({key:k,label:k,price:i<2?0:15+i*8,own:i<2||k==='rose'})),fr:['none','silver','gold','rainbow','fire','stars'].map((k,i)=>({key:k,label:k,price:[0,30,60,120,150,200][i],own:i===0||k==='rainbow'})),ti:[['','Без титулу'],['farmer','Фермерка'],['queen','Королева грядок'],['legend','Легенда ферми']].map((x,i)=>({key:x[0],label:x[1],price:[0,0,50,150][i],own:i<3}))},

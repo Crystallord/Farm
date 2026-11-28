@@ -575,6 +575,7 @@ function histSum(e) {
 function btnLabel(st, parts) { // a bot button, said the same way as in the app
   const a = parts[0];
   if (a === 'done') { const k = KINDS[parts[1]]; return '🌾 Збір у чаті' + (k ? ': ' + k.title(st.cfg).replace(/^\S+\s/, '') : ''); }
+  if (a === 'trt') return '🍬 Смаколики видано';
   if (a === 'tok') return '✅ Підтвердження завдань'; if (a === 'tno') return '❌ Відхилення завдань';
   if (a === 'task') return actLabel(st, 'task', { id: parts[1] });
   return '🤖 ' + parts.join(':').slice(0, 40);
@@ -582,7 +583,7 @@ function btnLabel(st, parts) { // a bot button, said the same way as in the app
 function appHistory(st) {
   return (st.hist || []).slice().reverse().map(function (e) { return { id: e.id, at: e.at, uid: e.uid, who: nameOf(st, e.uid), label: e.label, undone: !!e.u, sum: histSum(e), n: e.d.length }; });
 }
-const ACT_LABELS = { harvest: '🌾 Збір', task: '📋 Завдання', buy: '🛍 Покупка', food: '🍖 Корм', gemx: '💱 Обмін кристалів', use: '🎟 Купон', feed: '🍖 Нагодувати', item: '🎒 Предмет', look: '🎨 Стиль', tr: '🤝 Торгівля', claim: '🏅 Досягнення', pledge: '💼 Внесок у збір', ivtake: '💰 Забрати дохід', tree: '🎄 Ялинка', boost: '⚡ Буст', prize: '🏆 Приз', excl: '✨ Ексклюзив' };
+const ACT_LABELS = { treats: '🍬 Смаколики', harvest: '🌾 Збір', task: '📋 Завдання', buy: '🛍 Покупка', food: '🍖 Корм', gemx: '💱 Обмін кристалів', use: '🎟 Купон', feed: '🍖 Нагодувати', item: '🎒 Предмет', look: '🎨 Стиль', tr: '🤝 Торгівля', claim: '🏅 Досягнення', pledge: '💼 Внесок у збір', ivtake: '💰 Забрати дохід', tree: '🎄 Ялинка', boost: '⚡ Буст', prize: '🏆 Приз', excl: '✨ Ексклюзив' };
 function actLabel(st, action, a) {
   a = a || {};
   if (action === 'harvest') { const k = KINDS[a.kind]; return '🌾 Збір: ' + (a.crop ? (CROPS[a.crop] || {}).label || a.crop : k ? k.title(st.cfg).replace(/^\S+\s/, '') : a.kind); }
@@ -916,7 +917,7 @@ function today(st, now) { return st.stats['d:' + dayKey(now, st.cfg)] || {}; }
 // The farm's reference day (еталон), the base of norms, plot income and payback: Cactus/Turmeric in the seedbeds,
 // 2/3 of the composter spots as Clover bundles and 1/3 as composters (worms), 6 harvests of each a day. It does not
 // depend on what is planted today, only on the land: more plots or neutral land -> more pay per harvest -> a bigger norm.
-const BOT_VER = '28.11.1030'; // set by bump.sh on every push
+const BOT_VER = '28.11.1034'; // set by bump.sh on every push
 const REF_DEF = { bedCrop: 'tc', bundleCrop: 'clover', bundleShare: 2 / 3, runs: 6 };
 let REF_OVR = null; // the owner's reference day (st.cfg.ref), set when the state is loaded
 const REF = {
@@ -1712,6 +1713,42 @@ function doIncomeTask(st, user, t, a, q) {
   }
 }
 function incomeLabel(x) { const qq = questById(x.quest); return x.task === 'quest' ? (qq ? qq.label : 'Квест') : 'Автоферма'; }
+// 🍬 Treats: real sweets for real hryvnias (store prices without discounts, 28.11.2026). The basket is paid from the UAH balance;
+// the owner gets a private message with what to hand out and a "handed out" button.
+const TREATS = [
+  { id: 'chips', name: 'Чіпси «Розумний вибір» зі смаком шашлику', w: '60 г', price: 18.9, img: 'img/treats/chips.jpg' },
+  { id: 'yogurt', name: 'Йогурт «Ростишка» банан', w: '115 г', price: 18.9, img: 'img/treats/yogurt.jpg' },
+  { id: 'papita', name: 'Печиво Papita з кокосом і драже', w: '33 г', price: 15.3, img: 'img/treats/papita.jpg' },
+  { id: '2crack', name: 'Крекер Roshen 2 Crack з шоколадом', w: '190 г', price: 64.7, img: 'img/treats/2crack.jpg' },
+  { id: 'kashtan', name: 'Морозиво «Каштан»', w: '75 г', price: 21.9, img: 'img/treats/kashtan.jpg' },
+  { id: 'milkaoreo', name: 'Шоколад Milka & Oreo', w: '37 г', price: 32.3, img: 'img/treats/milkaoreo.jpg' },
+  { id: 'jelly', name: 'Желе «Злагода» вишня', w: '120 г', price: 24.4, img: 'img/treats/jelly.jpg' },
+  { id: 'juice', name: 'Сік Seniorik мультифруктовий', w: '200 мл', price: 16.7, img: 'img/treats/juice.jpg' },
+];
+function treatBuy(st, user, cart, q) {
+  const id = String(user.id), lines = [];
+  let total = 0;
+  Object.keys(cart || {}).forEach(function (k) { const t = TREATS.filter(function (x) { return x.id === k; })[0], n = Math.max(0, Math.min(20, Math.floor(+cart[k] || 0)));
+    if (t && n) { lines.push({ id: t.id, name: t.name, w: t.w, n: n, price: t.price }); total += t.price * n; } });
+  total = money(total);
+  if (!lines.length) { toast(q, 'Кошик порожній'); return; }
+  if ((st.balance[id] || 0) < total) { toast(q, 'Не вистачає ' + money(total - (st.balance[id] || 0)) + ' грн'); return; }
+  st.balance[id] = money(st.balance[id] - total);
+  dayAdd(st, id, 'shop', total);
+  const o = { id: (st.treatSeq = (st.treatSeq || 0) + 1), uid: id, items: lines, total: total, at: Date.now(), done: false };
+  st.treatOrders = (st.treatOrders || []).concat([o]).slice(-50);
+  if (st.owner) { const r = say(st.owner, treatText(st, o), { inline_keyboard: [[button('✅ Видав(ла)', 'trt:' + o.id)]] }); o.msg = r && r.result ? r.result.message_id : null; }
+  toast(q, '🍬 Оплачено ' + total + ' грн! ' + esc(ownerName(st)) + ' скоро видасть 🙂');
+}
+function treatText(st, o) {
+  return '🍬 ' + b(esc(nameOf(st, o.uid))) + ' ' + verb(st.people[o.uid], 'купив', 'купила') + ' смаколики — видай, будь ласка:\n' +
+    o.items.map(function (x) { return '• ' + esc(x.name) + ' (' + x.w + ') × ' + b(x.n); }).join('\n') + '\n\n💰 Оплачено ' + b(o.total + ' грн') + ' з балансу' + (o.done ? '\n\n✅ Видано' : '');
+}
+function treatGiven(st, oid, q, edit) {
+  const o = (st.treatOrders || []).filter(function (x) { return x.id === +oid; })[0];
+  if (!o) { toast(q, 'Замовлення не знайдено'); return; }
+  o.done = Date.now(); edit(treatText(st, o), { inline_keyboard: [] }); toast(q, '✅ Видано');
+}
 // The owner's private chat: one panel with everything waiting for approval (the old one is deleted).
 function pendingText(st) {
   const list = st.pend || [];
@@ -3843,6 +3880,7 @@ function appApi(e) {
       if (body.action === 'refPreview') return { ok: true, res: appRef(st, id, a && Object.keys(a).length ? a : null) }; // nothing saved, no full state
       let changed = true;
       if (body.action === 'buy') buy(st, user, String(a.item), id, q, noop);
+      else if (body.action === 'treats') treatBuy(st, user, a.cart, q);
       else if (body.action === 'food') buyFood(st, user, a.pack ? 'pack' : 'one', q, noop);
       else if (body.action === 'gemx') gemExchange(st, user, String(a.n), q, noop, true);
       else if (body.action === 'use') { if (useCoupon(st, user, String(a.item), q)) q.out.push('🎟 Купон використано! Дивись у групі'); }
@@ -4365,6 +4403,7 @@ function appState(st, id) {
       slots: PET_SLOTS.map(function (s) { return { id: s.id, title: s.title, lvl: s.lvl, open: petLevel(pet) >= s.lvl, wear: (pet.wear || {})[s.id] || null,
         items: s.items.map(function (it) { return { id: it[0], icon: it[1], label: it[2], own: ((pet.own || {})[s.id] || []).indexOf(it[0]) >= 0 }; }) }; }),
       cloth: priceOf(st, { price: P.cloth }) } : null,
+    treats: { items: TREATS, orders: (st.treatOrders || []).filter(function (o) { return o.uid === String(id) && !o.done; }).map(function (o) { return { id: o.id, at: o.at, total: o.total, items: o.items }; }) },
     shop: { season: seasonOn(st, 'gems'), boost: SEASON_BOOST, daily: st.cfg.shopDaily, rise: st.cfg.shopRise,
       items: shop.map(function (it) { const open = n >= it.need, on = today.indexOf(it.id) >= 0;
         return open && !on ? null : { id: open ? it.id : null, icon: open ? it.icon : '🔒', label: open ? it.label : null, hint: open ? it.hint || '' : '',
@@ -4722,6 +4761,7 @@ function onButton(q) {
   if (action === 'food') { buyFood(st, user, parts[1], q, edit); saveState(st); return; }
   if (action === 'gemx') { gemExchange(st, user, parts[1], q, edit, eph); saveState(st); return; }
   if (action === 'buy') { buy(st, user, parts[1], parts[2], q, edit); saveState(st); return; }
+  if (action === 'trt') { if (String(user.id) === String(st.owner)) treatGiven(st, parts[1], q, edit); saveState(st); return; }
   if (action === 'earng') { // ArcheRage or WoW tasks; remembered so a task press shows the same game again
     const g = GAMES[parts[1]] ? parts[1] : 'ar'; st.earnGame = st.earnGame || {}; st.earnGame[String(user.id)] = g; toast(q, '');
     if (eph) edit(earnText(st, user.id, g), earnKeyboard(st, user.id, g)); else sayTo(st, user.id, earnText(st, user.id, g), earnKeyboard(st, user.id, g), q, 'earn');
