@@ -430,7 +430,7 @@ body.busy button:not(.pending),body.busy .tile,body.busy .ob{opacity:.6;transiti
 .tcard{background:#fff;border-radius:20px;padding:10px;display:flex;flex-direction:column;gap:6px;box-shadow:0 3px 0 #f0dcc0}
 .tcard .ti{aspect-ratio:1;border-radius:14px;background:#fff;overflow:hidden;cursor:zoom-in}.tcard .ti img{width:100%;height:100%;object-fit:contain;display:block}
 .tcard b{font-size:13.5px;line-height:1.25;flex:1}.tcard small{color:var(--mute);font-weight:800;font-size:11.5px}
-.tcard .tqp{display:flex;align-items:center;justify-content:space-between;gap:6px}.tcard .tqpr{font-size:17px;font-weight:900}
+.tcard .tqp{display:flex;align-items:baseline;justify-content:space-between;gap:6px}.tcard .tqpr{white-space:nowrap}#trv .card.sh{margin-bottom:12px}.tcard .tqs{justify-content:space-between}.tcard.lock .ti{opacity:.55;filter:grayscale(.35)}.tqneed small{display:block;margin-top:4px;color:#b35b00}.tqbar{height:10px;border-radius:6px;background:#f3e9dc;overflow:hidden}.tqbar i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,#ffd27a,#ff9f2e)}.tcard .tqpr{font-size:17px;font-weight:900}
 .tqs{display:flex;align-items:center;gap:6px}.tqs button{width:34px;height:34px;border-radius:12px;border:0;font:900 19px Nunito,sans-serif;cursor:pointer;background:#ffe3b8;color:#b35b00}.tqs button.add{background:linear-gradient(180deg,#3fc46a,#2a9d52);color:#fff;box-shadow:0 3px 0 #1f7a3f}.tqs span{min-width:16px;text-align:center;font-weight:900}
 .tcart{position:fixed;left:12px;right:12px;bottom:calc(var(--navh,92px) + 10px);z-index:42;display:flex;align-items:center;justify-content:space-between;gap:10px;background:#2b2118;color:#fff;border-radius:18px;padding:10px 10px 10px 16px;font-weight:900;box-shadow:0 8px 24px rgba(0,0,0,.25)}
 .tcart button{border:0;border-radius:14px;padding:10px 16px;font:900 15px Nunito,sans-serif;color:#fff;background:linear-gradient(180deg,#3fc46a,#2a9d52);box-shadow:0 3px 0 #1f7a3f;cursor:pointer}
@@ -693,7 +693,7 @@ const TG=window.Telegram&&Telegram.WebApp; try{TG.ready();TG.expand();TG.setHead
 const qs=new URLSearchParams(location.search), API=qs.get('api')||window.FARM_API||'', DEMO=qs.get('demo')==='1'||!(TG&&TG.initData), BETA=qs.get('beta')==='1';
 const quiet=()=>{const h=new Date().getHours();return h<8}; // 00:00–08:00: no vibration
 const hap=t=>{if(quiet())return;try{t==='ok'?TG.HapticFeedback.notificationOccurred('success'):t==='err'?TG.HapticFeedback.notificationOccurred('error'):TG.HapticFeedback.impactOccurred(t||'medium')}catch(e){}};
-const APP_VER='28.11.1034';
+const APP_VER='28.11.1038';
 const $=id=>document.getElementById(id), R=95, C=2*Math.PI*R;
 const fmt=v=>(+v).toLocaleString('uk-UA',{minimumFractionDigits:(+v)%1?2:0,maximumFractionDigits:2});
 const plural=(n,f)=>{n=Math.abs(n)%100;const b=n%10;return n>10&&n<20?f[2]:b===1?f[0]:b>=2&&b<=4?f[1]:f[2]};
@@ -1127,8 +1127,12 @@ document.querySelectorAll('#shseg button').forEach(b=>b.onclick=()=>{hap('light'
 function renderTreats(){const T=S.treats;if(!T){$('shseg').style.display='none';return}
  $('tbal').textContent=fmt(S.me.balance);
  const O=T.orders||[];$('tord').innerHTML=O.length?`<div class="tord">⏳ Чекає видачі: ${O.map(o=>o.items.map(x=>x.name.split(' ')[0]+(x.n>1?' ×'+x.n:'')).join(', ')).join(' · ')}<small>Тато видасть, щойно побачить 🙂</small></div>`:'';
- $('tgrid').innerHTML=T.items.map(t=>{const n=CART[t.id]||0;return `<div class="tcard"><div class="ti" data-z="${t.id}"><img src="${IMGB+t.img}" alt="" loading="lazy"></div><b>${t.name}</b><small>${t.w}</small>
-  <div class="tqp"><span class="tqpr">${fmt(t.price)} ₴</span><div class="tqs">${n?`<button data-m="${t.id}">−</button><span>${n}</span>`:''}<button class="add" data-p="${t.id}">+</button></div></div></div>`}).join('');
+ const bal=S.me.balance,cr=(S.farm&&S.farm.crops)||[],per=cr.length?cr.reduce((a,c)=>a+c.uah,0)/cr.length:0; // ~ one harvest
+ const L=[...T.items].sort((a,b)=>(a.price>bal)-(b.price>bal)||a.price-b.price);
+ $('tgrid').innerHTML=L.map(t=>{const n=CART[t.id]||0,can=t.price<=bal,need=+(t.price-bal).toFixed(2),hv=per>0?Math.ceil(need/per):0;
+  return `<div class="tcard ${can?'':'lock'}"><div class="ti" data-z="${t.id}"><img src="${IMGB+t.img}" alt="" loading="lazy"></div><b>${t.name}</b><div class="tqp"><span class="tqpr">${fmt(t.price)} ₴</span><small>${t.w}</small></div>
+  ${can?`<div class="tqs"><button data-m="${t.id}" style="visibility:${n?'visible':'hidden'}">−</button><span style="visibility:${n?'visible':'hidden'}">${n||0}</span><button class="add" data-p="${t.id}">+</button></div>`
+   :`<div class="tqneed"><div class="tqbar"><i style="width:${Math.max(4,Math.min(100,bal/t.price*100))}%"></i></div><small>ще ${fmt(need)} ₴${hv?` · ~${hv} ${hv===1?'збір':hv<5?'збори':'зборів'}`:''}</small></div>`}</div>`}).join('');
  $('tgrid').querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{CART[b.dataset.p]=(CART[b.dataset.p]||0)+1;hap('light');renderTreats()});
  $('tgrid').querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{const k=b.dataset.m;CART[k]=(CART[k]||0)-1;if(CART[k]<=0)delete CART[k];hap('light');renderTreats()});
  $('tgrid').querySelectorAll('[data-z]').forEach(b=>b.onclick=()=>{const t=tItem(b.dataset.z);$('tzi').src=IMGB+t.img;$('tzn').textContent=t.name+' · '+fmt(t.price)+' ₴';$('tzoom').style.display='flex';hap('light')});
