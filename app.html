@@ -424,6 +424,7 @@ body.busy button:not(.pending),body.busy .tile,body.busy .ob{opacity:.6;transiti
 .hlist{display:flex;flex-direction:column;gap:8px;margin:6px 0 10px}.hrow{display:grid;grid-template-columns:30px 1fr auto;gap:10px;align-items:center;background:#fff;border-radius:16px;padding:10px 12px}
 .hrow .ht b{display:block;font-size:14px}.hrow .ht small{display:block;color:var(--mute);font-weight:800;font-size:11.5px}.hrow .ht span{display:block;font-size:12.5px;font-weight:900;color:#2a9d52;margin-top:2px}
 .hrow button{border:0;border-radius:12px;padding:8px 10px;background:#ffe9e2;color:#d5482a;font:900 12.5px Nunito,sans-serif;cursor:pointer}.hrow em{font-style:normal;font-size:12px;font-weight:900;color:var(--mute)}.hrow.und{opacity:.55}
+.crop .rw.bon{color:#e07b00;font-size:11.5px;font-weight:900;margin-top:-2px}
 .hint{margin:8px 2px 0;font-size:12px;color:var(--mute);font-weight:800}
 .fsrc{display:flex;height:26px;border-radius:13px;overflow:hidden;margin:8px 0;background:#f3e9dc}.fsrc s{display:block;height:100%}
 .fleg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:6px}.fleg div{background:#fff;border-radius:14px;padding:8px;text-align:center}.fleg b{display:block;font-size:16px}.fleg small{font-size:11px;color:var(--mute);font-weight:800}.fleg i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:4px}
@@ -668,7 +669,7 @@ const TG=window.Telegram&&Telegram.WebApp; try{TG.ready();TG.expand();TG.setHead
 const qs=new URLSearchParams(location.search), API=qs.get('api')||window.FARM_API||'', DEMO=qs.get('demo')==='1'||!(TG&&TG.initData), BETA=qs.get('beta')==='1';
 const quiet=()=>{const h=new Date().getHours();return h<8}; // 00:00–08:00: no vibration
 const hap=t=>{if(quiet())return;try{t==='ok'?TG.HapticFeedback.notificationOccurred('success'):t==='err'?TG.HapticFeedback.notificationOccurred('error'):TG.HapticFeedback.impactOccurred(t||'medium')}catch(e){}};
-const APP_VER='28.11.0059';
+const APP_VER='28.11.1030';
 const $=id=>document.getElementById(id), R=95, C=2*Math.PI*R;
 const fmt=v=>(+v).toLocaleString('uk-UA',{minimumFractionDigits:(+v)%1?2:0,maximumFractionDigits:2});
 const plural=(n,f)=>{n=Math.abs(n)%100;const b=n%10;return n>10&&n<20?f[2]:b===1?f[0]:b>=2&&b<=4?f[1]:f[2]};
@@ -764,9 +765,11 @@ function preview(uah){if(!S||!S.me.norm)return;previewing=uah?1:0;ghostSet(uah||
 function ghostSet(add){const g=$('ghost'),p=Math.min(1,(S.me.done+add)/S.me.norm);g.style.width=(p*100)+'%';const on=add>0&&S.me.done<S.me.norm;
  if(on!==g.classList.contains('pulse')){g.classList.toggle('pulse',on);g.style.animationDelay=-(Date.now()%1600)+'ms'}}
 function leftMs(c){const at=c.ripe||c.due;return at?Math.max(0,at-(Date.now()+OFF)):0} // ripe: real growth end; due: the reminder (may be moved to the morning)
+// 🌅 early bird: +1 💎 more before the hour; 💎 season: +N% to every crystal (shown on both cards, so they stay the same height)
+function cropBonus(){const B=S.farm.bonus||{},t=[];if(B.early&&new Date().getHours()<B.early)t.push(`🌅 ще +1 💎 до ${B.early}:00`);if(B.boost)t.push(`💎 +${B.boost}% до кристалів`);return t.length?`<div class="rw bon">${t.join(' · ')}</div>`:''}
 function renderCrops(){$('hv').innerHTML=S.farm.crops.map(c=>`<div class="card crop" id="c_${c.id}"><span class="beam"></span><div class="t">${c.icon} ${c.name}</div><div class="rw sub">${c.crop||'&nbsp;'}</div>
  <div class="mini"><svg viewBox="0 0 86 86"><circle class="tr" cx="43" cy="43" r="37"/><circle class="pr" cx="43" cy="43" r="37"/></svg><div class="ic">${c.icon.split(/(?=[\uD800-\uDBFF])/)[0]}</div></div>
- <div class="rw">+${fmt(c.uah)} ₴ · +${fmt(c.gem)} 💎</div><button class="btn"></button></div>`).join('');
+ <div class="rw">+${fmt(c.uah)} ₴ · +${fmt(c.gem)} 💎</div>${cropBonus()}<button class="btn"></button></div>`).join('');
  for(const c of S.farm.crops){const el=$('c_'+c.id),b=el.querySelector('button');b.onclick=()=>harvest(c,el.querySelector('.mini'));
   b.onpointerenter=()=>preview(c.uah);b.onpointerleave=()=>preview();b.ontouchstart=()=>preview(c.uah)}
  tickCrops()}
